@@ -19,9 +19,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         var zee = 0;
         var role = 0;
 
-        var baseURL = 'https://system.na2.netsuite.com';
+        var baseURL = 'https://1048144.app.netsuite.com';
         if (runtime.EnvType == "SANDBOX") {
-            baseURL = 'https://system.sandbox.netsuite.com';
+            baseURL = 'https://1048144-sb3.app.netsuite.com';
         }
 
         role = runtime.getCurrentUser().role;
@@ -34,33 +34,36 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             zee = 425904; //test-AR
         }
 
-        function onRequest(context){
+        function onRequest(context) {
             var type = 'create';
-            if (context.request.method === 'GET'){
-                type = context.request.paramters.type;
-                
+            if (context.request.method === 'GET') {
+                type = context.request.parameters.type;
+
+                var form = ui.createForm({
+                    title: 'Debt Collection'
+                });
+
                 // Load jQuery
                 var inlineHtml = '<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>';
-        
+
                 // Load Bootstrap
                 inlineHtml += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">';
                 inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
-        
+
                 // Load DataTables
                 inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">';
                 inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>';
-        
+
                 // Load Netsuite stylesheet and script
                 inlineHtml += '<link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/>';
                 inlineHtml += '<script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script>';
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
-        
-                inlineHtml += dataTable();
                 
-                var form = ui.createForm({
-                    title: 'Debt Collection'
-                });
+                inlineHtml += rangeSelection();
+                inlineHtml += dateFilterSection();
+                inlineHtml += dataTable();
+                inlineHtml += loadingSection();
 
                 form.addButton({
                     id: 'saveCSV',
@@ -76,6 +79,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     layoutType: ui.FieldLayoutType.STARTROW
                 }).defaultValue = inlineHtml;
 
+                form.clientScriptFileId = 4241008;
+
                 context.response.writePage(form);
             }
         }
@@ -85,8 +90,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * @return  {String}    inlineQty
          */
         function dataTable() {
-            var inlineQty = '<style>table#debt-preview {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#debt-preview th{text-align: center;} .bolded{font-weight: bold;}</style>';
-            inlineQty += '<table cellpadding="15" id="debt-preview" class="table table-responsive table-striped customer tablesorter" cellspacing="0" style="width: 100%;">';
+            var inlineQty = '<style>table#debt_preview {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#debt_preview th{text-align: center;} .bolded{font-weight: bold;}</style>';
+            inlineQty += '<table cellpadding="15" id="debt_preview" class="table table-responsive table-striped customer tablesorter" cellspacing="0" style="width: 100%;">';
             inlineQty += '<thead style="color: white;background-color: #607799;">';
             inlineQty += '<tr class="text-center">';
             inlineQty += '</tr>';
@@ -98,9 +103,90 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return inlineQty;
         }
 
+        /**
+         * The header showing that the results are loading.
+         * @returns {String} `inlineQty`
+         */
+        function loadingSection() {
+            var inlineQty = '<div class="form-group container loading_section" style="text-align:center">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-xs-12 loading_div">';
+            inlineQty += '<h1>Loading...</h1>';
+            inlineQty += '</div></div></div>';
+
+            return inlineQty;
+        }
+
+        function rangeSelection(){
+            var inlineQty = '<div class="form-group container total_amount_section">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">Date Range Filter</span></h4></div>';
+            inlineQty += '</div>';
+            inlineQty += '</div>';
+
+            inlineQty += '<div class="form-group container range_filter_section">';
+            inlineQty += '<div class="row">';
+
+            inlineQty += '<div class="col-xs-2 mpex">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="date_to_text">MPEX Products</span>';
+            inlineQty += '<input id="mpex" type="radio" class="form-control mpex"</label><br/>';
+            inlineQty += '</div></div>';
+
+            inlineQty += '<div class="col-xs-2 to_59">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="date_to_text">0 - 59 Days</span>';
+            inlineQty += '<input id="to_59" type="radio" class="form-control to_59"></label><br/>';
+            inlineQty += '</div></div>';
+
+            inlineQty += '<div class="col-xs-2 from_60">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="date_to_text">60+ Days</span>';
+            inlineQty += '<input id="from_60" type="radio" class="form-control from_60"></label><br/>';
+            inlineQty += '</div></div>';
+            inlineQty += '</div></div>';
+
+            return inlineQty;
+        }
+
+
+        /**
+         * The date input fields to filter the invoices.
+         * Even if the parameters `date_from` and `date_to` are defined, they can't be initiated in the HTML code.
+         * They are initiated with jQuery in the `pageInit()` function.
+         * @return  {String} `inlineQty`
+         */
+        function dateFilterSection() {
+            var inlineQty = '<div class="form-group container total_amount_section">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">Date Filter</span></h4></div>';
+            inlineQty += '</div>';
+            inlineQty += '</div>';
+
+            inlineQty += '<div class="form-group container date_filter_section">';
+            inlineQty += '<div class="row">';
+            // Date from field
+            inlineQty += '<div class="col-xs-6 date_from">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="date_from_text">FROM</span>';
+            inlineQty += '<input id="date_from" class="form-control date_from" type="date"/>';
+            inlineQty += '</div></div>';
+            // Date to field
+            inlineQty += '<div class="col-xs-6 date_to">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="date_to_text">TO</span>';
+            inlineQty += '<input id="date_to" class="form-control date_to" type="date">';
+            inlineQty += '</div></div></div></div>';
+
+            return inlineQty;
+        }
+
         return {
             onRequest: onRequest,
-            dataTable: dataTable
+            dataTable: dataTable,
+            loadingSection: loadingSection,
+            rangeSelection: rangeSelection,
+            dateFilterSection: dateFilterSection
         }
     }
 );
