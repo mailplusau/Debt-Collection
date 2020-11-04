@@ -41,12 +41,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log'],
             // var date_from = ctx.getSetting('SCRIPT', 'custscript_debt_inv_date_from');
             var date_from = parseInt(ctx.getParameter({name: 'custscript_debt_inv_date_from'}));
             if (isNullorEmpty(date_from)) {
-                date_from = '';
+                date_from = '1/10/20';
             }
             // var date_to = ctx.getSetting('SCRIPT', 'custscript_debt_inv_date_to');
             var date_to = parseInt(ctx.getParameter({name: 'custscript_debt_inv_date_to'}));
             if (isNullorEmpty(date_to)) {
-                date_to = '';
+                date_to = '15/10/20';
             }
             // var script_main_index = parseInt(ctx.getSetting('SCRIPT', 'custscript_main_index'));
             var script_main_index = parseInt(ctx.getParameter({name: 'custscript_main_index'}));
@@ -104,30 +104,43 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log'],
                     }
                 } else {
                     var invoice_id = invoiceSet.getValue({
-                        fieldId: 'internalid'
-                    })
-                    var customer_id = invoiceSet.getValue({
-                        fieldId: 'internalid'
+                        name: 'internalid'
+                    });
+                    log.debug({
+                        title: 'Invoice ID',
+                        details: invoice_id
                     });
 
                     var customer_id = invoiceSet.getValue({
+                        name: 'internalid'
+                    });
+                    log.debug({
+                        title: 'Customer ID',
+                        details: customer_id
+                    });
+
+                    var customer_record_id = invoiceSet.getValue({
                         join: 'customer',
                         name: 'internalid'
+                    });
+                    log.debug({
+                        title: 'Customer Record: ID',
+                        details: customer_record_id
                     });
 
                     var customer_name = invoiceSet.getValue({
                         join: "customer",
-                        fieldId: 'companyname'
+                        name: 'companyname'
                     });
 
                     var zee_name = invoiceSet.getValue({
-                        fieldId: 'partner'
+                        name: 'partner'
                     });
 
                     var total_num = '1';
 
                     var total_amount = parseFloat(invoiceSet.getField({
-                        fieldId: 'amount'
+                        name: 'amount'
                     }));
 
                     // var note = invoiceSet.getField({
@@ -153,10 +166,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log'],
             var will_reschedule = (indexInCallback < 999) ? false : true;
             if (will_reschedule) {
                 // If the script will be rescheduled, we look for the element 999 of the loop to see if it is empty or not.
-                var resultSet = serviceAndFinancialPrices.run().getResults(main_index + index_in_callback, main_index + index_in_callback + 1);
+                var resultSet = invResultSet.getResults(main_index + index_in_callback, main_index + index_in_callback + 1);
             } else {
                 // If the script will not be rescheduled, we make sure we didn't miss any results in the search.
-                var resultSet = serviceAndFinancialPrices.run().getResults(main_index + index_in_callback + 1, main_index + index_in_callback + 2);
+                var resultSet = invResultSet.getResults(main_index + index_in_callback + 1, main_index + index_in_callback + 2);
             }
 
             // var invRecord = nlapiCreateRecord('customrecord_debt_coll_inv');
