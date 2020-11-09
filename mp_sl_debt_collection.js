@@ -14,8 +14,8 @@
  * 
  */
 
-define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect'],
-    function(ui, email, runtime, search, record, http, log, redirect) {
+define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/task'],
+    function(ui, email, runtime, search, record, http, log, redirect, task) {
         var zee = 0;
         var role = 0;
 
@@ -59,16 +59,48 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script>';
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
-                
+
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
                 inlineHtml += dataTable();
                 inlineHtml += loadingSection();
 
+                var params = context.request.parameters;
+                // console.log(params);
+                // if (!isNullorEmpty(params)){
+                //     params = JSON.parse(params);
+                //     date_from = params.date_from;
+                //     date_to = params.date_to;
+                // }
+
+                var date_from = '1/10/2020';
+                var date_to = '31/10/2020';
+
+                var ss_params = {
+                    // custscript_debt_inv_range: range_id,
+                    custscript_debt_inv_date_from: date_from,
+                    custscript_debt_inv_date_to: date_to,
+                    custscript_debt_inv_debt_set: JSON.stringify([]),
+                    custscript_debt_inv_invoice_id_set: JSON.stringify([])
+                };
+
+                task.create({
+                    taskType: task.TaskType.SCHEDULED_SCRIPT,
+                    scriptId: 'customscript_ss_debt_collection',
+                    deploymentId: 'customdeploy_ss_debt_collection',
+                    params: ss_params,
+                });
+
                 form.addButton({
                     id: 'saveCSV',
                     label: 'Save CSV',
                     functionName: 'saveCSV()'
+                });
+
+                form.addButton({
+                    id: 'search',
+                    label: 'Search!',
+                    functionName: 'search()'
                 });
 
                 form.addField({
@@ -117,33 +149,43 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return inlineQty;
         }
 
-        function rangeSelection(){
+        function rangeSelection() {
             var inlineQty = '<div class="form-group container total_amount_section">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">Date Range Filter</span></h4></div>';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">RANGE FILTER</span></h4></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
 
             inlineQty += '<div class="form-group container range_filter_section">';
             inlineQty += '<div class="row">';
-
-            inlineQty += '<div class="col-xs-2 mpex">';
+            inlineQty += '<div class="col-xs-12 range_section">';
             inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="date_to_text">MPEX Products</span>';
-            inlineQty += '<input id="mpex" type="radio" class="form-control mpex"</label><br/>';
+            inlineQty += '<span class="input-group-addon" id="range_filter_text">Range Selection</span>';
+            inlineQty += '<select multiple id="range_filter" class="form-control" size="3">';
+            inlineQty += '<option value="1" selected>MPEX Products</option>';
+            inlineQty += '<option value="2">0 - 59 Days</option>';
+            inlineQty += '<option value="3">60+ Days</option>';
+            inlineQty += '</select>';
             inlineQty += '</div></div>';
 
-            inlineQty += '<div class="col-xs-2 to_59">';
-            inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="date_to_text">0 - 59 Days</span>';
-            inlineQty += '<input id="to_59" type="radio" class="form-control to_59"></label><br/>';
-            inlineQty += '</div></div>';
+            // inlineQty += '<div class="col-xs-2 mpex">';
+            // inlineQty += '<div class="input-group">';
+            // inlineQty += '<span class="input-group-addon" id="date_to_text">MPEX Products</span>';
+            // inlineQty += '<input id="mpex" type="radio" class="form-control mpex"</label><br/>';
+            // inlineQty += '</div></div>';
 
-            inlineQty += '<div class="col-xs-2 from_60">';
-            inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="date_to_text">60+ Days</span>';
-            inlineQty += '<input id="from_60" type="radio" class="form-control from_60"></label><br/>';
-            inlineQty += '</div></div>';
+            // inlineQty += '<div class="col-xs-2 to_59">';
+            // inlineQty += '<div class="input-group">';
+            // inlineQty += '<span class="input-group-addon" id="date_to_text">0 - 59 Days</span>';
+            // inlineQty += '<input id="to_59" type="radio" class="form-control to_59"></label><br/>';
+            // inlineQty += '</div></div>';
+
+            // inlineQty += '<div class="col-xs-2 from_60">';
+            // inlineQty += '<div class="input-group">';
+            // inlineQty += '<span class="input-group-addon" id="date_to_text">60+ Days</span>';
+            // inlineQty += '<input id="from_60" type="radio" class="form-control from_60"></label><br/>';
+            // inlineQty += '</div></div>';
+
             inlineQty += '</div></div>';
 
             return inlineQty;
@@ -159,7 +201,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         function dateFilterSection() {
             var inlineQty = '<div class="form-group container total_amount_section">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">Date Filter</span></h4></div>';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">DATE FILTER</span></h4></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
 
@@ -181,12 +223,16 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return inlineQty;
         }
 
+        function isNullorEmpty(val) {
+            if (val == '' || val == null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         return {
-            onRequest: onRequest,
-            dataTable: dataTable,
-            loadingSection: loadingSection,
-            rangeSelection: rangeSelection,
-            dateFilterSection: dateFilterSection
+            onRequest: onRequest
         }
     }
 );

@@ -40,6 +40,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
 
         function pageInit() {
             $(document).ready(function() {
+                // $('#range_filter').selectpicker();
+
                 $('#debt_preview').DataTable({
                     data: debtDataSet,
                     pageLength: 100,
@@ -62,57 +64,81 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                     }]
                 });
             });
-            
-            loadDebtTable();
+            // $('#selector_id').click(function(){
+            //     var selector_type = $('#selector_type').val();
+            //     var selector_id = $('#selector_id').val();
+
+            // });
+            loadDebtTable(); //selector_id, selector_type
+            // selectRangeOptions();
         }
 
-        function loadDebtTable(){
-            var date_from = '';
-            var date_to = '';
-            var range_id = '';
+        function loadDebtTable() { //selector_id, selector_type
+            var date_from = '31/10/2020';
+            var date_to = '1/10/2020';
+            var range_id = 0;
 
-            if (!isNullorEmpty(range_id)){
+            switch (selector_type) {
+                // MPEX = 0, 0-59 = 1, 60+ = 2;
+                case ($('#mpex') == 'on'):
+                    range_id += 1;
+                    break;
+
+                case ($('#to_59') == 'on'):
+                    range_id += 2;
+                    break;
+
+                case ($('#from_60') == 'on'):
+                    range_id += 3;
+                    console.log(from_60);
+                    break;
+
+                default:
+                    range_id = 0;
+                    break;
+            }
+            if (range_id > 3) {
+                range_id = 4;
+            }
+
+
+            if (!isNullorEmpty(range_id)) {
                 clearInterval(load_record_interval);
-                load_record_interval = setInterval(loadDebtRecord, 1000, range_id, date_from, date_to);
+                load_record_interval = setInterval(loadDebtRecord, 5000, range_id, date_from, date_to);
             }
             log.debug({
                 title: 'load_record_interval',
                 details: load_record_interval
             });
+            // var loadSearch = loadDebtRecord(range_id, date_from, date_to);
+            // console.log(loadSearch);
         }
 
-        function loadDebtRecord(range_id, date_from, date_to){
+        function loadDebtRecord(range_id, date_from, date_to) {
             // var debtSearchRecord = nlapiLoadSearch('customrecord_','customsearch_debt_coll_inv');
-
             var invoiceResults = search.load({
-                id: 'customsearch_debt_coll_inv',
                 type: 'customrecord_debt_coll_inv',
-                filters:
-                [
-                    ["type","anyof","CustInvc"], 
-                    "AND", 
-                    ["mainline","is","T"], 
-                    "AND", 
-                    ["status","anyof","CustInvc:A"],
-                    ['trandate','within', date_from, date_to]
-                ]
+                id: 'customsearch_debt_coll_table'
+
             });
+            console.log(invoiceResults);
+            var invoiceResult = invoiceResults.run();
+            console.log(invoiceResult);
 
-            invoiceResults.run();
-            var invoiceResult = invoiceResults.getResults(0, 1);
+            if (!isNullorEmpty(invoiceResult)) {
+                invoiceResult.each(function(debtRecord) {
+                    // var debtRecord = invoiceResult[0];
+                    console.log(debtRecord);
 
-            if (!isNullorEmpty(invoiceResult)){
-                var debtRecord = invoiceResult[0];
+                    var debt_rows = JSON.parse(debtRecord.getValue({
+                        name: 'custrecord_debt_inv_set'
+                    }));
 
-                var debt_rows = JSON.parse(debtRecord.getValue({
-                    fieldId: 'custrecord_debt_inv_set'
-                }));
-                
-                loadDatatable(debt_rows);
+                    console.log(debt_rows);
+                    loadDatatable(debt_rows);
+                });
             }
-
-            
-        }   
+        }
 
         function loadDatatable(debt_rows) {
             $('#result_debt').empty();
@@ -125,15 +151,20 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                         title: 'Customer Name',
                         details: debt_row.cm
                     });
-                    log.debug({
-                        title: 'Customer ID',
-                        details: debt_row.cid
-                    });
-                    var company_name = debt_row.cm;
+                    var customer_id = debt_row.cid;
+                    // log.debug({
+                    //     title: 'Customer ID',
+                    //     details: customer_id
+                    // });
+                    var cm_link = debt_row.cm;
+                    var upload_url = baseURL + '/app/common/entity/custjob.nl?id=' + customer_id; // WORK IN PROGRESS - Sruti will give me the URL for the CUSTOMER PAGE 
+                    var company_name = '<a href="' + upload_url + '">' + cm_link + '</a>';
+
                     var zee = debt_row.zee;
                     var tot_num = debt_row.tn;
                     var tot_am = debt_row.ta;
-                    var note = debt_row.nt;
+                    var noteInfo = debt_row.nt;
+                    var note = '<input id="note">' + noteInfo + '</input>';
                     debtDataSet.push([company_name, zee, tot_num, tot_am, note]);
                 });
             }
@@ -148,6 +179,27 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             saveCSV(debtDataSet);
 
             return true;
+        }
+
+        function rangeSelection() {
+            var range_values = $('#range_filter').val();
+            var range_array = [];
+            if (!isNullorEmpty(range_values)) {
+                for (var i = 0; i < range_values.length; i++) {
+                    range_array.push($('#range_filter option:selected').val(range_value)[i].text);
+                }
+            }
+            return range_array;
+        }
+
+        /**
+         * Function to select Range Options
+         */
+        function selectRangeOptions() {
+            var rangeArray = rangeSelection();
+            var range_filter = $('#range_filter option:selected').map(function() { return $(this).val() });
+            range_filter = $.makeArray(range_filter);
+            $('range_filter').selectpicker('val', range_filter);
         }
 
         /**
