@@ -46,6 +46,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // Load jQuery
                 var inlineHtml = '<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>';
 
+                // Load Tooltip
+                inlineHtml += '<script src="https://unpkg.com/@popperjs/core@2"></script>';
+
                 // Load Bootstrap
                 inlineHtml += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">';
                 inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
@@ -53,6 +56,17 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // Load DataTables
                 inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">';
                 inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>';
+
+                // Load Bootstrap-Select
+                inlineHtml += '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">';
+                inlineHtml += '<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>';
+
+                // Load Netsuite stylesheet and script
+                inlineHtml += '<link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/>';
+                inlineHtml += '<script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script>';
+                inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
+                inlineHtml += '<style>.mandatory{color:red;}</style>';
+
 
                 // Load Netsuite stylesheet and script
                 inlineHtml += '<link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/>';
@@ -76,32 +90,26 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var date_from = '1/10/2020';
                 var date_to = '31/10/2020';
 
-                var ss_params = {
-                    // custscript_debt_inv_range: range_id,
-                    custscript_debt_inv_date_from: date_from,
-                    custscript_debt_inv_date_to: date_to,
-                    custscript_debt_inv_debt_set: JSON.stringify([]),
-                    custscript_debt_inv_invoice_id_set: JSON.stringify([])
-                };
+                // var ss_params = {
+                //     // custscript_debt_inv_range: range_id,
+                //     custscript_debt_inv_date_from: date_from,
+                //     custscript_debt_inv_date_to: date_to,
+                //     custscript_debt_inv_debt_set: JSON.stringify([]),
+                //     custscript_debt_inv_invoice_id_set: JSON.stringify([])
+                // };
 
-                task.create({
-                    taskType: task.TaskType.SCHEDULED_SCRIPT,
-                    scriptId: 'customscript_ss_debt_collection',
-                    deploymentId: 'customdeploy_ss_debt_collection',
-                    params: ss_params,
-                });
+                // task.create({
+                //     taskType: task.TaskType.SCHEDULED_SCRIPT,
+                //     scriptId: 'customscript_ss_debt_collection',
+                //     deploymentId: 'customdeploy_ss_debt_collection',
+                //     params: ss_params,
+                // });
 
-                form.addButton({
-                    id: 'saveCSV',
-                    label: 'Save CSV',
-                    functionName: 'saveCSV()'
-                });
-
-                form.addButton({
-                    id: 'search',
-                    label: 'Search!',
-                    functionName: 'search()'
-                });
+                // form.addButton({
+                //     id: 'saveCSV',
+                //     label: 'Save CSV',
+                //     functionName: 'saveCSV()'
+                // });
 
                 form.addField({
                     id: 'preview_table',
@@ -110,6 +118,18 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
                 }).defaultValue = inlineHtml;
+
+                form.addButton({
+                    id: 'submit',
+                    label: 'Submit Search',
+                    functionName: 'submit()'
+                });
+
+                // form.addField({
+                //     id: 'preview_table',
+                //     label: 'inlineqty',
+                //     type: 'inlinehtml'
+                // }).defaultValue = inlineQty;
 
                 form.clientScriptFileId = 4241008;
 
@@ -140,7 +160,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * @returns {String} `inlineQty`
          */
         function loadingSection() {
-            var inlineQty = '<div class="form-group container loading_section" style="text-align:center">';
+            var inlineQty = '<div id="load_section" class="form-group container loading_section" style="text-align:center">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-12 loading_div">';
             inlineQty += '<h1>Loading...</h1>';
@@ -162,8 +182,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="range_filter_text">Range Selection</span>';
             inlineQty += '<select multiple id="range_filter" class="form-control" size="3">';
-            inlineQty += '<option value="1" selected>MPEX Products</option>';
-            inlineQty += '<option value="2">0 - 59 Days</option>';
+            inlineQty += '<option value="1">MPEX Products</option>';
+            inlineQty += '<option value="2" selected>0 - 59 Days</option>';
             inlineQty += '<option value="3">60+ Days</option>';
             inlineQty += '</select>';
             inlineQty += '</div></div>';
@@ -205,6 +225,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '</div>';
             inlineQty += '</div>';
 
+            inlineQty += periodDropdownSection();
+
             inlineQty += '<div class="form-group container date_filter_section">';
             inlineQty += '<div class="row">';
             // Date from field
@@ -218,6 +240,34 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="date_to_text">TO</span>';
             inlineQty += '<input id="date_to" class="form-control date_to" type="date">';
+            inlineQty += '</div></div></div></div>';
+
+            return inlineQty;
+        }
+
+        /**
+         * The period dropdown field.
+         * @param   {String}    date_from
+         * @param   {String}    date_to
+         * @return  {String}    `inlineQty`
+         */
+        function periodDropdownSection(date_from, date_to) {
+            var selected_option = (isNullorEmpty(date_from) && isNullorEmpty(date_to)) ? 'selected' : '';
+            var inlineQty = '<div class="form-group container period_dropdown_section">';
+            inlineQty += '<div class="row">';
+            // Period dropdown field
+            inlineQty += '<div class="col-xs-12 period_dropdown_div">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="period_dropdown_text">PERIOD</span>';
+            inlineQty += '<select id="period_dropdown" class="form-control">';
+            inlineQty += '<option></option>';
+            inlineQty += '<option value="this_week">This Week</option>';
+            inlineQty += '<option value="last_week">Last Week</option>';
+            inlineQty += '<option value="this_month">This Month</option>';
+            inlineQty += '<option value="last_month" ' + selected_option + '>Last Month</option>';
+            inlineQty += '<option value="full_year">Full Year (1 Jan -)</option>';
+            inlineQty += '<option value="financial_year">Financial Year (1 Jul -)</option>';
+            inlineQty += '</select>';
             inlineQty += '</div></div></div></div>';
 
             return inlineQty;
