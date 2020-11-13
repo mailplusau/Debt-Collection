@@ -15,17 +15,18 @@
  * 
  */
 
-define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/runtime', 'N/error'],
-    function(email, runtime, search, record, http, log, error) {
+define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/error', 'N/url', 'N/format'], 
+    function(email, runtime, search, record, http, log, error, url, format) {
         var zee = 0;
         var role = 0;
 
-        var baseURL = 'https://1048144.app.netsuite.com';
-        if (runtime.EnvType == "SANDBOX") {
-            baseURL = 'https://1048144-sb3.app.netsuite.com';
-        }
+        // var baseURL = 'https://1048144.app.netsuite.com';
+        // if (runtime.EnvType == "SANDBOX") {
+        //     baseURL = 'https://1048144-sb3.app.netsuite.com';
+        // }
 
         role = runtime.getCurrentUser().role;
+        var userName = runtime.getCurrentUser().name;
 
         if (role == 1000) {
             zee = runtime.getCurrentUser().id;
@@ -35,14 +36,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             zee = 425904; //test-AR
         }
 
-        var load_record_interval;
+        // var load_record_interval;
         var debtDataSet = JSON.parse(JSON.stringify([]));
         var invoice_id_set = JSON.parse(JSON.stringify([]));
         var debt_set = JSON.parse(JSON.stringify([]));
 
         function pageInit() {
             $(document).ready(function() {
-                // $('#range_filter').selectpicker();
                 $('#debt_preview').DataTable({
                     data: debtDataSet,
                     pageLength: 100,
@@ -60,29 +60,27 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                         { title: 'Notes' }
                     ],
                     columnDefs: [{
-                        targets: [0, 1, 2],
+                        targets: [0, 2, 3],
                         className: 'bolded'
                     }]
                 });
             });
 
-            var date_from = dateISOToNetsuite($('#date_from').val());
-            var date_to = dateISOToNetsuite($('#date_to').val());
-            var range = JSON.parse($('#range_filter').val());
-
             selectRangeOptions();
             hideLoading();
 
-            if (!isNullorEmpty($('#period_dropdown option:selected').val())) {
-                selectDate();
-            }
-            $('#period_dropdown').change(function() {
-                selectDate()
-            });
-
             $('#submit').click(function() {
                 showResults();
-                console.log('Load DataTable Params: ' + range, date_from, date_to);
+                var range = $('#range_filter').val();
+                console.log(range);
+                $('#range_filter').selectpicker();
+
+                // var date_from = $('#date_from').val();
+                // var date_to = $('#date_to').val();
+                // date_from = dateISOToNetsuite(date_from)
+                // date_to = dateISOToNetsuite(date_to);
+
+                console.log('Load DataTable Params: ' + range + date_from + date_to);
                 // if (!isNullorEmpty(range) && !isNullorEmpty(date_from) && !isNullorEmpty(date_to)) {
                 loadDebtTable(range, date_from, date_to); //selector_id, selector_type
                 // }
@@ -92,6 +90,35 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                 //     //     name: 'Invalid Data'
                 //     // });
                 // }
+                $('.note').on('click', onclick_noteSection());
+                $('.note').click(function (){
+                    console.log((this.id).split('_')[1]);
+                });
+            });
+
+            if (!isNullorEmpty($('#period_dropdown option:selected').val())) {
+                selectDate();
+            }
+            $('#period_dropdown').change(function() {
+                selectDate();
+            });
+
+            $('#debt_preview').promise().done(function() {
+                var range = $('#range_filter').val();
+                console.log(range);
+                $('#range_filter').selectpicker();
+
+                var date_from = $('#date_from').val();
+                var date_to = $('#date_to').val();
+                date_from = dateISOToNetsuite(date_from)
+                date_to = dateISOToNetsuite(date_to);
+
+                // loadDebtTable(range, date_from, date_to); //selector_id, selector_type
+                console.log(date_to);
+            }); 
+
+            $('#date_to').blur(function(){
+                console.log(date_to);
             });
         }
 
@@ -105,16 +132,33 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             $('#load_section').show();
         }
 
+        function onclick_noteSection(){
+            var custid = (this.id).split('_')[1];
+            console.log("Cust Id From Input Field: " + custid);
+            var noteVal = $('#note_'+ custid + '').val();
+            console.log("Note Value: " + noteVal)
+            
+            // var custRecord = record.load({
+            //     type: 'customer',
+            //     id: custid
+            // });
+
+            // custRecord.setValue({
+            //     fieldId: '',
+            //     value: noteVal + ':  ' + userName;
+            // });
+        }
+
         function loadDebtTable(range, date_from, date_to) { //selector_id, selector_type
             var date_to_Filter = search.createFilter({
                 name: 'trandate',
                 operator: search.Operator.BEFORE,
-                values: date_to
+                values: '31/10/2020'
             });
             var date_from_Filter = search.createFilter({
                 name: 'trandate',
                 operator: search.Operator.AFTER,
-                values: date_from
+                values: '1/10/2020'
             });
             console.log('DATE FILTER: ' + JSON.stringify(date_to_Filter));
 
@@ -126,7 +170,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             // "AND", ['trandate', 'after', date_from]
             // ["daysoverdue","lessthan","60"]
 
-            for (var i = 0; i < range.length; i++) {
+            for (var i = 0; i < JSON.parse(range.length); i++) {
                 console.log('Range ID: ' + JSON.parse(range[i]));
                 var selector_id = JSON.parse(range[i]);
                 if (selector_id == '1') {
@@ -153,27 +197,26 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                         values: '60'
                     });
                 }
-                console.log('Filter Contents: ' + myFilter);
+                console.log('Filter Contents: ' + myFilter1);
             }
             var invoiceResult = search.load({
                 id: 'customsearch_debt_coll_inv',
-                type: 'invoice',
+                type: 'invoice'
                 // filters: [
                 //     ['type', 'anyOf', 'CustInvc'],
                 //     'and', ['status', 'anyof', 'CustInvc:A'],
                 //     'and', date_to_Filter, date_from_Filter,
                 // ]
             });
-            // invoiceResult.filters.push(date_to_Filter);
-            // invoiceResult.filters.push(date_from_Filter);
+            invoiceResult.filters.push(date_to_Filter);
+            invoiceResult.filters.push(date_from_Filter);
             if (!isNullorEmpty(myFilter1)) { invoiceResult.filters.push(myFilter1); }
             if (!isNullorEmpty(myFilter2)) { invoiceResult.filters.push(myFilter2); }
             if (!isNullorEmpty(myFilter3)) { invoiceResult.filters.push(myFilter3); }
-            // var searchResult = invoiceResult.run().getRange({
-            //     start: 0,
-            //     end: 1000
-            // });
-            var searchResult = invoiceResult.run();
+            var searchResult = invoiceResult.run().getRange({
+                start: 0,
+                end: 50
+            });
 
             if (!isNullorEmpty(range)) { //&& !isNullorEmpty(date_from) && !isNullorEmpty(date_to)
                 // clearInterval(load_record_interval);
@@ -210,33 +253,30 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             // if (!isNullorEmpty(invResultSet)) {
             //     invResultSet.forEach(function(invoiceSet, index) {
             if (!isNullorEmpty(searchResult)) {
-                searchResult.each(function(invoiceSet, index) {
+                searchResult.forEach(function(invoiceSet, index) {
                     var invoice_id = invoiceSet.getValue({
                         name: 'internalid'
                     });
-                    if (invoice_id_set.indexOf(invoice_id) == -1) {
-                        invoice_id_set.push(invoice_id);
-                        log.debug({
-                            title: 'invoiceSet',
-                            details: invoiceSet
-                        });
-
+                    // if (invoice_id_set.indexOf(invoice_id) == -1) {
+                        // invoice_id_set.push(invoice_id);
                         var customer_id = invoiceSet.getValue({
                             name: 'internalid',
                             join: 'customer'
                         });
+                        console.log('Customer ID: ' + customer_id);
 
                         var customer_name = invoiceSet.getValue({
                             name: 'companyname',
                             join: "customer"
                         });
+                        console.log('Customer Name: ' + customer_name);
 
                         var zee_name = invoiceSet.getText({
                             name: 'partner'
                         });
 
                         // if () {
-                        var total_num = '10';
+                        var total_num = '';
                         // }
 
                         var total_amount = parseFloat(invoiceSet.getValue({
@@ -247,10 +287,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                             type: 'customer',
                             id: customer_id
                         });
-                        var note = customerSearch.getValue({
-                            fieldId: 'custentity4'
-                        });
-                        // var note = 'User Notes Information - AC 9/11/20';
+                        // var note = customerSearch.getValue({
+                        //     fieldId: 'custentity4'
+                        // });
+                        var note = 'User Notes Information - AC 9/11/20';
                         debt_set.push({
                             inid: invoice_id_set,
                             cid: customer_id,
@@ -262,7 +302,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                         });
 
                         return true;
-                    }
+                    // }
                 });
                 console.log('Data Set: ' + JSON.stringify(debt_set));
                 loadDatatable(debt_set);
@@ -279,8 +319,22 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                     var customer_id = debt_row.cid;
                     console.log('Customer ID: ' + customer_id);
                     var cm_link = debt_row.cm;
-                    var upload_url = baseURL + '/app/site/hosting/scriptlet.nl?script=1046&deploy=1&compid=1048144_SB3&unlayered=T&custparam_params=%7B"custid":' + customer_id + ',"scriptid":"customscript_sl_customer_list","deployid":"customdeploy_sl_customer_list"%7D';  
-                    var company_name = '<a href="' + upload_url + '">' + cm_link + '</a>';
+                    // var upload_url = baseURL + '/app/site/hosting/scriptlet.nl?script=1046&deploy=1&compid=1048144_SB3&unlayered=T&custparam_params=%7B"custid":' + customer_id + ',"scriptid":"customscript_sl_customer_list","deployid":"customdeploy_sl_customer_list"%7D';  
+                    var params = {
+                        custid: customer_id,
+                        scriptid: 'customscript_sl_customer_list',
+                        deployid: 'customdeploy_sl_customer_list'
+                    }
+                    params = JSON.stringify(params);
+
+                    var upload_url = url.resolveScript({
+                        scriptId: 'customscript_sl_lead_capture2', 
+                        deploymentId: 'customdeploy_sl_lead_capture2',
+                        returnExternalUrl: true
+                    });
+
+                    // var upload_url = '/app/site/hosting/scriptlet.nl?script=1046&deploy=1&compid=1048144_SB3';
+                    var company_name = '<a href="' + upload_url + '&unlayered=T&custparam_params=' + params + '">' + cm_link + '</a>';
                     var zee = debt_row.zee;
                     // var tot_num = debt_row.tn;
                     // for (var i = 0; i < debt_rows.length; i++){
@@ -290,11 +344,21 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
                     //         console.log(count);
                     //     }
                     // }
+                    var amount = debt_row.ta;
+                    debt_rows.forEach(function (debt){
+                        var cust_name = debt.cm; 
+                        if (cust_name == cm_link){
+                            count++;
+                            amount += JSON.parse(debt.ta);
+                        }
+                    });
                     var tot_num = count;
-                    var tot_am = debt_row.ta;
+                    // var tot_am = debt_row.ta;
+                    var tot_am = amount;
+                    tot_am = financial(tot_am);
                     var noteInfo = debt_row.nt;
                     var note_id = index;
-                    var note = '<input id="note_' + note_id + '" value="' + noteInfo + '" class="form-control note_' + note_id + '"/>';
+                    var note = '<input id="note_' + note_id + '" value="' + noteInfo + '" class="form-control note"/>';
                     // var note = 'HelloWorld';
                     debtDataSet.push([company_name, zee, tot_num, tot_am, note]);
                 });
@@ -335,17 +399,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             return result;
         }
 
-        // function rangeSelection() {
-        //     var range_values = $('#range_filter').val();
-        //     var range_array = [];
-        //     if (!isNullorEmpty(range_values)) {
-        //         for (var i = 0; i < range_values.length; i++) {
-        //             range_array.push($('#range_filter option:selected').val(range_value)[i].text);
-        //         }
-        //     }
-        //     return range_array;
-        // }
-
         /**
          * Function to select Range Options
          */
@@ -353,7 +406,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             // var rangeArray = rangeSelection();
             var range_filter = $('#range_filter option:selected').map(function() { return $(this).val() });
             range_filter = $.makeArray(range_filter);
-            $('range_filter').selectpicker('val', range_filter);
+            $('#range_filter').selectpicker('val', range_filter);
         }
 
         /**
@@ -455,6 +508,21 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
         }
 
         /**
+         * @param   {Number} x
+         * @returns {String} The same number, formatted in Australian dollars.
+         */
+        function financial(x) {
+            if (typeof(x) == 'string') {
+                x = parseFloat(x);
+            }
+            if (isNullorEmpty(x) || isNaN(x)) {
+                return "$0.00";
+            } else {
+                return x.toLocaleString('en-AU', { style: 'currency', currency: 'AUD' });
+            }
+        }
+
+        /**
          * Used to pass the values of `date_from` and `date_to` between the scripts and to Netsuite for the records and the search.
          * @param   {String} date_iso       "2020-06-01"
          * @returns {String} date_netsuite  "1/6/2020"
@@ -463,7 +531,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/ru
             var date_netsuite = '';
             if (!isNullorEmpty(date_iso)) {
                 var date_utc = new Date(date_iso);
-                var date_netsuite = nlapiDateToString(date_utc);
+                // var date_netsuite = nlapiDateToString(date_utc);
+                var date_netsuite = format.format({
+                    value: date_utc,
+                    type: format.Type.DATE
+                });
             }
             return date_netsuite;
         }
