@@ -74,10 +74,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
+
+                inlineHtml += loadingSection();
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
                 inlineHtml += dataTable();
-                inlineHtml += loadingSection();
+                inlineHtml += submitSection();
 
                 var params = context.request.parameters;
                 // console.log(params);
@@ -164,6 +166,20 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-12 loading_div">';
             inlineQty += '<h1>Loading...</h1>';
+            inlineQty += '</div></div></div>';
+
+            return inlineQty;
+        }
+
+        /**
+         * The header showing that the results are loading.
+         * @returns {String} `inlineQty`
+         */
+        function submitSection() {
+            var inlineQty = '<div id="submit_section" class="form-group container loading_section" style="text-align:center">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-xs-12 loading_div">';
+            inlineQty += '<h1>Please Submit Search</h1>';
             inlineQty += '</div></div></div>';
 
             return inlineQty;
