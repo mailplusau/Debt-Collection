@@ -74,10 +74,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
-
-                inlineHtml += loadingSection();
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
+                // inlineHtml += loadingSection();
                 inlineHtml += dataTable();
                 inlineHtml += submitSection();
 
@@ -113,6 +112,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 //     functionName: 'saveCSV()'
                 // });
 
+                form.addButton({
+                    id: 'submit',
+                    label: 'Submit Search',
+                    functionName: 'submit()'
+                });
+
                 form.addField({
                     id: 'preview_table',
                     label: 'inlinehtml',
@@ -120,18 +125,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
                 }).defaultValue = inlineHtml;
-
-                form.addButton({
-                    id: 'submit',
-                    label: 'Submit Search',
-                    functionName: 'submit()'
-                });
-
-                // form.addField({
-                //     id: 'preview_table',
-                //     label: 'inlineqty',
-                //     type: 'inlinehtml'
-                // }).defaultValue = inlineQty;
 
                 form.clientScriptFileId = 4497169; //4241008
 
@@ -172,13 +165,26 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         }
 
         /**
+         * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
+         * Uses Bootstrap : https://www.w3schools.com/bootstrap/bootstrap_progressbars.asp
+         * @param   {String}    nb_records_total    The number of records that will be moved
+         * @return  {String}    inlineQty : The inline HTML string of the progress bar.
+         */
+        // function progressBar(nb_records_total) {
+        //     var inlineQty = '<div class="progress">';
+        //     inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">MPEX records moved : 0 / ' + nb_records_total + '</div>';
+        //     inlineQty += '</div>';
+        //     return inlineQty;
+        // }
+
+        /**
          * The header showing that the results are loading.
          * @returns {String} `inlineQty`
          */
         function submitSection() {
             var inlineQty = '<div id="submit_section" class="form-group container loading_section" style="text-align:center">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 loading_div">';
+            inlineQty += '<div class="col-xs-12 submit_div">';
             inlineQty += '<h1>Please Submit Search</h1>';
             inlineQty += '</div></div></div>';
 
