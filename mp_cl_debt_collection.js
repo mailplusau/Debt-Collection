@@ -74,7 +74,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             },
                             { title: 'Period' },
                             { title: 'Notes' },
-                            // { title: ''},
+                            { title: ''},
                             { title: 'MAAP Payment Status' }
                         ],
                         columnDefs: [{
@@ -90,23 +90,27 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 targets: [1, 7]
                             },
                             {
-                                width: '20%',
+                                width: '15%',
                                 targets: 2
                             },
+                            // {
+                            //     width: '5%',
+                            //     targets: 8
+                            // },
                             {
-                                targets: 8,
+                                targets: 9,
                                 visible: false
                             }
                         ],
                         rowCallback: function(row, data) {
                             // $('td:eq(1)', row).html;
-                            if (data[8] == 'Payed') {
+                            if (data[9] == 'Payed') {
                                 if ($(row).hasClass('odd')) {
                                     $(row).css('background-color', 'YellowGreen');
                                 } else {
                                     $(row).css('background-color', 'GreenYellow');
                                 }
-                            } else if (data[8] == 'Not Payed'){
+                            } else if (data[9] == 'Not Payed'){
                                 if ($(row).hasClass('odd')){
                                     $(row).css('background-color', 'LightGoldenRodYellow');
                                 } else {
@@ -264,7 +268,24 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             });
             console.log('Result Length: ' + searchResult.length);
             console.log(JSON.stringify(searchResult[0]));
-            loadDebtRecord(searchResult, date_from, date_to);
+            // loadDebtRecord(searchResult, date_from, date_to);
+
+            var test_filter = search.createFilter({
+                name: 'internalid',
+                join: 'customer',
+                operator: search.Operator.IS,
+                values: 1192191
+            });
+            var test_search = search.load({
+                id: 'customsearch_debt_coll_inv',
+                type: 'invoice'
+            });
+            test_search.filters.push(test_filter);
+            var search_result = test_search.run().getRange({
+                start: 0,
+                end: 1
+            });
+            loadDebtRecord(search_result, date_from, date_to);
         }
 
         function loadDebtRecord(searchResult, date_from, date_to) {
@@ -504,11 +525,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
                     var noteInfo = debt_row.nt;
                     var note = '<input id="note_' + customer_id + '" value="' + noteInfo + '" class="form-control note"/>';
+                    var checkbox = '<input type="checkbox" id="check_' + customer_id + '" name="check" value="Complete" class="form-check-input check_' + customer_id + '"/>'
                     var maap_status = debt_row.ms;
 
                     // console.log('Previous Customer ID' + debt_row[index - 1].cid);
                     if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) { //stringSet[index - 1].cid != customer_id
-                        debtDataSet.push([date, company_name, zee, tot_num, tot_am, overdue, period, note, maap_status]);
+                        debtDataSet.push([date, company_name, zee, tot_num, tot_am, overdue, period, note, checkbox, maap_status]);
                     }
                 });
             }
@@ -525,23 +547,23 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
         function saveRecord() {}
 
         function invoiceSearch(date_from, date_to) {
-            var invoiceResult = search.load({
-                id: 'customsearch_debt_coll_inv',
-                type: 'invoice',
-                filters: [
-                    ["type", "anyof", "CustInvc"],
-                    "AND", ["mainline", "is", "T"],
-                    "AND", ["status", "anyof", "CustInvc:A"],
-                    // "AND", ['trandate', 'within', date_from, date_to],
-                    "AND", ['trandate', 'before', date_to],
-                    "AND", ['trandate', 'after', date_from]
-                ]
-            });
-            result = invoiceResult.run().getRange({
-                start: 0,
-                end: 1000
-            });
-            return result;
+            // var invoiceResult = search.load({
+            //     id: 'customsearch_debt_coll_inv',
+            //     type: 'invoice',
+            //     filters: [
+            //         ["type", "anyof", "CustInvc"],
+            //         "AND", ["mainline", "is", "T"],
+            //         "AND", ["status", "anyof", "CustInvc:A"],
+            //         // "AND", ['trandate', 'within', date_from, date_to],
+            //         "AND", ['trandate', 'before', date_to],
+            //         "AND", ['trandate', 'after', date_from]
+            //     ]
+            // });
+            // result = invoiceResult.run().getRange({
+            //     start: 0,
+            //     end: 1000
+            // });
+            // return result;
         }
 
         function loadingBar(index) {

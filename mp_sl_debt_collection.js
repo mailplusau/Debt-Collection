@@ -126,6 +126,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     layoutType: ui.FieldLayoutType.STARTROW
                 }).defaultValue = inlineHtml;
 
+                // form.addField({})
+
                 form.clientScriptFileId = 4497169; //4241008
 
                 context.response.writePage(form);
