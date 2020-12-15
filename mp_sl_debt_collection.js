@@ -36,8 +36,48 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
         function onRequest(context) {
             var type = 'create';
+
             if (context.request.method === 'GET') {
+
+                var range_id = [2];
+                var date_from = '1/11/2020';
+                var date_to = '30/11/2020';
+                var is_params = 'T';
+
+                // var params = context.request.parameters;
+                // if (!isNullorEmpty(params)) {
+                //     is_params = 'T';
+                //     // params = JSON.parse(params);
+                //     range_id = params.range;
+                //     date_from = params.date_from;
+                //     date_to = params.date_to;
+                // }
+                // log.debug({
+                //     title: 'Parameters',
+                //     details: params
+                // });
+
                 type = context.request.parameters.type;
+
+                if (is_params == 'T') {
+                    var ss_params = {
+                        custscript_main_index: 0,
+                        custscript_debt_inv_range: range_id,
+                        custscript_debt_inv_date_from: date_from,
+                        custscript_debt_inv_date_to: date_to,
+                        custscript_debt_inv_invoice_id_set: JSON.stringify([])
+                    };
+                    var status = task.create({
+                        taskType: task.TaskType.SCHEDULED_SCRIPT,
+                        scriptId: 'customscript_ss_debt_collection',
+                        deploymentId: 'customdeploy_ss_debt_collection',
+                        params: ss_params,
+                    });
+                    log.debug({
+                        title: 'Scheduled script scheduled',
+                        details: status
+                    });
+                }
 
                 var form = ui.createForm({
                     title: 'Debt Collection'
@@ -45,7 +85,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 // Load jQuery
                 var inlineHtml = '<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>';
-
                 // Load Tooltip
                 inlineHtml += '<script src="https://unpkg.com/@popperjs/core@2"></script>';
 
@@ -78,33 +117,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += dateFilterSection();
                 // inlineHtml += loadingSection();
                 inlineHtml += dataTable();
-                inlineHtml += submitSection();
-
-                var params = context.request.parameters;
-                // console.log(params);
-                // if (!isNullorEmpty(params)){
-                //     params = JSON.parse(params);
-                //     date_from = params.date_from;
-                //     date_to = params.date_to;
-                // }
-
-                var date_from = '1/10/2020';
-                var date_to = '31/10/2020';
-
-                // var ss_params = {
-                //     // custscript_debt_inv_range: range_id,
-                //     custscript_debt_inv_date_from: date_from,
-                //     custscript_debt_inv_date_to: date_to,
-                //     custscript_debt_inv_debt_set: JSON.stringify([]),
-                //     custscript_debt_inv_invoice_id_set: JSON.stringify([])
-                // };
-
-                // task.create({
-                //     taskType: task.TaskType.SCHEDULED_SCRIPT,
-                //     scriptId: 'customscript_ss_debt_collection',
-                //     deploymentId: 'customdeploy_ss_debt_collection',
-                //     params: ss_params,
-                // });
+                inlineHtml += submitSection(range_id, date_from, date_to);
 
                 // form.addButton({
                 //     id: 'saveCSV',
@@ -126,11 +139,56 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     layoutType: ui.FieldLayoutType.STARTROW
                 }).defaultValue = inlineHtml;
 
-                // form.addField({})
+
+                form.addField({
+                    id: 'custscript_debt_inv_date_from',
+                    type: ui.FieldType.TEXT,
+                    label: 'Date From'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = date_from;
+                form.addField({
+                    id: 'custscript_debt_inv_date_to',
+                    type: ui.FieldType.TEXT,
+                    label: 'Date To'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = date_to;
+                form.addField({
+                    id: 'custscript_debt_inv_range',
+                    type: ui.FieldType.TEXT,
+                    label: 'Range ID'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = range_id;
+
+                form.addField({
+                    id: 'custpage_customer_franchisee',
+                    type: ui.FieldType.TEXT,
+                    label: 'Franchisee ID'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = zee;
 
                 form.clientScriptFileId = 4497169; //4241008
 
                 context.response.writePage(form);
+            } else {
+                var params = context.request.parameters;
+                var range_id = params.range;
+                var date_from = params.date_from;
+                var date_to = params.date_to;
+
+                var dc_params = {
+                    custparam_zee_id: range_id,
+                    custparam_date_from: date_from,
+                    custparam_date_to: date_to
+                }
+                redirect.toSuitelet({
+                    scriptId: 'customscript_sl_debt_collection',
+                    deploymentId: 'customdeploy_sl_debt_collection',
+                    parameters: dc_params
+                });
             }
         }
 
@@ -157,7 +215,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * @returns {String} `inlineQty`
          */
         function loadingSection() {
-            var inlineQty = '<div id="load_section" class="form-group container loading_section" style="text-align:center">';
+            var hide_loading_section = (!isNullorEmpty(zee_id) && (!isNullorEmpty(date_from) || !isNullorEmpty(date_to))) ? '' : 'hide';
+            var inlineQty = '<div id="load_section" class="form-group container loading_section' + hide_loading_section + '" style="text-align:center">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-12 loading_div">';
             inlineQty += '<h1>Loading...</h1>';
@@ -172,19 +231,20 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * @param   {String}    nb_records_total    The number of records that will be moved
          * @return  {String}    inlineQty : The inline HTML string of the progress bar.
          */
-        // function progressBar(nb_records_total) {
-        //     var inlineQty = '<div class="progress">';
-        //     inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">MPEX records moved : 0 / ' + nb_records_total + '</div>';
-        //     inlineQty += '</div>';
-        //     return inlineQty;
-        // }
+        function progressBar(nb_records_total) {
+            var inlineQty = '<div class="progress">';
+            inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">MPEX records moved : 0 / ' + nb_records_total + '</div>';
+            inlineQty += '</div>';
+            return inlineQty;
+        }
 
         /**
          * The header showing that the results are loading.
          * @returns {String} `inlineQty`
          */
-        function submitSection() {
-            var inlineQty = '<div id="submit_section" class="form-group container loading_section" style="text-align:center">';
+        function submitSection(range_id, date_from, date_to) {
+            var hide_loading_section = (!isNullorEmpty(range_id) && (!isNullorEmpty(date_from) || !isNullorEmpty(date_to))) ? '' : 'hide';
+            var inlineQty = '<div id="submit_section" class="form-group container loading_section' + hide_loading_section + '" style="text-align:center">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-12 submit_div">';
             inlineQty += '<h1>Please Submit Search</h1>';
@@ -210,25 +270,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<option value="2" selected>0 - 59 Days</option>';
             inlineQty += '<option value="3">60+ Days</option>';
             inlineQty += '</select>';
-            inlineQty += '</div></div>';
-
-            // inlineQty += '<div class="col-xs-2 mpex">';
-            // inlineQty += '<div class="input-group">';
-            // inlineQty += '<span class="input-group-addon" id="date_to_text">MPEX Products</span>';
-            // inlineQty += '<input id="mpex" type="radio" class="form-control mpex"</label><br/>';
-            // inlineQty += '</div></div>';
-
-            // inlineQty += '<div class="col-xs-2 to_59">';
-            // inlineQty += '<div class="input-group">';
-            // inlineQty += '<span class="input-group-addon" id="date_to_text">0 - 59 Days</span>';
-            // inlineQty += '<input id="to_59" type="radio" class="form-control to_59"></label><br/>';
-            // inlineQty += '</div></div>';
-
-            // inlineQty += '<div class="col-xs-2 from_60">';
-            // inlineQty += '<div class="input-group">';
-            // inlineQty += '<span class="input-group-addon" id="date_to_text">60+ Days</span>';
-            // inlineQty += '<input id="from_60" type="radio" class="form-control from_60"></label><br/>';
-            // inlineQty += '</div></div>';
+            inlineQty += '</div></div>'
 
             inlineQty += '</div></div>';
 
@@ -304,6 +346,14 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 return false;
             }
         }
+
+        // function AddJavascript(jsname, pos) {
+        //     var tag = document.getElementsByTagName(pos)[0];
+        //     var addScript = document.createElement('script');
+        //     addScript.setAttribute('type', 'text/javascript');
+        //     addScript.setAttribute('src', jsname);
+        //     tag.appendChild(addScript);
+        // }
 
         return {
             onRequest: onRequest
