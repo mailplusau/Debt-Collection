@@ -79,21 +79,18 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             type: 'num-fmt'
                         },
                         { title: 'Period' },
-                        {
-                            title: 'MP Ticket'
-                        },
+                        { title: 'MP Ticket' },
                         { title: 'Notes' },
                         { title: '' },
                         { title: 'MAAP Payment Status' }
-                        // MP Ticket
                     ],
                     columnDefs: [{
-                            targets: [1, 4, 5, 7],
+                            targets: [1, 4, 5, 6],
                             className: 'bolded'
                         },
                         {
                             width: '5%',
-                            targets: [4, 5, 7]
+                            targets: [4, 5, 6, 7, 8]
                         },
                         {
                             width: '30%',
@@ -103,12 +100,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             width: '15%',
                             targets: 3
                         },
-                        // {
-                        //     width: '5%',
-                        //     targets: 8
-                        // },
                         {
-                            targets: 11,
+                            targets: 12,
                             visible: false
                         },
                         {
@@ -119,7 +112,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     ],
                     rowCallback: function(row, data) {
                         // $('td:eq(1)', row).html;
-                        if (data[10] == 'Payed') {
+                        if (data[12] == 'Payed') {
                             if ($(row).hasClass('odd')) {
                                 $(row).css('background-color', 'rgba(144, 238, 144, 0.75)'); // LightGreen
                             } else {
@@ -326,12 +319,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         name: 'custrecord_debt_coll_inv_tot_am'
                     });
                     var overdue = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_due_date'
+                        name: 'custrecord_debt_coll_inv_overdue'
                     });
                     var due_date = invoiceSet.getValue({
-                        fieldId: 'custrecord_debt_coll_inv_overdue',
-                        value: due_date
-                    });;
+                        name: 'custrecord_debt_coll_inv_due_date'
+                    });
                     var period = invoiceSet.getValue({
                         name: 'custrecord_debt_coll_inv_period'
                     });
@@ -339,8 +331,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         name: 'custrecord_debt_coll_inv_note'
                     });
                     var mp_ticket = invoiceSet.getValue({
-                        fieldId: 'custrecord_debt_coll_inv_mp_ticket',
-                        value: mp_ticket
+                        name: 'custrecord_debt_coll_inv_mp_ticket',
                     });
                     var maap_status = invoiceSet.getValue({
                         name: 'custrecord_debt_coll_inv_status'
@@ -437,7 +428,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var maap_status = debt_row.ms;
 
                     if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) { //stringSet[index - 1].cid != customer_id
-                        debtDataSet.push([date, invoice, company_name, zee, tot_num, tot_am, due_date, overdue, period, note, checkbox, mp_ticket, maap_status]);
+                        debtDataSet.push([date, invoice, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status]);
                     }
                 });
             }

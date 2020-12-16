@@ -127,8 +127,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 form.addButton({
                     id: 'submit',
-                    label: 'Submit Search',
-                    functionName: 'submit()'
+                    label: 'Submit Search'
                 });
 
                 form.addField({
@@ -138,7 +137,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
                 }).defaultValue = inlineHtml;
-
 
                 form.addField({
                     id: 'custscript_debt_inv_date_from',

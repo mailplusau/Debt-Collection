@@ -39,47 +39,52 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function debtCollection() {
-            deleteRecords();
             var range_id = ctx.getParameter({ name: 'custscript_debt_inv_range' });
-            // var range_id;
             if (isNullorEmpty(range_id)) {
                 range_id = [1];
                 // range_id = parseInt(range_id);
+            } else {
+                range_id = JSON.parse(range_id);
+                log.debug({
+                    title: 'Range ID',
+                    details: range_id
+                });
             }
 
             var date_from = ctx.getParameter({ name: 'custscript_debt_inv_date_from' });
-            // var date_from;
             if (isNullorEmpty(date_from) || isNaN(date_to)) {
                 date_from = '30/11/2020';
             }
 
             var date_to = ctx.getParameter({ name: 'custscript_debt_inv_date_to' });
-            // var date_to;
             if (isNullorEmpty(date_to) || isNaN(date_to)) {
                 date_to = '15/12/2020';
             }
 
-            var script_main_index = ctx.getParameter({ name: 'custscript_main_index' });
-            // var script_main_index;
-            if (!isNullorEmpty(script_main_index)) {
-                var main_index = script_main_index;
-            } else {
-                var main_index = 0;
-            }
-
-            var invoice_id_set = JSON.parse(ctx.getParameter({ name: 'custscript_debt_inv_invoice_id_set' }));
-            // var invoice_id_set;
-            log.debug({
-                title: 'Invoice Data Set Paramter',
-                details: invoice_id_set
-            })
-            if (isNullorEmpty(invoice_id_set)) {
-                invoice_id_set = JSON.parse(JSON.stringify([]));
+            var main_index = ctx.getParameter({ name: 'custscript_main_index' });
+            if (isNullorEmpty(main_index)) {
+                main_index = 0;
             }
             log.debug({
                 title: 'main_index',
                 details: main_index
             });
+            // if (main_index = 0) {
+            //     deleteRecords();
+            // }
+
+            var invoice_id_set = ctx.getParameter({ name: 'custscript_debt_inv_invoice_id_set' });
+            // var invoice_id_set;
+            if (isNullorEmpty(invoice_id_set)) {
+                invoice_id_set = JSON.parse(JSON.stringify([]));
+            } else {
+                invoice_id_set = JSON.parse(invoice_id_set);
+                log.debug({
+                    title: 'Invoice ID Set',
+                    details: invoice_id_set
+                })
+            }
+
             // log.debug({
             //     title: 'date_from',
             //     details: date_from
@@ -99,18 +104,20 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 end: main_index + 1000
             });
 
+            var totalIndex = resultsSet.length;
+            log.debug({
+                title: 'totalIndex',
+                details: totalIndex
+            })
+
             // if (main_index < 4000) {
             resultsSet.forEach(function(invoiceSet, index) {
                 indexInCallback = index;
 
                 var usageLimit = ctx.getRemainingUsage();
-                log.debug({
-                    title: 'Usage Limit - Remaining',
-                    details: usageLimit
-                })
-                if (usageLimit < 1000 || index == 5) {
+                if (usageLimit < 200 || index == 10) {
                     params = {
-                        custscript_main_index: main_index + index,
+                        custscript_debt_inv_main_index: main_index + index,
                         custscript_debt_inv_range: range_id,
                         custscript_debt_inv_date_from: date_from,
                         custscript_debt_inv_date_to: date_to,
@@ -120,47 +127,41 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         title: 'Invoice ID Set - Length',
                         details: invoice_id_set.length
                     });
-                    var reschedule = task.create({
-                        taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: 'customscript_ss_debt_collection',
-                        deploymentId: 'customdeploy_ss_debt_collection',
-                        params: params
-                    });
-                    var reschedule_id = reschedule.submit();
-                    log.debug({
-                        title: 'Attempting: Rescheduling Script',
-                        details: reschedule
-                    });
-                    log.debug("Rescheduling status: " + task.checkStatus(reschedule_id));
-                    // if (reschedule_id == false) {
-                    log.debug({
-                        title: 'Rescheduling Completed',
-                        details: reschedule
-                    });
-                    return false;
-                    // }
+
+                    if (index = resultsSet.length) {
+                        log.debug({
+                            title: 'Reschedule: Completed',
+                            details: reschedule
+                        });
+                    } else {
+                        var reschedule = task.create({
+                            taskType: task.TaskType.SCHEDULED_SCRIPT,
+                            scriptId: 'customscript_ss_debt_collection',
+                            deploymentId: 'customdeploy_ss_debt_collection',
+                            params: params
+                        });
+                        var reschedule_id = reschedule.submit();
+                        log.debug({
+                            title: 'Attempting: Rescheduling Script',
+                            details: reschedule
+                        });
+                    }
+
+                    return true;
+
                 } else {
                     var invoice_id = invoiceSet.getValue({
                         name: 'internalid'
                     });
                     log.debug({
-                        title: "Invoice ID",
+                        title: 'Invoice ID',
                         details: invoice_id
                     });
                     if (invoice_id_set.indexOf(invoice_id) == -1) {
                         invoice_id_set.push(invoice_id);
                         log.debug({
-                            title: 'Invoice ID Set',
-                            details: invoice_id_set
-                        })
-                        log.debug({
                             title: 'Index - Search',
                             details: 'Total Number of Invoices Loaded: ' + index
-                        });
-
-                        log.debug({
-                            title: 'Invoice ID',
-                            details: invoice_id
                         });
                         var date = invoiceSet.getValue({
                             name: 'trandate'
@@ -176,17 +177,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             name: 'internalid',
                             join: 'customer'
                         });
-                        log.debug({
-                            title: 'Customer ID',
-                            details: customer_id
-                        });
                         var customer_name = invoiceSet.getText({
                             name: 'entity'
                         });
-                        log.debug({
-                            title: 'Customer Name',
-                            details: customer_name
-                        })
                         var zee_name = invoiceSet.getText({
                             name: 'partner'
                         });
@@ -322,11 +315,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             });
                             invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_overdue',
-                                value: due_date
+                                value: overdue
                             });
                             invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_due_date',
-                                value: overdue
+                                value: due_date
                             });
                             invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_period',
@@ -347,24 +340,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                             invRecord.save();
                         }
-                        return true;
+                        // return true;
                     }
                 }
             });
         }
-
-        // var will_reschedule = (indexInCallback < 999) ? false : true;
-        // if (will_reschedule) {
-        //     // If the script will be rescheduled, we look for the element 999 of the loop to see if it is empty or not.
-        //     var resultSet = invResultSet.getResults(main_index + index_in_callback, main_index + index_in_callback + 1);
-        // } else {
-        //     // If the script will not be rescheduled, we make sure we didn't miss any results in the search.
-        //     var resultSet = invResultSet.getResults(main_index + index_in_callback + 1, main_index + index_in_callback + 2);
-        // }
-        // log.debug({
-        //     title: 'resultSet.length == 0',
-        //     details: (resultSet.length == 0)
-        // });
 
         function invoiceSearch(range, date_from, date_to) {
             var date_to_Filter = search.createFilter({
@@ -425,49 +405,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var searchResult = invoiceResult.run();
 
             return searchResult;
-        }
-
-        function deleteRecords() {
-            var debtCollSearch = search.load({
-                type: 'customrecord_debt_coll_inv',
-                id: 'customsearch_debt_coll_table'
-            });
-            var searchResult = debtCollSearch.run();
-            searchResult.each(function(result) {
-                var index = result.getValue({
-                    name: 'internalid'
-                });
-                deleteResultRecord(index);
-                return true;
-            });
-
-        }
-
-        function deleteResultRecord(index) {
-
-            var usage_loopstart_cust = ctx.getRemainingUsage();
-            if (usage_loopstart_cust < 4 || index == 3999) {
-                // Rescheduling a scheduled script doesn't consumes any governance units.
-                var delReschedule = task.create({
-                    taskType: task.TaskType.SCHEDULED_SCRIPT,
-                    scriptId: 'customscript_ss_debt_collection',
-                    deploymentId: 'customdeploy_ss_debt_collection'
-                });
-                var delResult = delReschedule.submit();
-            }
-            log.debug({
-                title: 'Delete index',
-                details: index
-            });
-            // Deleting a record consumes 4 governance units.
-            record.delete({
-                type: 'customrecord_debt_coll_inv',
-                id: index
-            });
-            log.debug({
-                title: 'Removed',
-                details: 'Removed'
-            });
         }
 
         /**
