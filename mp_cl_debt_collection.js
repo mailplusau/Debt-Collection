@@ -118,17 +118,17 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             } else {
                                 $(row).css('background-color', 'rgba(152, 251, 152, 0.75)'); // YellowGreen
                             }
-                        } else if (data[7] > '30') { //|| data[7] <= '60'
+                        } else if (data[7] < '60') { //|| data[7] <= '60'
                             if ($(row).hasClass('odd')) {
-                                $(row).css('background-color', 'rgba(250, 250, 210, 0.85)'); // LightGoldenRodYellow
+                                $(row).css('background-color', 'rgba(250, 250, 210, 1)'); // LightGoldenRodYellow
                             } else {
-                                $(row).css('background-color', 'rgba(255, 255, 240, 0.85)'); // Ivory
+                                $(row).css('background-color', 'rgba(255, 255, 240, 1)'); // Ivory
                             }
-                        } else if (data[7] > '60') {
+                        } else if (data[7] >= '60') {
                             if ($(row).hasClass('odd')) {
-                                $(row).css('background-color', 'rgba(250, 128, 114, 1)'); // Salmon
+                                $(row).css('background-color', 'rgba(250, 128, 114, 0.75)'); // Salmon
                             } else {
-                                $(row).css('background-color', 'rgba(255, 0, 0, 0.75)'); // Red
+                                $(row).css('background-color', 'rgba(255, 0, 0, 0.5)'); // Red
                             }
                         }
                         // else if (data[9] == 'Not Payed') {
@@ -292,70 +292,109 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             if (!isNullorEmpty(myFilter1)) { invoiceResults.filters.push(myFilter1); }
             if (!isNullorEmpty(myFilter2)) { invoiceResults.filters.push(myFilter2); }
             if (!isNullorEmpty(myFilter3)) { invoiceResults.filters.push(myFilter3); }
-            var invResultSet = invoiceResults.run();
-            // console.log(invoiceResult);
+            var invResultRun = invoiceResults.run();
+
+            // var date_filter = ['custrecord_debt_coll_inv_date', 'within', date_from, date_to]
+            // for (var i = 0; i < JSON.parse(range.length); i++) {
+            //     console.log('Range ID: ' + JSON.parse(range[i]));
+            //     var selector_id = JSON.parse(range[i]);
+            //     if (selector_id == '1') {
+            //         console.log('MPEX Products Selected');
+            //         var myFilter1 = ['custrecord_debt_coll_inv_range', 'contains', 1]
+            //     }
+            //     if (selector_id == '2') {
+            //         console.log('0 - 59 Days Selected');
+            //         var myFilter2 = ['custrecord_debt_coll_inv_range', 'contains', 2]
+            //     }
+            //     if (selector_id == '3') {
+            //         console.log('60+ Days Selected');
+            //         var myFilter3 = ['custrecord_debt_coll_inv_range', 'contains', 3]
+            //     }
+            // }
+            // var invoiceResults = search.load({
+            //     type: 'customrecord_debt_coll_inv',
+            //     id: 'customsearch_debt_coll_table',
+            //     columns: [search.createColumn({
+            //         name: "custrecord_debt_coll_inv_date",
+            //         sort: search.Sort.DESC,
+            //         label: "Debt Coll - Date "
+            //      }), search.createColumn({name: "custrecord_debt_coll_inv_range", label: "Debt Coll - Range ID"})],
+            //     filters: [
+            //         date_filter, 'AND', [myFilter1, 'OR', myFilter2, 'OR', myFilter3]
+            //     ]
+            // });
+            // var invResultRun = invoiceResults.run();
+            
+            var invResultSet = [];
+            var main_index = 0;
+            for (var main_index = 0; main_index < 10000; main_index += 1000){
+                invResultSet.push(invResultRun.getRange({start: main_index, end: main_index + 999}));
+            }
+            console.log(JSON.stringify(invResultSet));
 
             if (!isNullorEmpty(invResultSet)) {
-                invResultSet.each(function(invoiceSet, index) {
-                    var invoice_id = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_id'
-                    });
-                    var date = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_date'
-                    });
-                    var invoice_name = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_name'
-                    });
-                    var customer_id = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_cust_id'
-                    });
-                    var customer_name = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_cust_name'
-                    });
-                    var zee_name = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_zee_id'
-                    });
-                    var total_amount = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_tot_am'
-                    });
-                    var overdue = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_overdue'
-                    });
-                    var due_date = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_due_date'
-                    });
-                    var period = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_period'
-                    });
-                    var note = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_note'
-                    });
-                    var mp_ticket = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_mp_ticket',
-                    });
-                    var maap_status = invoiceSet.getValue({
-                        name: 'custrecord_debt_coll_inv_status'
-                    });
-
-                    if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
-                        debt_set.push({
-                            dt: date,
-                            inid: invoice_id,
-                            in: invoice_name,
-                            cid: customer_id,
-                            cm: customer_name,
-                            zee: zee_name,
-                            ta: total_amount,
-                            od: overdue,
-                            dd: due_date,
-                            p: period,
-                            nt: note,
-                            mp: mp_ticket,
-                            ms: maap_status
+                for (var i = 0; i < invResultSet.length; i++){
+                    invResultSet[i].forEach(function(invoiceSet, index) {
+                        var invoice_id = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_id'
                         });
-                    }
-                    return true;
-                });
+                        var date = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_date'
+                        });
+                        var invoice_name = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_name'
+                        });
+                        var customer_id = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_cust_id'
+                        });
+                        var customer_name = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_cust_name'
+                        });
+                        var zee_name = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_zee_id'
+                        });
+                        var total_amount = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_tot_am'
+                        });
+                        var overdue = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_overdue'
+                        });
+                        var due_date = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_due_date'
+                        });
+                        var period = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_period'
+                        });
+                        var note = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_note'
+                        });
+                        var mp_ticket = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_mp_ticket',
+                        });
+                        var maap_status = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_status'
+                        });
+
+                        if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
+                            debt_set.push({
+                                dt: date,
+                                inid: invoice_id,
+                                in: invoice_name,
+                                cid: customer_id,
+                                cm: customer_name,
+                                zee: zee_name,
+                                ta: total_amount,
+                                od: overdue,
+                                dd: due_date,
+                                p: period,
+                                nt: note,
+                                mp: mp_ticket,
+                                ms: maap_status
+                            });
+                        }
+                        return true;
+                    });
+                }
                 console.log('Data Set: ' + JSON.stringify(debt_set));
                 loadDatatable(debt_set);
                 debt_set = [];
@@ -506,7 +545,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var monday = new Date(Date.UTC(today_year, today_month, today_day_in_month - today_day_in_week + 1));
                     }
                     var date_from = monday.toISOString().split('T')[0];
-                    var date_to = '';
+                    var date_to = getDate();
                     break;
 
                 case "last_week":
@@ -532,7 +571,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 case "this_month":
                     var first_day_month = new Date(Date.UTC(today_year, today_month));
                     var date_from = first_day_month.toISOString().split('T')[0];
-                    var date_to = '';
+                    var date_to = getDate();
                     break;
 
                 case "last_month":
@@ -545,7 +584,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 case "full_year":
                     var first_day_in_year = new Date(Date.UTC(today_year, 0));
                     var date_from = first_day_in_year.toISOString().split('T')[0];
-                    var date_to = '';
+                    var date_to = getDate();
                     break;
 
                 case "financial_year":
@@ -555,7 +594,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var first_july = new Date(Date.UTC(today_year - 1, 6));
                     }
                     var date_from = first_july.toISOString().split('T')[0];
-                    var date_to = '';
+                    var date_to = getDate();
                     break;
 
                 default:
@@ -644,219 +683,3 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             saveRecord: saveRecord
         }
     });
-
-// function oldCode(){
-// if (!isNullorEmpty(searchResult)) {
-//     searchResult.forEach(function(invoiceSet, index) {
-//         console.log('Index Search: ' + index);
-//         var date = invoiceSet.getValue({
-//             name: 'trandate'
-//         });
-//         var invoice_name = invoiceSet.getValue({
-//             name: 'tranid'
-//         });
-//         var invoice_id = invoiceSet.getValue({
-//             name: 'internalid'
-//         });
-//         var customer_id = invoiceSet.getValue({
-//             name: 'internalid',
-//             join: 'customer'
-//         });
-//         // console.log('Customer ID: ' + customer_id);
-//         var customer_name = invoiceSet.getText({
-//             name: 'entity'
-//         });
-//         // console.log('Customer Name: ' + customer_name);
-//         var zee_name = invoiceSet.getText({
-//             name: 'partner'
-//         });
-//         var total_num = '';
-//         var total_amount = parseFloat(invoiceSet.getValue({
-//             name: 'amount'
-//         }));
-//         var overdue = invoiceSet.getValue({
-//             name: 'daysoverdue'
-//         });
-//         var period = invoiceSet.getText({
-//             name: 'postingperiod'
-//         });
-
-//         // var note_filter = search.createFilter({
-//         //     name: 'internalid',
-//         //     join: 'customer',
-//         //     operator: search.Operator.IS,
-//         //     values: customer_id
-//         // });
-//         // var noteSearch = search.load({
-//         //     id: 'customsearch_debt_coll_note',
-//         //     type: 'note'
-//         // });
-//         // noteSearch.filters.push(note_filter);
-//         // var noteResults = noteSearch.run().getRange({
-//         //     start: 0,
-//         //     end: 1
-//         // });
-
-//         // noteResults.forEach(function(noteSet, index) {
-//         //     note = noteSet.getValue({
-//         //         name: 'note'
-//         //     });
-//         //     console.log('Note information: ' + note);
-//         //     console.log('Number of Notes Searched: ' + index);
-//         // });
-//         var note = '';
-
-//         // Today's Data 
-//         var today = new Date();
-//         var today_day_in_month = today.getDate();
-//         var today_month = today.getMonth();
-//         var today_year = today.getFullYear();
-//         var today_date = new Date(Date.UTC(today_year, today_month, today_day_in_month));
-//         var previous_week_date = new Date(Date.UTC(today_year, today_month, today_day_in_month - 7));
-//         var maap_date_from = today_date.toISOString().split('T')[0];
-//         maap_date_from = dateISOToNetsuite(maap_date_from);
-//         var maap_date_to = previous_week_date.toISOString().split('T')[0];
-//         maap_date_to = dateISOToNetsuite(maap_date_to);
-
-//         var maap_status = 'Not Payed';
-//         var maap_bankacc = invoiceSet.getValue({ name: 'custbody_maap_bankacct' });
-//         var bankacc_filter = search.createFilter({
-//             name: 'custbody_maap_tclientaccount',
-//             operator: search.Operator.IS,
-//             values: maap_bankacc
-//         });
-//         var date_to_filter = search.createFilter({
-//             name: 'datecreated',
-//             operator: search.Operator.BEFORE,
-//             values: maap_date_to
-//         });
-//         var date_from_filter = search.createFilter({
-//             name: 'datecreated', //trandate
-//             operator: search.Operator.AFTER,
-//             values: maap_date_from
-//         });
-//         var maap_status_search = search.load({
-//             id: 'customsearch_debt_coll_maap_pmts',
-//             type: 'customerpayment'
-//         });
-//         // maap_status_search.filters.push(date_to_filter);
-//         // maap_status_search.filters.push(date_from_filter);
-//         maap_status_search.filters.push(bankacc_filter);
-//         var maap_results = maap_status_search.run().getRange({
-//             start: 0,
-//             end: 1
-//         });
-//         // console.log('Display Result From MAAP: ' + JSON.stringify(maap_results[0]));
-//         maap_results.forEach(function(status) {
-//             var client_number = status.getValue({ name: 'custbody_maap_tclientaccount' });
-//             var date_maap = status.getValue({ name: 'trandate' });
-//             if (maap_bankacc == client_number) {
-//                 // console.log(date_maap > maap_date_from && date_maap < maap_date_to);
-//                 // console.log('True or false???');
-//                 // console.log('MAAP Client Acc: ' + client_number);
-//                 maap_status = 'Payed';
-//             }
-//         });
-//         console.log('MAAP Status: ' + maap_status);
-
-//         if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
-//             debt_set.push({
-//                 dt: date,
-//                 inid: invoice_id,
-//                 in: invoice_name,
-//                 cid: customer_id,
-//                 cm: customer_name,
-//                 zee: zee_name,
-//                 tn: total_num,
-//                 ta: total_amount,
-//                 od: overdue,
-//                 p: period,
-//                 nt: note,
-//                 // ti: tick,
-//                 ms: maap_status
-//             });
-//         }
-//         // loadingBar(index);
-//         return true;
-//     });
-//     console.log('Data Set: ' + JSON.stringify(debt_set));
-//     loadDatatable(debt_set);
-//     debt_set = [];
-// } else {
-//     console.log('Results Empty');
-// }
-// }
-
-// function loadDebtTable(range, date_from, date_to) { //selector_id, selector_type
-//     var date_to_Filter = search.createFilter({
-//         name: 'trandate',
-//         operator: search.Operator.BEFORE,
-//         values: date_to
-//     });
-//     var date_from_Filter = search.createFilter({
-//         name: 'trandate',
-//         operator: search.Operator.AFTER,
-//         values: date_from
-//     });
-//     for (var i = 0; i < JSON.parse(range.length); i++) {
-//         console.log('Range ID: ' + JSON.parse(range[i]));
-//         var selector_id = JSON.parse(range[i]);
-//         if (selector_id == '1') {
-//             console.log('MPEX Products Selected');
-//             var myFilter1 = search.createFilter({
-//                 name: 'custbody_inv_type',
-//                 operator: search.Operator.ANYOF,
-//                 values: '8'
-//             });
-//         }
-//         if (selector_id == '2') {
-//             console.log('0 - 59 Days Selected');
-//             var myFilter2 = search.createFilter({
-//                 name: 'daysoverdue',
-//                 operator: search.Operator.LESSTHAN,
-//                 values: '60'
-//             });
-//         }
-//         if (selector_id == '3') {
-//             console.log('60+ Days Selected');
-//             var myFilter3 = search.createFilter({
-//                 name: 'daysoverdue',
-//                 operator: search.Operator.GREATERTHANOREQUALTO,
-//                 values: '60'
-//             });
-//         }
-//     }
-//     var invoiceResult = search.load({
-//         id: 'customsearch_debt_coll_inv',
-//         type: 'invoice'
-//     });
-//     invoiceResult.filters.push(date_to_Filter);
-//     invoiceResult.filters.push(date_from_Filter);
-//     if (!isNullorEmpty(myFilter1)) { invoiceResult.filters.push(myFilter1); }
-//     if (!isNullorEmpty(myFilter2)) { invoiceResult.filters.push(myFilter2); }
-//     if (!isNullorEmpty(myFilter3)) { invoiceResult.filters.push(myFilter3); }
-//     var searchResult = invoiceResult.run().getRange({
-//         start: 0,
-//         end: 50
-//     });
-//     console.log('Result Length: ' + searchResult.length);
-//     console.log('Display First Result From Search: ' + JSON.stringify(searchResult[0]));
-//     loadDebtRecord(searchResult, date_from, date_to);
-
-//     // var test_filter = search.createFilter({
-//     //     name: 'internalid',
-//     //     join: 'customer',
-//     //     operator: search.Operator.IS,
-//     //     values: 1192191
-//     // });
-//     // var test_search = search.load({
-//     //     id: 'customsearch_debt_coll_inv',
-//     //     type: 'invoice'
-//     // });
-//     // test_search.filters.push(test_filter);
-//     // var search_result = test_search.run().getRange({
-//     //     start: 0,
-//     //     end: 1
-//     // });
-//     // loadDebtRecord(search_result, date_from, date_to);
-// }

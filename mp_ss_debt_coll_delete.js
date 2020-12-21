@@ -61,8 +61,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 // Rescheduling a scheduled script doesn't consumes any governance units.
                 var delReschedule = task.create({
                     taskType: task.TaskType.SCHEDULED_SCRIPT,
-                    scriptId: 'customscript_ss_delete_debt_coll',
-                    deploymentId: 'customdeploy_ss_delete_debt_coll'
+                    scriptId: 'customscript_ss_debt_coll_delete',
+                    deploymentId: 'customdeploy_ss_debt_coll_delete'
                 });
                 var delResult = delReschedule.submit();
             }

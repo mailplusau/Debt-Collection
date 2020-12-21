@@ -41,7 +41,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         function debtCollection() {
             var range_id = ctx.getParameter({ name: 'custscript_debt_inv_range' });
             if (isNullorEmpty(range_id)) {
-                range_id = [1];
+                range_id = [1]
                 // range_id = parseInt(range_id);
             } else {
                 range_id = JSON.parse(range_id);
@@ -53,15 +53,25 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             var date_from = ctx.getParameter({ name: 'custscript_debt_inv_date_from' });
             if (isNullorEmpty(date_from) || isNaN(date_to)) {
-                date_from = '30/11/2020';
+                date_from = '1/01/2017';
             }
 
             var date_to = ctx.getParameter({ name: 'custscript_debt_inv_date_to' });
             if (isNullorEmpty(date_to) || isNaN(date_to)) {
-                date_to = '15/12/2020';
+                // date_to = '17/12/2020';
+                date_to = getDate();
+                log.debug({
+                    title: 'Current Date',
+                    details: getDate()
+                })
             }
 
-            var main_index = ctx.getParameter({ name: 'custscript_main_index' });
+            var main_index = ctx.getParameter({ name: 'custscript_debt_inv_main_index' });
+            if (!isNullorEmpty(main_index)){ var testing = 'RESCHEDULED: ' + main_index;}
+            log.debug({
+                title: 'main_index_rescheduled',
+                details: testing
+            });
             if (isNullorEmpty(main_index)) {
                 main_index = 0;
             }
@@ -69,6 +79,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 title: 'main_index',
                 details: main_index
             });
+            
             // if (main_index = 0) {
             //     deleteRecords();
             // }
@@ -85,70 +96,52 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 })
             }
 
-            // log.debug({
-            //     title: 'date_from',
-            //     details: date_from
-            // });
-            // log.debug({
-            //     title: 'date_to',
-            //     details: date_to
-            // });
-            // log.debug({
-            //     title: 'range_id',
-            //     details: range_id
-            // });
-
             var invResultSet = invoiceSearch(range_id, date_from, date_to);
             var resultsSet = invResultSet.getRange({
                 start: main_index,
-                end: main_index + 1000
+                end: main_index + 999
             });
 
-            var totalIndex = resultsSet.length;
-            log.debug({
-                title: 'totalIndex',
-                details: totalIndex
-            })
-
-            // if (main_index < 4000) {
             resultsSet.forEach(function(invoiceSet, index) {
                 indexInCallback = index;
 
                 var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 200 || index == 10) {
+                if (usageLimit < 100) {
                     params = {
-                        custscript_debt_inv_main_index: main_index + index,
+                        custscript_debt_inv_main_index: main_index + index - 10,
                         custscript_debt_inv_range: range_id,
                         custscript_debt_inv_date_from: date_from,
                         custscript_debt_inv_date_to: date_to,
                         custscript_debt_inv_invoice_id_set: JSON.stringify(invoice_id_set)
                     };
                     log.debug({
+                        title: 'Parameters - Main Index',
+                        details: params.custscript_debt_inv_main_index
+                    });
+                    log.debug({
                         title: 'Invoice ID Set - Length',
                         details: invoice_id_set.length
                     });
 
-                    if (index = resultsSet.length) {
-                        log.debug({
-                            title: 'Reschedule: Completed',
-                            details: reschedule
-                        });
-                    } else {
-                        var reschedule = task.create({
-                            taskType: task.TaskType.SCHEDULED_SCRIPT,
-                            scriptId: 'customscript_ss_debt_collection',
-                            deploymentId: 'customdeploy_ss_debt_collection',
-                            params: params
-                        });
-                        var reschedule_id = reschedule.submit();
-                        log.debug({
-                            title: 'Attempting: Rescheduling Script',
-                            details: reschedule
-                        });
-                    }
-
-                    return true;
-
+                    // if (main_index = resultsSet.length) {
+                    //     log.debug({
+                    //         title: 'Reschedule: Completed',
+                    //         details: reschedule
+                    //     });
+                    // } else {
+                    var reschedule = task.create({
+                        taskType: task.TaskType.SCHEDULED_SCRIPT,
+                        scriptId: 'customscript_ss_debt_collection',
+                        deploymentId: 'customdeploy_ss_debt_collection',
+                        params: params
+                    });
+                    var reschedule_id = reschedule.submit();
+                    log.debug({
+                        title: 'Attempting: Rescheduling Script',
+                        details: reschedule
+                    });
+                    return false;
+                    // }
                 } else {
                     var invoice_id = invoiceSet.getValue({
                         name: 'internalid'
@@ -340,7 +333,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                             invRecord.save();
                         }
-                        // return true;
+                        return true;
                     }
                 }
             });
