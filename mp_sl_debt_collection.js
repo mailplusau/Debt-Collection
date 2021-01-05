@@ -59,25 +59,25 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 type = context.request.parameters.type;
 
-                if (is_params == 'T') {
-                    var ss_params = {
-                        custscript_main_index: 0,
-                        custscript_debt_inv_range: range_id,
-                        custscript_debt_inv_date_from: date_from,
-                        custscript_debt_inv_date_to: date_to,
-                        custscript_debt_inv_invoice_id_set: JSON.stringify([])
-                    };
-                    var status = task.create({
-                        taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: 'customscript_ss_debt_collection',
-                        deploymentId: 'customdeploy_ss_debt_collection',
-                        params: ss_params,
-                    });
-                    log.debug({
-                        title: 'Scheduled script scheduled',
-                        details: status
-                    });
-                }
+                // if (is_params == 'T') {
+                //     var ss_params = {
+                //         custscript_main_index: 0,
+                //         custscript_debt_inv_range: range_id,
+                //         custscript_debt_inv_date_from: date_from,
+                //         custscript_debt_inv_date_to: date_to,
+                //         custscript_debt_inv_invoice_id_set: JSON.stringify([])
+                //     };
+                //     var status = task.create({
+                //         taskType: task.TaskType.SCHEDULED_SCRIPT,
+                //         scriptId: 'customscript_ss_debt_collection',
+                //         deploymentId: 'customdeploy_ss_debt_collection',
+                //         params: ss_params,
+                //     });
+                //     log.debug({
+                //         title: 'Scheduled script scheduled',
+                //         details: status
+                //     });
+                // }
 
                 var form = ui.createForm({
                     title: 'Debt Collection'
@@ -91,6 +91,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // Load Bootstrap
                 inlineHtml += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">';
                 inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
+                // inlineHtml += '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">';
+                // inlineHtml += '<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>';
+                // inlineHtml += '<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>';
+                // inlineHtml += '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>';
 
                 // Load DataTables
                 inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">';
@@ -115,15 +119,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
-                // inlineHtml += loadingSection();
-                inlineHtml += dataTable();
                 inlineHtml += submitSection(range_id, date_from, date_to);
-
-                // form.addButton({
-                //     id: 'saveCSV',
-                //     label: 'Save CSV',
-                //     functionName: 'saveCSV()'
-                // });
+                inlineHtml += loadingSection();
+                inlineHtml += tableFilter();
+                inlineHtml += dataTable();
 
                 form.addButton({
                     id: 'submit',
@@ -196,7 +195,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          */
         function dataTable() {
             var inlineQty = '<style>table#debt_preview {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#debt_preview th{text-align: center;} .bolded{font-weight: bold;}</style>';
-            inlineQty += '<table cellpadding="15" id="debt_preview" class="table table-responsive table-striped customer tablesorter" cellspacing="0" style="width: 100%;">';
+            inlineQty += '<table id="debt_preview" class="table table-responsive table-striped customer tablesorter hide" style="width: 100%;">';
             inlineQty += '<thead style="color: white;background-color: #607799;">';
             inlineQty += '<tr class="text-center">';
             inlineQty += '</tr>';
@@ -209,30 +208,58 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         }
 
         /**
-         * The header showing that the results are loading.
-         * @returns {String} `inlineQty`
+         * The date input fields to filter the invoices.
+         * Even if the parameters `date_from` and `date_to` are defined, they can't be initiated in the HTML code.
+         * They are initiated with jQuery in the `pageInit()` function.
+         * @return  {String} `inlineQty`
          */
-        function loadingSection() {
-            var hide_loading_section = (!isNullorEmpty(zee_id) && (!isNullorEmpty(date_from) || !isNullorEmpty(date_to))) ? '' : 'hide';
-            var inlineQty = '<div id="load_section" class="form-group container loading_section' + hide_loading_section + '" style="text-align:center">';
+        function tableFilter() {
+            var inlineQty = '<div id="table_filter_section" class="table_filters_section hide">';
+            inlineQty += '<div class="form-group container">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 loading_div">';
-            inlineQty += '<h1>Loading...</h1>';
-            inlineQty += '</div></div></div>';
-
-            return inlineQty;
-        }
-
-        /**
-         * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
-         * Uses Bootstrap : https://www.w3schools.com/bootstrap/bootstrap_progressbars.asp
-         * @param   {String}    nb_records_total    The number of records that will be moved
-         * @return  {String}    inlineQty : The inline HTML string of the progress bar.
-         */
-        function progressBar(nb_records_total) {
-            var inlineQty = '<div class="progress">';
-            inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">MPEX records moved : 0 / ' + nb_records_total + '</div>';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">TABLE FILTERS</span></h4></div>';
             inlineQty += '</div>';
+            inlineQty += '</div>';
+
+            // inlineQty += '<div class="form-group container table_filter_section">';
+            // inlineQty += '<div class="row">';
+            // inlineQty += '<div class="col-xs-12 priority_filter">';
+            // inlineQty += '<div class="input-group">';
+            // inlineQty += '<span class="input-group-addon" id="priority_filter_text">Priority Filter Selection</span>';
+            // inlineQty += '<select multiple id="priority_filter" class="form-control priority_filter" size="3">';
+            // inlineQty += '<option value="Payed" class="priority_filter" selected>Matching MAAP Allocation</option>';
+            // inlineQty += '<option value="Under" class="priority_filter" selected>Medium Priority</option>';
+            // inlineQty += '<option value="Over" class="priority_filter" selected>High Priority</option>';
+            // inlineQty += '</select>';
+            // inlineQty += '</div></div>'
+            // inlineQty += '</div></div>';
+
+            inlineQty += '<div class="form-group container table_filter_section">';
+            inlineQty += '<div class="row">';
+
+            inlineQty += '<div class="col-xs-4 showMPTicket_box">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="showMPTicket_box">Show/Hide | MP Ticket Column</span>';
+            inlineQty += '<button type="button" id="showMPTicket_box" class="toggle-mp-ticket btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '</div></div>';
+
+            // // MAAP Allocation
+            inlineQty += '<div class="col-xs-4 showMAAP_box">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="showMAAP_box">Show/Hide | Matching MAAP Allocation</span>';
+            inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '</div></div>';
+
+            // Medium Priority. 
+            inlineQty += '<div class="col-xs-4 showDanger">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="showDanger_box">Show/Hide | High Priority</span>';
+            inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '</div></div>';
+
+            inlineQty += '</div></div>';
+            inlineQty += '</div>';
+
             return inlineQty;
         }
 
@@ -242,10 +269,24 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          */
         function submitSection(range_id, date_from, date_to) {
             var hide_loading_section = (!isNullorEmpty(range_id) && (!isNullorEmpty(date_from) || !isNullorEmpty(date_to))) ? '' : 'hide';
-            var inlineQty = '<div id="submit_section" class="form-group container loading_section' + hide_loading_section + '" style="text-align:center">';
+            var inlineQty = '<div id="submit_section" class="form-group container submission_section' + hide_loading_section + '" style="text-align:center">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-12 submit_div">';
             inlineQty += '<h1>Please Submit Search</h1>';
+            inlineQty += '</div></div></div>';
+
+            return inlineQty;
+        }
+
+        /**
+         * The header showing that the results are loading.
+         * @returns {String} `inlineQty`
+         */
+        function loadingSection() {
+            var inlineQty = '<div id="loading_section" class="form-group container loading_section hide" style="text-align:center">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-xs-12 loading_div">';
+            inlineQty += '<h1>Loading...</h1>';
             inlineQty += '</div></div></div>';
 
             return inlineQty;
@@ -296,13 +337,13 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             // Date from field
             inlineQty += '<div class="col-xs-6 date_from">';
             inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="date_from_text">FROM</span>';
+            inlineQty += '<span class="input-group-addon" id="date_from_text">From</span>';
             inlineQty += '<input id="date_from" class="form-control date_from" type="date"/>';
             inlineQty += '</div></div>';
             // Date to field
             inlineQty += '<div class="col-xs-6 date_to">';
             inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="date_to_text">TO</span>';
+            inlineQty += '<span class="input-group-addon" id="date_to_text">To</span>';
             inlineQty += '<input id="date_to" class="form-control date_to" type="date">';
             inlineQty += '</div></div></div></div>';
 
@@ -322,7 +363,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             // Period dropdown field
             inlineQty += '<div class="col-xs-12 period_dropdown_div">';
             inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="period_dropdown_text">PERIOD</span>';
+            inlineQty += '<span class="input-group-addon" id="period_dropdown_text">Period</span>';
             inlineQty += '<select id="period_dropdown" class="form-control">';
             inlineQty += '<option></option>';
             inlineQty += '<option value="this_week">This Week</option>';
@@ -337,6 +378,19 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return inlineQty;
         }
 
+        /**
+         * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
+         * Uses Bootstrap : https://www.w3schools.com/bootstrap/bootstrap_progressbars.asp
+         * @param   {String}    nb_records_total    The number of records that will be moved
+         * @return  {String}    inlineQty : The inline HTML string of the progress bar.
+         */
+        // function progressBar(nb_records_total) {
+        //     var inlineQty = '<div class="progress">';
+        //     inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">MPEX records moved : 0 / ' + nb_records_total + '</div>';
+        //     inlineQty += '</div>';
+        //     return inlineQty;
+        // }
+
         function isNullorEmpty(val) {
             if (val == '' || val == null) {
                 return true;
@@ -344,14 +398,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 return false;
             }
         }
-
-        // function AddJavascript(jsname, pos) {
-        //     var tag = document.getElementsByTagName(pos)[0];
-        //     var addScript = document.createElement('script');
-        //     addScript.setAttribute('type', 'text/javascript');
-        //     addScript.setAttribute('src', jsname);
-        //     tag.appendChild(addScript);
-        // }
 
         return {
             onRequest: onRequest

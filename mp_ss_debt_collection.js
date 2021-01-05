@@ -337,7 +337,48 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     }
                 }
             });
+
+            while(JSON.parse(range_id) <= 3 || JSON.parse(range_id) != 4 || JSON.parse(range_id) < 4){
+                var debtNextResultArray = invResultSet.getRange({
+                    start: main_index + indexInCallback + 1,
+                    end: main_index + indexInCallback + 2
+                }); 
+                if (debtNextResultArray.length == 0) {
+                    var range_id_reschedule = JSON.parse(range_id) + 1;
+                    log.debug({
+                        title: 'Rescheduled: Next Array Initiated'
+                    });
+                    log.debug({
+                        title: 'Rescheduled: Range Incremented',
+                        details: range_id_reschedule
+                    });
+                    var params2 = {
+                        custscript_debt_inv_main_index: 0,
+                        custscript_debt_inv_range: [range_id_reschedule],
+                        custscript_debt_inv_date_from: date_from,
+                        custscript_debt_inv_date_to: date_to,
+                        custscript_debt_inv_invoice_id_set: JSON.stringify([]),
+                    };
+                    if (range_id_reschedule < 4 || range_id_reschedule != 4) {
+                        var reschedule2 = task.create({
+                            taskType: task.TaskType.SCHEDULED_SCRIPT,
+                            scriptId: 'customscript_ss_debt_collection',
+                            deploymentId: 'customdeploy_ss_debt_collection',
+                            params: params2
+                        });
+                        var reschedule_id2 = reschedule2.submit();
+                        log.debug({
+                            title: 'Rescheduled: Next Array Complete',
+                            details: task.checkStatus({
+                                taskId: reschedule_id2
+                            })
+                        });
+                    }
+                }
+            }
         }
+        
+        
 
         function invoiceSearch(range, date_from, date_to) {
             var date_to_Filter = search.createFilter({

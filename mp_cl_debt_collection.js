@@ -41,21 +41,59 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
         var debt_set = JSON.parse(JSON.stringify([]));
         var load_record_interval;
 
+        function beforeSubmit(){
+            // $(document).ready(function(){
+            $('#submit_section').show();
+            $('#submit_section').addClass('show');
+            $('#debt_preview').hide();
+            $('#debt_preview').addClass('hide');
+
+            // $('#debt_preview_wrapper').addClass('hide');
+            // });
+        }
+
+        function duringSubmit(){
+            // $(document).ready(function(){
+            // $('#debt_preview_wrapper').removeClass('hide');
+            $('#loading_section').removeClass('hide');
+            $('#loading_section').show();
+            
+            $('#submit_section').addClass('hide');
+            $('#submit_section').hide();
+            $('#submit_section').remove();
+
+            $('#table_filter_section').removeClass('hide');
+            $('#table_filter_section').show();
+
+            if (!isNullorEmpty($('#result_debt').val())){
+                $('#debt_preview').removeClass('hide');
+                $('#debt_preview').show();
+            }
+        // });
+        }
+
+        function afterSubmit(){
+            // $(document).ready(function(){
+            $('#loading_section').addClass('hide');
+            $('#loading_section').hide();
+            $('#loading_section').remove();
+
+            $('#debt_preview').removeClass('hide');
+            $('#debt_preview').show();
+        // });
+        }
+
         function pageInit() {
             selectRangeOptions();
-            $('#submit_section').show();
-            $('#debt_preview').hide();
-
-            // function submit() {
-            $('#submit').click(function() {
-                $('#submit_section').hide();
-                // $('#load_section').hide();
-                debtDataSet = [];
-                debt_set = [];
-                // $(document).ready(function() {
-                $('#debt_preview').DataTable({
+            beforeSubmit();
+     
+            debtDataSet = [];
+            debt_set = [];
+            // $(document).ready(function() {
+                var dataTable = $('#debt_preview').DataTable({
                     data: debtDataSet,
                     pageLength: 1000,
+                    order: [[7, 'asc']],
                     columns: [
                         { title: 'Date' },
                         { title: 'Invoice Number' },
@@ -82,7 +120,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         { title: 'MP Ticket' },
                         { title: 'Notes' },
                         { title: '' },
-                        { title: 'MAAP Payment Status' }
+                        { title: 'MAAP Payment Status'}
                     ],
                     columnDefs: [{
                             targets: [1, 4, 5, 6],
@@ -101,7 +139,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             targets: 3
                         },
                         {
-                            targets: 12,
+                            targets: [9, 12, 13, 14, 15],
                             visible: false
                         },
                         {
@@ -113,22 +151,28 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     rowCallback: function(row, data) {
                         // $('td:eq(1)', row).html;
                         if (data[12] == 'Payed') {
+                            $(row).addClass('maap');
                             if ($(row).hasClass('odd')) {
                                 $(row).css('background-color', 'rgba(144, 238, 144, 0.75)'); // LightGreen
                             } else {
                                 $(row).css('background-color', 'rgba(152, 251, 152, 0.75)'); // YellowGreen
                             }
+                            
                         } else if (data[7] < '60') { //|| data[7] <= '60'
                             if ($(row).hasClass('odd')) {
                                 $(row).css('background-color', 'rgba(250, 250, 210, 1)'); // LightGoldenRodYellow
+                                $(row).addClass('showWarning')
                             } else {
                                 $(row).css('background-color', 'rgba(255, 255, 240, 1)'); // Ivory
+                                $(row).addClass('showDanger')
                             }
                         } else if (data[7] >= '60') {
                             if ($(row).hasClass('odd')) {
                                 $(row).css('background-color', 'rgba(250, 128, 114, 0.75)'); // Salmon
+                                $(row).addClass('showDanger')
                             } else {
                                 $(row).css('background-color', 'rgba(255, 0, 0, 0.5)'); // Red
+                                $(row).addClass('showDanger')
                             }
                         }
                         // else if (data[9] == 'Not Payed') {
@@ -140,30 +184,24 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         // }
                     }
                 });
+            // });
 
-                $('#debt_preview').show();
-
+            // console.log('PER SUBMIT BUTTON LOADED LOADED');
+            $('#submit').click(function() {
+                duringSubmit();
+                
+                $('#submit_section').hide();
                 var range = $('#range_filter').val();
-                // var range = JSON.parse(currRec.getValue({ fieldId: 'custscript_debt_inv_range' }));
-                // var date_from = currRec.getValue({ fieldId: 'custscript_debt_inv_date_from' });
-                // var date_to = currRec.getValue({ fieldId: 'custscript_debt_inv_date_to' });
-                // date_from = dateISOToNetsuite(date_from);
-                // date_to = dateISOToNetsuite(date_to);
-                // $('#date_from').val(date_from_iso);
-                // $('#date_to').val(date_to_iso);
+                $('#range_filter').selectpicker();
+
                 var date_from = $('#date_from').val();
                 var date_to = $('#date_to').val();
                 date_from = dateISOToNetsuite(date_from);
                 date_to = dateISOToNetsuite(date_to);
-
-
-                $('#range_filter').selectpicker();
-
+                
                 console.log('Load DataTable Params: ' + range + ' | ' + date_from + ' | ' + date_to);
 
                 if (!isNullorEmpty(range) || !isNullorEmpty(date_from) || !isNullorEmpty(date_to)) {
-                    // if (is_params == 'T') {
-                    // loadDebtRecord(range, date_from, date_to);
                     load_record_interval = setInterval(loadDebtRecord, 5000, range, date_from, date_to);
                 } else {
                     error.create({
@@ -171,22 +209,156 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         name: 'Invalid Data'
                     });
                 }
-                // $('.note').on('click', onclick_noteSection());
-                // $('.note').on('click', console.log('HelloWorld'));
-                // $('.note').blur(function() {
-                //     // console.log((this.id).split('_')[1]);
-                //     onclick_noteSection();
-                // });
+                
+                afterSubmit();
+                // console.log('STILL LOADED BUT MAYBE PRESSED BUTTOn');
+                return true;
             });
-            // }
+            // console.log('AFTER Submit Section Loaded');
 
-            // $('.note').on('click', function() {
-            //     // console.log((this.id).split('_')[1]);
-            //     // onclick_noteSection();
-            //     console.log('CLICKED!');
+            $(document).on('click', '.note', function() {
+                var tr = $(this).closest('tr');
+                var row = dataTable.row(tr);
+                console.log(row.data());
+            });
+
+            // Load Tick Box as Completed when Note is already saved.
+            // $(window).load('.tickbox', function(){
+            //     var tr = $(this).closest('tr');
+            //     var row = dataTable.row(tr);
+            //     var index = row.data();
+            //     var record_value = index[15];
+            //     var tick_status = index[14];
+
+            //     var tickRecord = record.load({
+            //         type: 'customrecord_debt_coll_inv',
+            //         id: record_value
+            //     });
+    
+            //     if (tick_status == 'true'){
+            //         $(this).addClass('btn-success');
+            //         $(this).removeClass('btn-warning');
+            //         $(this).find('.span_class').addClass('glyphicon-ok');
+            //         $(this).find('.span_class').removeClass('glyphicon-plus'); 
+            //     }
             // });
-            $('.note').on('click', '', function() {
-                console.log('textContent: ', this.id);
+            
+            $(document).on('click', '.tickbox', function() {
+                var tr = $(this).closest('tr');
+                var row = dataTable.row(tr);
+                var index = row.data();
+                var record_value = index[15];
+                var tick_status = index[14];
+                console.log('record Value: ' + record_value)
+
+                
+                if (!isNullorEmpty($('#note_'+ index[13]+ '').val())){
+                    if ($(this).find('btn-warning') || tick_status == 'true'){
+                        // If Closed
+                        $(this).addClass('btn-success');
+                        $(this).removeClass('btn-warning');
+                        $(this).find('.span_class').addClass('glyphicon-ok');
+                        $(this).find('.span_class').removeClass('glyphicon-plus');
+                        
+                    } else {
+                        // If Opened
+                        $(this).removeClass('btn-success');
+                        $(this).addClass('btn-warning');
+                        $(this).find('.span_class').removeClass('glyphicon-ok');
+                        $(this).find('.span_class').addClass('glyphicon-plus');
+                    }
+
+                    onclick_noteSection(row.data());
+
+                    var tickRecord = record.load({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_value
+                    });
+                    var tick_note = tickRecord.setValue({
+                        value: $('#note_'+ index[13]+ '').val(),
+                        fieldId: 'custrecord_debt_coll_inv_note'
+                    });
+                    tick_status = tickRecord.setValue({
+                        value: 'true',
+                        fieldId: 'custrecord_debt_coll_inv_note_status'
+                    })
+                    var tickRecSave = tickRecord.save();
+                } else {
+                    console.log('Notes Section - ID: ' + index[13] + '. Message missing');
+                    error.create({
+                        message: 'Notes Section Empty. Please fill this before submitting',
+                        name: 'Error - notes',
+                        notifyOff: false
+                    });
+
+                }
+            }); 
+
+            $(document).on('click', '.toggle-mp-ticket', function (e){
+                e.preventDefault();
+                // Get the column API object
+                var column = dataTable.column(9);
+                // Toggle the visibility
+                column.visible(!column.visible());
+                if (column.visible() == true){
+                    $(this).addClass('btn-danger');
+                    $(this).removeClass('btn-success');
+                    $(this).find('.span_class').addClass('glyphicon-minus');
+                    $(this).find('.span_class').removeClass('glyphicon-plus');
+                } else {
+                    $(this).removeClass('btn-danger');
+                    $(this).addClass('btn-success');
+                    $(this).find('.span_class').removeClass('glyphicon-minus');
+                    $(this).find('.span_class').addClass('glyphicon-plus');
+                }
+            });
+
+            $(document).on('click', '.toggle-maap', function (e){
+                e.preventDefault();
+
+                $(this).toggleClass('btn-danger');
+                $(this).toggleClass('btn-success');
+                $(this).find('.span_class').toggleClass('glyphicon-minus');
+                $(this).find('.span_class').toggleClass('glyphicon-plus');
+
+                if ($(this).find('btn-danger')){
+                    $.fn.dataTable.ext.search.push(
+                        function(settings, searchData, index, rowData, counter) {
+                            if (rowData[12] == 'Not Payed'){
+                                return true;
+                            }
+                            return false;
+                        }
+                    );  
+                    
+                } else {
+                    $.fn.dataTable.ext.search.push('');
+                }
+                dataTable.draw();
+            });
+
+            $(document).on('click', '.toggle-priority', function (e){
+                e.preventDefault();
+
+                $(this).toggleClass('btn-danger');
+                $(this).toggleClass('btn-success');
+                $(this).find('.span_class').toggleClass('glyphicon-minus');
+                $(this).find('.span_class').toggleClass('glyphicon-plus');
+
+                if ($(this).find('btn-danger')){
+                    $.fn.dataTable.ext.search.push(
+                        function(settings, searchData, index, rowData, counter) {
+                            if (rowData[7] >= '60'){
+                                return true; 
+                            }
+                            return false;
+                        }
+                    );
+                } else {
+                    console.log('PLEASE WORK PLZ')
+                    $.fn.dataTable.ext.search.push('');
+                }
+                dataTable.draw();
             });
 
             if (!isNullorEmpty($('#period_dropdown option:selected').val())) {
@@ -195,53 +367,98 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $('#period_dropdown').change(function() {
                 selectDate();
             });
+
+            // // checkbox search - no results if no checkboxes selected
+            // $('#priority_filter').on('change', function() {
+            //     var filtered = ['Payed', 'Under', 'Over'];
+            //     var val = $(this).val();
+            //     var checked = $(this).prop('checked');
+            //     for (var i = 0; i < filtered.length; i++){
+            //         var index = filtered.indexOf(val[i]);
+            //         console.log('Value of Checkboxes Checked/Amount and What happens. ' + val + ' Checked? ' + checked + ' Value?? : ' + index )
+            //         if (index === -1) {
+            //             filtered.push(val[i]);
+            //         } else if (index > -1) {
+            //             filtered.splice(index, 1);
+            //         }
+            //         console.log('Filtered Array: ' + filtered);
+            //     }
+            //     $.fn.dataTable.ext.search.push(
+            //         function(settings, searchData, index, rowData, counter) {
+            //             if ( settings.nTable.id !== 'datatable') {
+            //                 return true;
+            //             }  
+            //             if (filtered.length === 0) {
+            //                 return false;
+            //             }
+            //             // if (searchData[12].includes("Payed")){
+            //             //     return true;
+            //             // }
+            //             for (var i = 0; i < filtered.length; i++){
+            //                 while (filtered[i] == 'Payed'){
+            //                     if (searchData[12].includes("Payed")){
+            //                         return true;
+            //                     }
+            //                 }
+            //                 while (filtered[i] == 'Under'){
+            //                     if (searchData[7] < '60'){
+            //                         return true;
+            //                     }
+            //                 }
+            //                 while (filtered[i] == 'Over'){
+            //                     if (searchData[7] >= '60'){
+            //                         return true; 
+            //                     }
+            //                 }
+            //             }
+            //             return false;
+            //         }
+            //     );
+            //     //console.log(filtered);
+            //     dataTable.draw();
+            // });
         }
 
-        // function hideLoading() {
-        //     $('#debt_preview').hide();
-        //     $('#load_section').hide();
-        // }
-
-        // function showResults() {
-        //     $('#debt_preview').show();
-        //     $('#load_section').show();
-        // }
-
-        function onclick_noteSection() {
-            var custid = (this.id).split('_')[1];
+        function onclick_noteSection(index) {
+            var custid = (index[13]); //.split('_')[1];
             console.log("Cust Id From Input Field: " + custid);
             var noteVal = $('#note_' + custid + '').val();
             console.log("Note Value: " + noteVal)
+            if (!isNullorEmpty(custid)){
+                var userNoteRecord = record.create({
+                    type: 'note'
+                });
+                userNoteRecord.setValue({
+                    fieldId: 'title',
+                    value: 'Debtor'
+                });
+                userNoteRecord.setValue({
+                    fieldId: 'entity',
+                    value: custid
+                });
+                userNoteRecord.setValue({
+                    fieldId: 'note',
+                    value: noteVal
+                });
+                userNoteRecord.setValue({
+                    fieldId: 'author',
+                    value: userName
+                });
+                userNoteRecord.setValue({
+                    fieldId: 'author',
+                    value: runtime.getCurrentUser().id
+                });
+                var initialFormattedDateString = getDate().toString();
+                var parsedDateStringAsRawDateObject = format.parse({ value: initialFormattedDateString, type: format.Type.DATE });
+                userNoteRecord.setValue({
+                    fieldId: 'notedate',
+                    value: parsedDateStringAsRawDateObject
+                });
 
-            var userNoteRecord = record.create({
-                type: 'note'
-            });
-            userNoteRecord.setValue({
-                fieldId: 'title',
-                value: 'Debtor'
-            });
-            userNoteRecord.setValue({
-                fieldId: 'entity',
-                value: custid
-            });
-            userNoteRecord.setValue({
-                fieldId: 'note',
-                value: noteVal
-            });
-            userNoteRecord.setValue({
-                fieldId: 'author',
-                value: userName
-            });
-            userNoteRecord.setValue({
-                fieldId: 'author',
-                value: runtime.getCurrentUser().id
-            });
-            userNoteRecord.setValue({
-                fieldId: 'notedate',
-                value: getDate().toString()
-            })
-
-            userNoteRecord.save();
+                if (!isNullorEmpty(noteVal)){
+                    userNoteRecord.save();
+                }
+            }
         }
 
         function loadDebtRecord(range, date_from, date_to) {
@@ -335,6 +552,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             if (!isNullorEmpty(invResultSet)) {
                 for (var i = 0; i < invResultSet.length; i++){
                     invResultSet[i].forEach(function(invoiceSet, index) {
+                        var recID = invoiceSet.getValue({ 
+                            name: 'internalid'
+                        });
                         var invoice_id = invoiceSet.getValue({
                             name: 'custrecord_debt_coll_inv_id'
                         });
@@ -374,7 +594,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var maap_status = invoiceSet.getValue({
                             name: 'custrecord_debt_coll_inv_status'
                         });
-
+                        var tick_status = invoiceSet.getValue({
+                            name: 'custrecord_debt_coll_inv_note_status'
+                        });
+                        
                         if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
                             debt_set.push({
                                 dt: date,
@@ -389,7 +612,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 p: period,
                                 nt: note,
                                 mp: mp_ticket,
-                                ms: maap_status
+                                ms: maap_status,
+                                ts: tick_status,
+                                id: recID
                             });
                         }
                         return true;
@@ -430,7 +655,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     // var company_name = '<a href="' + upload_url + '&unlayered=T&custparam_params="' + params + '">' + cm_link + '</a>';
                     var upload_url_cust = '/app/common/entity/custjob.nl?id=';
                     var company_name = '<a href="' + baseURL + upload_url_cust + customer_id + '">' + cm_link + '</a>';
-
                     var zee = debt_row.zee;
                     // for (var i = 0; i < debt_rows.length; i++){
                     //     var customerID = debt_rows[i].cid;
@@ -450,34 +674,28 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var tot_num = count;
                     var tot_am = amount;
                     tot_am = financial(tot_am);
-
                     var due_date = debt_row.dd;
                     var overdue = debt_row.od;
                     var period = debt_row.p;
-
                     var noteInfo = debt_row.nt;
                     var note = '<input id="note_' + customer_id + '" value="' + noteInfo + '" class="form-control note"/>';
-                    $('.note').on('click', function() {
-                        // console.log((this.id).split('_')[1]);
-                        // onclick_noteSection();
-                        console.log('CLICKED!');
-                    });
-                    var checkbox = '<input type="checkbox" id="check_' + customer_id + '" name="check" value="Complete" class="form-check-input check_' + customer_id + '"/>'
+                    var checkbox = '<button type="button" id="tickbox_' + customer_id + '" class="tickbox form=control btn-xs btn-warning"><span class="span_class glyphicon glyphicon-plus"></span></button>'
                     var mp_ticket = debt_row.mp
                     var maap_status = debt_row.ms;
+                    var tick_status = debt_row.ts;
+                    var record_id = debt_row.id;
 
-                    if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) { //stringSet[index - 1].cid != customer_id
-                        debtDataSet.push([date, invoice, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status]);
+                    if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) {
+                        debtDataSet.push([date, invoice, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id]);
                     }
                 });
             }
-            $('.loading_section').addClass('show');
             var datatable = $('#debt_preview').DataTable();
             datatable.clear();
             datatable.rows.add(debtDataSet);
             datatable.draw();
-            $('.loading_section').addClass('hide');
-            $('.submit_section').addClass('hide');
+            // $('.loading_section').addClass('hide');
+            // $('.submit_section').addClass('hide');
             clearInterval(load_record_interval);
 
             return true;
@@ -523,6 +741,16 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var range_filter = $('#range_filter option:selected').map(function() { return $(this).val() });
             range_filter = $.makeArray(range_filter);
             $('#range_filter').selectpicker('val', range_filter);
+        }
+
+        /**
+         * Function to select Range Options
+         */
+        function selectPriorityOptions() {
+            // var rangeArray = rangeSelection();
+            var priority_filter = $('#priority_filter option:selected').map(function() { return $(this).val() });
+            priority_filter = $.makeArray(priority_filter);
+            $('#priority_filter').selectpicker('val', priority_filter);
         }
 
         /**
