@@ -201,7 +201,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '</tr>';
             inlineQty += '</thead>';
 
-            inlineQty += '<tbody id="result_debt"></tbody>';
+            inlineQty += '<tbody id="result_debt" class="result-debt"></tbody>';
 
             inlineQty += '</table>';
             return inlineQty;
@@ -237,24 +237,26 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="form-group container table_filter_section">';
             inlineQty += '<div class="row">';
 
-            inlineQty += '<div class="col-xs-4 showMPTicket_box">';
+            inlineQty += '<div class="col-sm-4 showMPTicket_box">';
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="showMPTicket_box">Show/Hide | MP Ticket Column</span>';
             inlineQty += '<button type="button" id="showMPTicket_box" class="toggle-mp-ticket btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
             inlineQty += '</div></div>';
 
             // // MAAP Allocation
-            inlineQty += '<div class="col-xs-4 showMAAP_box">';
+            inlineQty += '<div class="col-sm-5 showMAAP_box">';
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="showMAAP_box">Show/Hide | Matching MAAP Allocation</span>';
             inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap-danger btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
             inlineQty += '</div></div>';
 
             // Medium Priority. 
-            inlineQty += '<div class="col-xs-4 showDanger">';
+            inlineQty += '<div class="col-sm-auto showDanger">';
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="showDanger_box">Show/Hide | High Priority</span>';
             inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority-danger btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
             inlineQty += '</div></div>';
 
             inlineQty += '</div></div>';

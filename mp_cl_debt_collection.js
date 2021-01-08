@@ -39,24 +39,17 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
         var debtDataSet = JSON.parse(JSON.stringify([]));
         var debt_set = JSON.parse(JSON.stringify([]));
-        var load_record_interval;
 
         function beforeSubmit(){
-            // $(document).ready(function(){
             $('#submit_section').show();
             $('#submit_section').addClass('show');
             $('#debt_preview').hide();
             $('#debt_preview').addClass('hide');
-
-            // $('#debt_preview_wrapper').addClass('hide');
-            // });
         }
 
         function duringSubmit(){
-            // $(document).ready(function(){
-            // $('#debt_preview_wrapper').removeClass('hide');
-            $('#loading_section').removeClass('hide');
-            $('#loading_section').show();
+            $('.loading_section').removeClass('hide');
+            $('.loading_section').show();
             
             $('#submit_section').addClass('hide');
             $('#submit_section').hide();
@@ -69,18 +62,23 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $('#debt_preview').removeClass('hide');
                 $('#debt_preview').show();
             }
-        // });
+
+            $('#result_debt').on('change', function(){
+                $('#debt_preview').removeClass('hide');
+                $('#debt_preview').show();
+            });
+
+            $('.result-debt').addClass('hide');
         }
 
         function afterSubmit(){
-            // $(document).ready(function(){
+            $('.result-debt').removeClass('hide');
             $('#loading_section').addClass('hide');
             $('#loading_section').hide();
             $('#loading_section').remove();
 
             $('#debt_preview').removeClass('hide');
             $('#debt_preview').show();
-        // });
         }
 
         function pageInit() {
@@ -148,6 +146,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             searchable: false
                         },
                     ],
+                    autoWidth: false,
                     rowCallback: function(row, data) {
                         // $('td:eq(1)', row).html;
                         if (data[12] == 'Payed') {
@@ -158,7 +157,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 $(row).css('background-color', 'rgba(152, 251, 152, 0.75)'); // YellowGreen
                             }
                             
-                        } else if (data[7] < '60') { //|| data[7] <= '60'
+                        } else if (parseInt(data[7]) < 60 && parseInt(data[7]) > 30) {
+                            console.log(data[7]) //|| data[7] <= '60'
                             if ($(row).hasClass('odd')) {
                                 $(row).css('background-color', 'rgba(250, 250, 210, 1)'); // LightGoldenRodYellow
                                 $(row).addClass('showWarning')
@@ -166,7 +166,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 $(row).css('background-color', 'rgba(255, 255, 240, 1)'); // Ivory
                                 $(row).addClass('showDanger')
                             }
-                        } else if (data[7] >= '60') {
+                        } else if (parseInt(data[7]) >= 60) {
                             if ($(row).hasClass('odd')) {
                                 $(row).css('background-color', 'rgba(250, 128, 114, 0.75)'); // Salmon
                                 $(row).addClass('showDanger')
@@ -189,6 +189,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             // console.log('PER SUBMIT BUTTON LOADED LOADED');
             $('#submit').click(function() {
                 duringSubmit();
+                $('.result-debt').removeClass('hide');
                 
                 $('#submit_section').hide();
                 var range = $('#range_filter').val();
@@ -202,17 +203,33 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 console.log('Load DataTable Params: ' + range + ' | ' + date_from + ' | ' + date_to);
 
                 if (!isNullorEmpty(range) || !isNullorEmpty(date_from) || !isNullorEmpty(date_to)) {
-                    load_record_interval = setInterval(loadDebtRecord, 5000, range, date_from, date_to);
+                    // load_record_interval = setInterval(loadDebtRecord, 5000, range, date_from, date_to);
+                    loadDebtRecord(range, date_from, date_to);
                 } else {
                     error.create({
                         message: 'Please Select Date Range and Date Filter',
                         name: 'Invalid Data'
                     });
                 }
-                
+                console.log('Loaded Results');
+
                 afterSubmit();
                 // console.log('STILL LOADED BUT MAYBE PRESSED BUTTOn');
                 return true;
+            });
+
+            
+            $('#submit').click(function(){
+                // Ajax request
+                var fewSeconds = 10;
+                var btn = $(this);
+                btn.addClass('disabled');
+                // btn.addClass('')
+                setTimeout(function(){
+                    btn.removeClass('disabled');
+                    // btn.removeClass('')
+                }, fewSeconds*1000);
+
             });
             // console.log('AFTER Submit Section Loaded');
 
@@ -316,10 +333,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $(document).on('click', '.toggle-maap', function (e){
                 e.preventDefault();
 
-                $(this).toggleClass('btn-danger');
-                $(this).toggleClass('btn-success');
-                $(this).find('.span_class').toggleClass('glyphicon-minus');
-                $(this).find('.span_class').toggleClass('glyphicon-plus');
+                // $(this).toggleClass('btn-danger');
+                // $(this).toggleClass('btn-success');
+                // $(this).find('.span_class').toggleClass('glyphicon-minus');
+                // $(this).find('.span_class').toggleClass('glyphicon-plus');
 
                 if ($(this).find('btn-danger')){
                     $.fn.dataTable.ext.search.push(
@@ -330,20 +347,30 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             return false;
                         }
                     );  
-                    
-                } else {
-                    $.fn.dataTable.ext.search.push('');
-                }
+                    dataTable.draw();
+                } 
+                // else {
+                //     $.fn.dataTable.ext.search.pop('');
+                //     dataTable.draw();
+                // }
+                
+                // $.fn.dataTable.ext.search.pop('');
+            });
+
+            $(document).on('click', '.toggle-maap-danger', function (e){
+                e.preventDefault();
+
+                $.fn.dataTable.ext.search.pop('');
                 dataTable.draw();
             });
 
             $(document).on('click', '.toggle-priority', function (e){
                 e.preventDefault();
 
-                $(this).toggleClass('btn-danger');
-                $(this).toggleClass('btn-success');
-                $(this).find('.span_class').toggleClass('glyphicon-minus');
-                $(this).find('.span_class').toggleClass('glyphicon-plus');
+                // $(this).toggleClass('btn-danger');
+                // $(this).toggleClass('btn-success');
+                // $(this).find('.span_class').toggleClass('glyphicon-minus');
+                // $(this).find('.span_class').toggleClass('glyphicon-plus');
 
                 if ($(this).find('btn-danger')){
                     $.fn.dataTable.ext.search.push(
@@ -354,10 +381,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             return false;
                         }
                     );
-                } else {
-                    console.log('PLEASE WORK PLZ')
-                    $.fn.dataTable.ext.search.push('');
+                    dataTable.draw();
                 }
+            });
+            $(document).on('click', '.toggle-priority-danger', function (e){
+                e.preventDefault();
+                  
+                $.fn.dataTable.ext.search.pop('');
                 dataTable.draw();
             });
 
@@ -367,60 +397,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $('#period_dropdown').change(function() {
                 selectDate();
             });
-
-            // // checkbox search - no results if no checkboxes selected
-            // $('#priority_filter').on('change', function() {
-            //     var filtered = ['Payed', 'Under', 'Over'];
-            //     var val = $(this).val();
-            //     var checked = $(this).prop('checked');
-            //     for (var i = 0; i < filtered.length; i++){
-            //         var index = filtered.indexOf(val[i]);
-            //         console.log('Value of Checkboxes Checked/Amount and What happens. ' + val + ' Checked? ' + checked + ' Value?? : ' + index )
-            //         if (index === -1) {
-            //             filtered.push(val[i]);
-            //         } else if (index > -1) {
-            //             filtered.splice(index, 1);
-            //         }
-            //         console.log('Filtered Array: ' + filtered);
-            //     }
-            //     $.fn.dataTable.ext.search.push(
-            //         function(settings, searchData, index, rowData, counter) {
-            //             if ( settings.nTable.id !== 'datatable') {
-            //                 return true;
-            //             }  
-            //             if (filtered.length === 0) {
-            //                 return false;
-            //             }
-            //             // if (searchData[12].includes("Payed")){
-            //             //     return true;
-            //             // }
-            //             for (var i = 0; i < filtered.length; i++){
-            //                 while (filtered[i] == 'Payed'){
-            //                     if (searchData[12].includes("Payed")){
-            //                         return true;
-            //                     }
-            //                 }
-            //                 while (filtered[i] == 'Under'){
-            //                     if (searchData[7] < '60'){
-            //                         return true;
-            //                     }
-            //                 }
-            //                 while (filtered[i] == 'Over'){
-            //                     if (searchData[7] >= '60'){
-            //                         return true; 
-            //                     }
-            //                 }
-            //             }
-            //             return false;
-            //         }
-            //     );
-            //     //console.log(filtered);
-            //     dataTable.draw();
-            // });
         }
 
         function onclick_noteSection(index) {
-            var custid = (index[13]); //.split('_')[1];
+            var custid = (index[13]);
             console.log("Cust Id From Input Field: " + custid);
             var noteVal = $('#note_' + custid + '').val();
             console.log("Note Value: " + noteVal)
@@ -510,45 +490,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             if (!isNullorEmpty(myFilter2)) { invoiceResults.filters.push(myFilter2); }
             if (!isNullorEmpty(myFilter3)) { invoiceResults.filters.push(myFilter3); }
             var invResultRun = invoiceResults.run();
-
-            // var date_filter = ['custrecord_debt_coll_inv_date', 'within', date_from, date_to]
-            // for (var i = 0; i < JSON.parse(range.length); i++) {
-            //     console.log('Range ID: ' + JSON.parse(range[i]));
-            //     var selector_id = JSON.parse(range[i]);
-            //     if (selector_id == '1') {
-            //         console.log('MPEX Products Selected');
-            //         var myFilter1 = ['custrecord_debt_coll_inv_range', 'contains', 1]
-            //     }
-            //     if (selector_id == '2') {
-            //         console.log('0 - 59 Days Selected');
-            //         var myFilter2 = ['custrecord_debt_coll_inv_range', 'contains', 2]
-            //     }
-            //     if (selector_id == '3') {
-            //         console.log('60+ Days Selected');
-            //         var myFilter3 = ['custrecord_debt_coll_inv_range', 'contains', 3]
-            //     }
-            // }
-            // var invoiceResults = search.load({
-            //     type: 'customrecord_debt_coll_inv',
-            //     id: 'customsearch_debt_coll_table',
-            //     columns: [search.createColumn({
-            //         name: "custrecord_debt_coll_inv_date",
-            //         sort: search.Sort.DESC,
-            //         label: "Debt Coll - Date "
-            //      }), search.createColumn({name: "custrecord_debt_coll_inv_range", label: "Debt Coll - Range ID"})],
-            //     filters: [
-            //         date_filter, 'AND', [myFilter1, 'OR', myFilter2, 'OR', myFilter3]
-            //     ]
-            // });
-            // var invResultRun = invoiceResults.run();
             
             var invResultSet = [];
             var main_index = 0;
             for (var main_index = 0; main_index < 10000; main_index += 1000){
                 invResultSet.push(invResultRun.getRange({start: main_index, end: main_index + 999}));
             }
-            console.log(JSON.stringify(invResultSet));
-
+            // console.log(JSON.stringify(invResultSet));
             if (!isNullorEmpty(invResultSet)) {
                 for (var i = 0; i < invResultSet.length; i++){
                     invResultSet[i].forEach(function(invoiceSet, index) {
@@ -620,7 +568,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         return true;
                     });
                 }
-                console.log('Data Set: ' + JSON.stringify(debt_set));
+                // console.log('Data Set: ' + JSON.stringify(debt_set));
                 loadDatatable(debt_set);
                 debt_set = [];
             } else {
@@ -629,7 +577,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
         }
 
         function loadDatatable(debt_rows) {
-            $('#result_debt').empty();
+            // $('#result_debt').empty();
             debtDataSet = [];
             if (!isNullorEmpty(debt_rows)) {
                 debt_rows.forEach(function(debt_row, index) {
@@ -647,21 +595,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         deployid: 'customdeploy_sl_customer_list'
                     }
                     params = JSON.stringify(params);
-                    // var upload_url = url.resolveScript({
-                    //     scriptId: 'customscript_sl_lead_capture2',
-                    //     deploymentId: 'customdeploy_sl_lead_capture2',
-                    //     returnExternalUrl: true
-                    // });
-                    // var company_name = '<a href="' + upload_url + '&unlayered=T&custparam_params="' + params + '">' + cm_link + '</a>';
                     var upload_url_cust = '/app/common/entity/custjob.nl?id=';
                     var company_name = '<a href="' + baseURL + upload_url_cust + customer_id + '">' + cm_link + '</a>';
                     var zee = debt_row.zee;
-                    // for (var i = 0; i < debt_rows.length; i++){
-                    //     var customerID = debt_rows[i].cid;
-                    //     if (customerID == customer_id){
-                    //         count++;
-                    //     }
-                    // }
                     var amount = parseFloat(debt_row.ta);
                     debt_rows.forEach(function(debt) {
                         var cust_name = debt.cm;
@@ -694,45 +630,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             datatable.clear();
             datatable.rows.add(debtDataSet);
             datatable.draw();
-            // $('.loading_section').addClass('hide');
-            // $('.submit_section').addClass('hide');
-            clearInterval(load_record_interval);
+            // clearInterval(load_record_interval);
 
             return true;
         }
 
         function saveRecord() {}
-
-        function loadingBar(index) {
-            $('.loading_bar').val(index);
-        }
-
-        function updateProgressBar(resultSetLength) {
-            if (!isNullorEmpty()) {
-                try {
-                    console.log("Nb records left to move : ", nb_records_left_to_move);
-                    if (result_length == 0) {
-                        $('#progress-records').attr('class', 'progress-bar progress-bar-success');
-                    }
-
-                    var nb_records_moved = resultSetLength - nb_records_left_to_move;
-                    var width = parseInt((nb_records_moved / resultSetLength) * 100);
-
-                    $('#progress-records').attr('aria-valuenow', nb_records_moved);
-                    $('#progress-records').attr('style', 'width:' + width + '%');
-                    $('#progress-records').text('Barcodes records reallocated : ' + nb_records_moved + ' / ' + resultSetLength);
-                    console.log("nb_records_moved : ", nb_records_moved);
-                    console.log("width : ", width);
-                } catch (e) {
-                    if (e instanceof error) {
-                        if (e.getCode() == 'SCRIPT_EXECUTION_USAGE_LIMIT_EXCEEDED') {
-
-                        }
-                    }
-                }
-            }
-        }
-
         /**
          * Function to select Range Options
          */
@@ -741,16 +644,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var range_filter = $('#range_filter option:selected').map(function() { return $(this).val() });
             range_filter = $.makeArray(range_filter);
             $('#range_filter').selectpicker('val', range_filter);
-        }
-
-        /**
-         * Function to select Range Options
-         */
-        function selectPriorityOptions() {
-            // var rangeArray = rangeSelection();
-            var priority_filter = $('#priority_filter option:selected').map(function() { return $(this).val() });
-            priority_filter = $.makeArray(priority_filter);
-            $('#priority_filter').selectpicker('val', priority_filter);
         }
 
         /**
@@ -764,6 +657,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var today_month = today.getMonth();
             var today_year = today.getFullYear();
 
+            var today_date = new Date(Date.UTC(today_year, today_month, today_day_in_month))
+            
             switch (period_selected) {
                 case "this_week":
                     // This method changes the variable "today" and sets it on the previous monday
@@ -773,7 +668,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var monday = new Date(Date.UTC(today_year, today_month, today_day_in_month - today_day_in_week + 1));
                     }
                     var date_from = monday.toISOString().split('T')[0];
-                    var date_to = getDate();
+                    var date_to = today_date.toISOString().split('T')[0];
                     break;
 
                 case "last_week":
@@ -799,7 +694,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 case "this_month":
                     var first_day_month = new Date(Date.UTC(today_year, today_month));
                     var date_from = first_day_month.toISOString().split('T')[0];
-                    var date_to = getDate();
+                    var date_to = today_date.toISOString().split('T')[0];
                     break;
 
                 case "last_month":
@@ -812,7 +707,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 case "full_year":
                     var first_day_in_year = new Date(Date.UTC(today_year, 0));
                     var date_from = first_day_in_year.toISOString().split('T')[0];
-                    var date_to = getDate();
+                    var date_to = today_date.toISOString().split('T')[0];
                     break;
 
                 case "financial_year":
@@ -822,7 +717,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var first_july = new Date(Date.UTC(today_year - 1, 6));
                     }
                     var date_from = first_july.toISOString().split('T')[0];
-                    var date_to = getDate();
+                    var date_to = today_date.toISOString().split('T')[0];
                     break;
 
                 default:
@@ -911,3 +806,33 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             saveRecord: saveRecord
         }
     });
+
+    // function loadingBar(index) {
+    //     $('.loading_bar').val(index);
+    // }
+
+    // function updateProgressBar(resultSetLength) {
+    //     if (!isNullorEmpty()) {
+    //         try {
+    //             console.log("Nb records left to move : ", nb_records_left_to_move);
+    //             if (result_length == 0) {
+    //                 $('#progress-records').attr('class', 'progress-bar progress-bar-success');
+    //             }
+
+    //             var nb_records_moved = resultSetLength - nb_records_left_to_move;
+    //             var width = parseInt((nb_records_moved / resultSetLength) * 100);
+
+    //             $('#progress-records').attr('aria-valuenow', nb_records_moved);
+    //             $('#progress-records').attr('style', 'width:' + width + '%');
+    //             $('#progress-records').text('Barcodes records reallocated : ' + nb_records_moved + ' / ' + resultSetLength);
+    //             console.log("nb_records_moved : ", nb_records_moved);
+    //             console.log("width : ", width);
+    //         } catch (e) {
+    //             if (e instanceof error) {
+    //                 if (e.getCode() == 'SCRIPT_EXECUTION_USAGE_LIMIT_EXCEEDED') {
+
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
