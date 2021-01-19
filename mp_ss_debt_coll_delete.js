@@ -39,19 +39,33 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function deleteRecords() {
+            log.debug({
+                title: 'DELETE STRING ACTIVATED'
+            })
             var debtCollSearch = search.load({
                 type: 'customrecord_debt_coll_inv',
                 id: 'customsearch_debt_coll_table'
             });
             var searchResult = debtCollSearch.run();
             searchResult.each(function(result) {
+                
                 var index = result.getValue({
                     name: 'internalid'
                 });
-                deleteResultRecord(index);
-                return true;
+                var name = result.getValue({
+                    name: 'name'
+                });
+                if (name != 'END'){
+                    deleteResultRecord(index);
+                } else {
+                    record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: index
+                    });
+                    return true;
+                }
+                // return true;
             });
-
         }
 
         function deleteResultRecord(index) {

@@ -39,9 +39,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function debtCollection() {
+            
             var range_id = ctx.getParameter({ name: 'custscript_debt_inv_range' });
             if (isNullorEmpty(range_id)) {
-                range_id = [1]
+                range_id = [1];
             } else {
                 range_id = JSON.parse(range_id);
                 log.debug({
@@ -58,18 +59,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var date_to = ctx.getParameter({ name: 'custscript_debt_inv_date_to' });
             if (isNullorEmpty(date_to) || isNaN(date_to)) {
                 date_to = getDate();
-                log.debug({
-                    title: 'Current Date',
-                    details: getDate()
-                })
             }
 
             var main_index = ctx.getParameter({ name: 'custscript_debt_inv_main_index' });
-            if (!isNullorEmpty(main_index)){ var testing = 'RESCHEDULED: ' + main_index;}
-            log.debug({
-                title: 'main_index_rescheduled',
-                details: testing
-            });
             if (isNullorEmpty(main_index)) {
                 main_index = 0;
             }
@@ -83,12 +75,37 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 invoice_id_set = JSON.parse(JSON.stringify([]));
             } else {
                 invoice_id_set = JSON.parse(invoice_id_set);
-                log.debug({
-                    title: 'Invoice ID Set',
-                    details: invoice_id_set
-                })
             }
 
+            while (main_index == 0 ){ //&& range_id == [1]
+                log.debug({
+                    title: 'DELETE STRING ACTIVATED'
+                })
+                var debtCollSearch = search.load({
+                    type: 'customrecord_debt_coll_inv',
+                    id: 'customsearch_debt_coll_table'
+                });
+                var searchResult = debtCollSearch.run();
+                searchResult.each(function(result) {
+                    var index = result.getValue({
+                        name: 'internalid'
+                    });
+                    var name = result.getValue({
+                        name: 'name'
+                    });
+                    if (name != 'END'){
+                        deleteResultRecord(index);
+                    } else {
+                        record.delete({
+                            type: 'customrecord_debt_coll_inv',
+                            id: index
+                        });
+                        return true;
+                    }
+                    // return true;
+                });
+            }
+            
             var invResultSet = invoiceSearch(range_id, date_from, date_to);
             var resultsSet = invResultSet.getRange({
                 start: main_index,
@@ -107,10 +124,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         custscript_debt_inv_date_to: date_to,
                         custscript_debt_inv_invoice_id_set: JSON.stringify(invoice_id_set)
                     };
-                    log.debug({
-                        title: 'Invoice ID Set - Length',
-                        details: invoice_id_set.length
-                    });
+                    // log.debug({
+                    //     title: 'Invoice ID Set - Length',
+                    //     details: invoice_id_set.length
+                    // });
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
                         scriptId: 'customscript_ss_debt_collection',
@@ -141,10 +158,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var date = invoiceSet.getValue({
                             name: 'trandate'
                         });
-                        // log.debug({
-                        //     title: 'Date',
-                        //     details: date
-                        // });
                         var invoice_name = invoiceSet.getValue({
                             name: 'tranid'
                         });
@@ -158,7 +171,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var zee_name = invoiceSet.getText({
                             name: 'partner'
                         });
-                        // var total_num = '';
                         var total_amount = parseFloat(invoiceSet.getValue({
                             name: 'amount'
                         }));
@@ -174,59 +186,72 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var period = invoiceSet.getText({
                             name: 'postingperiod'
                         });
-                        var note = '';
-                        // var note_filter = search.createFilter({
-                        //     name: 'internalid',
-                        //     join: 'customer',
-                        //     operator: search.Operator.IS,
-                        //     values: customer_id
-                        // });
-                        // var noteSearch = search.load({
-                        //     id: 'customsearch_debt_coll_note',
-                        //     type: 'note'
-                        // });
-                        // noteSearch.filters.push(note_filter);
-                        // var noteResults = noteSearch.run().getRange({
-                        //     start: 0,
-                        //     end: 1
-                        // });
-                        // noteResults.forEach(function(noteSet, index) {
-                        //     note = noteSet.getValue({
-                        //         name: 'note'
-                        //     });
-                        //     log.debug({
-                        //         title: 'Note information',
-                        //         details: note
-                        //     })
-                        //     log.debug({
-                        //         title: 'Number of Notes Searched - Should be 1',
-                        //         details: index
-                        //     })
-                        // });
-
+                        var note_filter = search.createFilter({
+                            name: 'title',
+                            operator: search.Operator.CONTAINS,
+                            values: 'Debt Collection _ ' + invoice_id
+                        });
+                        var noteSearch = search.load({
+                            id: 'customsearch_debt_coll_note',
+                            type: 'note'
+                        });
+                        noteSearch.filters.push(note_filter);
+                        var noteResults = noteSearch.run();
+                        if (!isNullorEmpty(noteResults)){
+                            noteResults.each(function(noteSet, index) {
+                                var note_name = noteSet.getValue({
+                                    name: 'title'
+                                });
+                                log.audit({
+                                    title: 'User Note Details',
+                                    details: note_name
+                                })
+                                var note = noteSet.getValue({
+                                    name: 'note'
+                                });
+                                log.audit({
+                                    title: 'Note information',
+                                    details: note
+                                })
+                            });
+                        } else {
+                            var note = '';
+                        }
                         var maap_status = 'Not Payed';
-                        var maap_bankacc = invoiceSet.getValue({ name: 'custbody_maap_bankacct' });
+                        var maap_bank = invoiceSet.getValue({ name: 'custbody_maap_bankacct' });
                         var bankacc_filter = search.createFilter({
                             name: 'custbody_maap_tclientaccount',
                             operator: search.Operator.IS,
-                            values: maap_bankacc
+                            values: maap_bank
                         });
-                        // var date_to_filter = search.createFilter({
-                        //     name: 'datecreated',
-                        //     operator: search.Operator.ONORBEFORE,
-                        //     values: maap_date_to
-                        // });
-                        // var date_from_filter = search.createFilter({
-                        //     name: 'datecreated', //trandate
-                        //     operator: search.Operator.ONORAFTER,
-                        //     values: maap_date_from
-                        // });
+                        
+                        var today = new Date();
+                        var today_day_in_month = today.getDate();
+                        var today_month = today.getMonth();
+                        var today_year = today.getFullYear();
+                        var three_day_ago  = new Date(Date.UTC(today_year, today_month, today_day_in_month - 5));
+                        var date_utc = new Date(three_day_ago);
+                        var maap_date_from = format.format({
+                            value: date_utc,
+                            type: format.Type.DATE,
+                            timezone: format.Timezone.AUSTRALIA_SYDNEY
+                        });
+                        var date_from_filter = search.createFilter({
+                            name: 'datecreated',
+                            operator: search.Operator.ONORAFTER,
+                            values: maap_date_from
+                        });
+                        var date_to_filter = search.createFilter({
+                            name: 'datecreated',
+                            operator: search.Operator.ONORBEFORE,
+                            values: getDate()
+                        });
+
                         var maap_status_search = search.load({
                             id: 'customsearch_debt_coll_maap_pmts',
-                            type: 'customerpayment'
                         });
-                        // maap_status_search.filters.push(date_to_filter);
-                        // maap_status_search.filters.push(date_from_filter);
+                        maap_status_search.filters.push(date_to_filter);
+                        maap_status_search.filters.push(date_from_filter);
                         maap_status_search.filters.push(bankacc_filter);
                         var maap_results = maap_status_search.run().getRange({
                             start: 0,
@@ -236,6 +261,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             var client_number = status.getValue({ name: 'custbody_maap_tclientaccount' });
                             if (maap_bankacc == client_number) {
                                 maap_status = 'Payed';
+                                log.debug({
+                                    title: 'PAYEDDD'
+                                })
                             }
                         });
 
@@ -269,6 +297,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 value: parsedDateStringAsRawDateObject
                             });
                             invRecord.setValue({
+                                fieldId: 'custrecord_debt_inv_maap_bank',
+                                value: maap_bank
+                            });
+                            invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_cust_id',
                                 value: customer_id
                             });
@@ -280,10 +312,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 fieldId: 'custrecord_debt_coll_inv_zee_id',
                                 value: zee_name
                             });
-                            // invRecord.setValue({
-                            //     fieldId: 'custrecord_debt_coll_inv_tot_num',
-                            //     value: total_num
-                            // });
                             invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_tot_am',
                                 value: total_amount
@@ -326,6 +354,19 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     end: main_index + indexInCallback + 2
                 }); 
                 if (debtNextResultArray.length == 0) {
+                    while (JSON.parse(range_id) == 3){
+                        var invRecord = record.create({
+                            type: 'customrecord_debt_coll_inv'
+                        });
+                        var debt_record_name = 'END';
+                            invRecord.setValue({
+                                fieldId: 'name',
+                                value: debt_record_name
+                            });
+                        invRecord.save();
+                        return true;
+                    }
+
                     var range_id_reschedule = JSON.parse(range_id) + 1;
                     log.debug({
                         title: 'Rescheduled: Next Array Initiated'
@@ -362,8 +403,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             }
         }
         
-        
-
         function invoiceSearch(range, date_from, date_to) {
             var date_to_Filter = search.createFilter({
                 name: 'trandate',
@@ -398,6 +437,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         operator: search.Operator.LESSTHAN,
                         values: '60'
                     });
+                    var myFilter2_2 =  search.createFilter({
+                        name: 'custbody_inv_type',
+                        operator: search.Operator.ANYOF,
+                        values: '8'
+                    });
                 }
                 if (selector_id == '3') {
                     log.debug({
@@ -409,6 +453,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         operator: search.Operator.GREATERTHANOREQUALTO,
                         values: '60'
                     });
+                    var myFilter3_3 =  search.createFilter({
+                        name: 'custbody_inv_type',
+                        operator: search.Operator.ANYOF,
+                        values: '8'
+                    });
                 }
             }
             var invoiceResult = search.load({
@@ -419,10 +468,39 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             invoiceResult.filters.push(date_from_Filter);
             if (!isNullorEmpty(myFilter1)) { invoiceResult.filters.push(myFilter1); }
             if (!isNullorEmpty(myFilter2)) { invoiceResult.filters.push(myFilter2); }
+            // if (!isNullorEmpty(myFilter2_2)) { invoiceResult.filters.push(myFilter2_2); }
             if (!isNullorEmpty(myFilter3)) { invoiceResult.filters.push(myFilter3); }
+            // if (!isNullorEmpty(myFilter3_3)) { invoiceResult.filters.push(myFilter3_3); }
             var searchResult = invoiceResult.run();
 
             return searchResult;
+        }
+
+        function deleteResultRecord(index) {
+            var usage_loopstart_cust = ctx.getRemainingUsage();
+            if (usage_loopstart_cust < 10 || index == 3999) {
+                // Rescheduling a scheduled script doesn't consumes any governance units.
+                var delReschedule = task.create({
+                    taskType: task.TaskType.SCHEDULED_SCRIPT,
+                    scriptId: 'customscript_ss_debt_coll_delete',
+                    deploymentId: 'customdeploy_ss_debt_coll_delete'
+                });
+                var delResult = delReschedule.submit();
+            } else {
+                log.debug({
+                    title: 'Delete index',
+                    details: index
+                });
+                // Deleting a record consumes 4 governance units.
+                record.delete({
+                    type: 'customrecord_debt_coll_inv',
+                    id: index
+                });
+                log.debug({
+                    title: 'Removed',
+                    details: 'Removed'
+                });
+            } 
         }
 
         /**
@@ -452,7 +530,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 // var date_netsuite = nlapiDateToString(date_utc);
                 var date_netsuite = format.format({
                     value: date_utc,
-                    type: format.Type.DATE
+                    type: format.Type.DATE,
+                    timezone: format.Timezone.AUSTRALIA_SYDNEY
                 });
             }
             return date_netsuite;

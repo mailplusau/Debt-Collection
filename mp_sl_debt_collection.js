@@ -110,12 +110,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
+                // Popup Notes Section
+                inlineHtml += '<div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Notes Section</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
 
-                // Load Netsuite stylesheet and script
-                inlineHtml += '<link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/>';
-                inlineHtml += '<script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script>';
-                inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
-                inlineHtml += '<style>.mandatory{color:red;}</style>';
+                // Popup Notes Section - JS & StyleSheet
+                // inlineHtml += '<link rel="stylesheet" type="text/css" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2392606&c=1048144&h=a4ffdb532b0447664a84&_xt=.css"/><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><script type="text/javascript"  src="https://cdn.datatables.net/v/dt/dt-1.10.18/datatables.min.js"></script>';
+
 
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
@@ -252,14 +252,22 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '</div></div>';
 
             // Medium Priority. 
-            inlineQty += '<div class="col-sm-auto showDanger">';
+            // inlineQty += '<div class="col-sm-auto showDanger">';
+            // inlineQty += '<div class="input-group">';
+            // inlineQty += '<span class="input-group-addon" id="showDanger_box">Show/Hide | High Priority</span>';
+            // inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            // inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority-danger btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
+            // inlineQty += '</div></div>';
+
+            //Toggle MAAP Bank Account
+            inlineQty += '<div class="col-sm-auto showMAAP_bank">';
             inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="showDanger_box">Show/Hide | High Priority</span>';
-            inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
-            inlineQty += '<button type="button" id="showDanger_box" class="toggle-priority-danger btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
+            inlineQty += '<span class="input-group-addon" id="showMAAP_bank">Show/Hide | MAAP Bank Account</span>';
+            inlineQty += '<button type="button" id="showMAAP_bank" class="toggle-maap-bank btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
             inlineQty += '</div></div>';
 
             inlineQty += '</div></div>';
+
             inlineQty += '</div>';
 
             return inlineQty;
