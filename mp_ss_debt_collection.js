@@ -77,34 +77,34 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 invoice_id_set = JSON.parse(invoice_id_set);
             }
 
-            while (main_index == 0 ){ //&& range_id == [1]
-                log.debug({
-                    title: 'DELETE STRING ACTIVATED'
-                })
-                var debtCollSearch = search.load({
-                    type: 'customrecord_debt_coll_inv',
-                    id: 'customsearch_debt_coll_table'
-                });
-                var searchResult = debtCollSearch.run();
-                searchResult.each(function(result) {
-                    var index = result.getValue({
-                        name: 'internalid'
-                    });
-                    var name = result.getValue({
-                        name: 'name'
-                    });
-                    if (name != 'END'){
-                        deleteResultRecord(index);
-                    } else {
-                        record.delete({
-                            type: 'customrecord_debt_coll_inv',
-                            id: index
-                        });
-                        return true;
-                    }
-                    // return true;
-                });
-            }
+            // while (main_index == 0){ //&& range_id == [1]
+            //     log.debug({
+            //         title: 'DELETE STRING ACTIVATED'
+            //     })
+            //     var debtCollSearch = search.load({
+            //         type: 'customrecord_debt_coll_inv',
+            //         id: 'customsearch_debt_coll_table'
+            //     });
+            //     var searchResult = debtCollSearch.run();
+            //     searchResult.each(function(result) {
+            //         var index = result.getValue({
+            //             name: 'internalid'
+            //         });
+            //         var name = result.getValue({
+            //             name: 'name'
+            //         });
+            //         if (name != 'END'){
+            //             deleteResultRecord(index);
+            //         } else {
+            //             record.delete({
+            //                 type: 'customrecord_debt_coll_inv',
+            //                 id: index
+            //             });
+            //             return true;
+            //         }
+            //         // return true;
+            //     });
+            // }
             
             var invResultSet = invoiceSearch(range_id, date_from, date_to);
             var resultsSet = invResultSet.getRange({
@@ -116,7 +116,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 indexInCallback = index;
 
                 var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 100) {
+                if (usageLimit < 200) {
                     params = {
                         custscript_debt_inv_main_index: main_index + index - 10,
                         custscript_debt_inv_range: range_id,
@@ -145,6 +145,18 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     var invoice_id = invoiceSet.getValue({
                         name: 'internalid'
                     });
+                    var snoozeDate = invoiceSet.getValue({
+                        name: 'custbody_invoice_snooze_date'
+                    });
+                    if (!isNullorEmpty(snoozeDate)){
+                        if (snoozeDate < getDate()){
+                            log.audit({
+                                title: "Skip This Invoice as it's been Snooze",
+                                details: snoozeDate
+                            });
+                            return;
+                        }
+                    }
                     log.debug({
                         title: 'Invoice ID',
                         details: invoice_id
@@ -259,7 +271,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
                         maap_results.forEach(function(status) {
                             var client_number = status.getValue({ name: 'custbody_maap_tclientaccount' });
-                            if (maap_bankacc == client_number) {
+                            if (maap_bank == client_number) {
                                 maap_status = 'Payed';
                                 log.debug({
                                     title: 'PAYEDDD'
@@ -354,18 +366,18 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     end: main_index + indexInCallback + 2
                 }); 
                 if (debtNextResultArray.length == 0) {
-                    while (JSON.parse(range_id) == 3){
-                        var invRecord = record.create({
-                            type: 'customrecord_debt_coll_inv'
-                        });
-                        var debt_record_name = 'END';
-                            invRecord.setValue({
-                                fieldId: 'name',
-                                value: debt_record_name
-                            });
-                        invRecord.save();
-                        return true;
-                    }
+                    // if (range_id == [3]){
+                    //     var invRecord = record.create({
+                    //         type: 'customrecord_debt_coll_inv'
+                    //     });
+                    //     var debt_record_name = 'END';
+                    //         invRecord.setValue({
+                    //             fieldId: 'name',
+                    //             value: debt_record_name
+                    //         });
+                    //     invRecord.save();
+                    //     return true;
+                    // }
 
                     var range_id_reschedule = JSON.parse(range_id) + 1;
                     log.debug({
@@ -390,13 +402,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             params: params2
                         });
                         var reschedule_id2 = reschedule2.submit();
-                        log.debug({
-                            title: 'Rescheduled: Next Array Complete',
-                            details: task.checkStatus({
-                                taskId: reschedule_id2
-                            })
-                        });
-                        // return true;
+                        return true;
                     }
                     return true;
                 }

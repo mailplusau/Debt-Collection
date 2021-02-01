@@ -27,6 +27,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
         role = runtime.getCurrentUser().role;
         var userName = runtime.getCurrentUser().name;
+        var userId = runtime.getCurrentUser().id;
         var currRec = currentRecord.get();
 
         if (role == 1000) {
@@ -141,7 +142,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             targets: 4
                         },
                         {
-                            targets: [10, 13, 14, 15, 16, 17],
+                            targets: [10, 13, 14, 15, 16],
                             visible: false
                         },
                         {
@@ -183,6 +184,61 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 });
             // });
 
+            // var prefAuthorFilter = search.createFilter({
+            //     name: 'custrecord_pref_author',
+            //     operator: search.Operator.CONTAINS,
+            //     values: userName
+            // })
+            // var prefSearch = search.load({
+            //     type: 'customrecord_debt_coll_pref',
+            //     id: 'customsearch_debt_coll_pref'
+            // });
+            // prefSearch.filters.push(prefAuthorFilter);
+            // prefSearch.each(function(pref){
+            //     var userName = pref.getValue({
+            //         fieldId: 'custrecord_pref_author'
+            //     });
+            //     var range_id = prefName.getValue({
+            //         fieldId: 'custrecord_pref_range_id',
+            //     });
+            //     var date_from = prefName.getValue({
+            //         fieldId: 'custrecord_pref_date_from'
+            //     });
+            //     var date_to =  prefName.getValue({
+            //         fieldId: 'custrecord_pref_date_to'
+            //     });
+                
+            //     // form.addField({
+            //     //     id: 'custpage_pref_date_from',
+            //     //     type: ui.FieldType.TEXT,
+            //     //     label: 'Date From'
+            //     // }).updateDisplayType({
+            //     //     displayType: ui.FieldDisplayType.HIDDEN
+            //     // }).defaultValue = date_from;
+            //     // form.addField({
+            //     //     id: 'custpage_pref_date_to',
+            //     //     type: ui.FieldType.TEXT,
+            //     //     label: 'Date To'
+            //     // }).updateDisplayType({
+            //     //     displayType: ui.FieldDisplayType.HIDDEN
+            //     // }).defaultValue = date_to;
+            //     // form.addField({
+            //     //     id: 'custpage_pref_range_id',
+            //     //     type: ui.FieldType.TEXT,
+            //     //     label: 'Range ID'
+            //     // }).updateDisplayType({
+            //     //     displayType: ui.FieldDisplayType.HIDDEN
+            //     // }).defaultValue = range_id;
+            //     // form.addField({
+            //     //     id: 'custpage_pref_author',
+            //     //     type: ui.FieldType.TEXT,
+            //     //     label: 'Author'
+            //     // }).updateDisplayType({
+            //     //     displayType: ui.FieldDisplayType.HIDDEN
+            //     // }).defaultValue = userName;
+            // });
+
+
             /** 
              *  Submit Button Function
              */
@@ -218,13 +274,67 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         message: 'Please Select Date Range and Date Filter',
                         name: 'Invalid Data'
                     });
+                    alert('Please Select Date Range and Date Filter');
                 }
                 console.log('Loaded Results');
+
+                var prefAuthorFilter = search.createFilter({
+                    name: 'name',
+                    operator: search.Operator.IS,
+                    values: userId
+                });
+                var prefSearch = search.load({
+                    type: 'customrecord_debt_coll_pref',
+                    id: 'customsearch_debt_coll_pref'
+                });
+                prefSearch.filters.push(prefAuthorFilter);
+                prefSearch.run().each(function(pref){
+                    var prefName = pref.getValue({
+                        name: 'custrecord_pref_author'
+                    });
+                    var internalid = pref.getValue({
+                        name: 'internalid'
+                    });
+                    if (userName != prefName){
+                        var prefRec = record.create({
+                            type: 'customrecord_debt_coll_pref'
+                        });
+                    } else {
+                        var prefRec = record.load({
+                            type: 'customrecord_debt_coll_pref',
+                            id: internalid
+                        });
+                    }
+                    prefRec.setValue({
+                        fieldId: 'name',
+                        value: userId
+                    });
+                    prefRec.setValue({
+                        fieldId: 'custrecord_pref_author',
+                        value: userName
+                    });
+                    prefRec.setValue({
+                        fieldId: 'custrecord_pref_range_id',
+                        value: range
+                    });
+                    prefRec.setValue({
+                        fieldId: 'custrecord_pref_date_from',
+                        value: date_from
+                    });
+                    prefRec.setValue({
+                        fieldId: 'custrecord_pref_date_to',
+                        value: date_to
+                    });
+                    var prefRecId = prefRec.save();
+                    console.log('Record Saved, ID = ' + prefRecId);
+                })
 
                 afterSubmit();
 
                 return true;
             });
+
+            
 
             /** 
              * Table Filters Section
@@ -253,17 +363,15 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $(document).on('click', '.toggle-maap', function (e){
                 e.preventDefault();
 
-                $.fn.dataTable.ext.search.pop('');
-                dataTable.draw();
-            });
-            $(document).on('click', '.toggle-maap-danger', function (e){
-                e.preventDefault();
-
-                $(this).toggleClass('btn-success');
-                    $(this).toggleClass('btn-danger');
-                    $(this).find('.span_class').toggleClass('glyphicon-plus');
-                    $(this).find('.span_class').toggleClass('glyphicon-minus');
-
+                // Ajax request
+                var fewSeconds = 5;
+                var btn = $(this);
+                btn.addClass('disabled');
+                // btn.addClass('')
+                setTimeout(function(){
+                    btn.removeClass('disabled');
+                }, fewSeconds*1000);
+                
                 if ($(this).find('btn-danger')){
                     $.fn.dataTable.ext.search.push(
                         function(settings, searchData, index, rowData, counter) {
@@ -275,6 +383,15 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     );  
                     dataTable.draw();
                 }
+            });
+            $(document).on('click', '.toggle-maap-danger', function (e){
+                e.preventDefault();
+                // $(this).toggleClass('btn-success');
+                // $(this).toggleClass('btn-danger');
+                // $(this).find('.span_class').toggleClass('glyphicon-plus');
+                // $(this).find('.span_class').toggleClass('glyphicon-minus');
+                $.fn.dataTable.ext.search.pop('');
+                dataTable.draw();
             });
 
             // MAAP Bank Account Column
@@ -297,29 +414,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 selectDate();
             });
 
-            // $(document).on('click', '.toggle-priority', function (e){
-            //     e.preventDefault();
-
-            //     if ($(this).find('btn-danger')){
-            //         $.fn.dataTable.ext.search.push(
-            //             function(settings, searchData, index, rowData, counter) {
-            //                 if (rowData[7] >= '60'){
-            //                     return true; 
-            //                 }
-            //                 return false;
-            //             }
-            //         );
-            //         dataTable.draw();
-            //     }
-            // });
-
-            // $(document).on('click', '.toggle-priority-danger', function (e){
-            //     e.preventDefault();
-                  
-            //     $.fn.dataTable.ext.search.pop('');
-            //     dataTable.draw();
-            // });
-
             /**
              *  Notes Section
              */
@@ -332,16 +426,16 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
                 var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
                 console.log("Invoice Number: " + invoiceNumber);
-                var noteInfo = index[17];
+                // var noteInfo = index[17];
                 var customer_id = index[14];
-                console.log('NOTES Section: ID - ' + customer_id + '  :' + noteInfo);
+                console.log('NOTES Section: ID - ' + customer_id);
 
                 var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
 
                 var note_filter = search.createFilter({
                     name: 'title',
                     operator: search.Operator.CONTAINS,
-                    values: 'Debt Collection _ ' + invoiceNumber
+                    values: invoiceNumber
                 });
                 var noteSearch = search.load({
                     id: 'customsearch_debt_coll_note',
@@ -353,44 +447,65 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var header = '<div><h3><label class="control-label">Notes Section</label></h3></div>';
                 var body = '';
                 
-                var bodyNoteOld = '<div /*class="col col-lg-9"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Previous Notes</h3>';
-                var bodyNoteNew = '<div /*class="col-lg-9"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">Previously Edited</h3>';
+                var bodyNoteOld = '<div /*class="col col-lg-12"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Previous Notes</h3>';
+                var bodyNoteEdit = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">Last Edited By</h3>';
+                var bodyAuthor = '<div /*class="col-lg-12"*/ id="authornote"><h3 style="color: rgb(50, 122, 183);">Author</h3>';
 
-                if (!isNullorEmpty(noteResults)){
-                    noteResults.each(function(noteSet, index) {
-                        var note_name = noteSet.getValue({
-                            name: 'title'
+                bodyNoteEdit += '<br>';
+                bodyNoteOld += '<br>';
+                bodyAuthor += '<br>';
+
+                // if (!isNullorEmpty(noteResults)){
+                //     console.log('Inside First');
+                //     noteResults.each(function(noteSet, index) {
+                        console.log('Inside Second');
+                        // var note_name = noteSet.getValue({
+                        //     name: 'title'
+                        // });
+                        // var note_id = noteSet.getValue({
+                        //     name: 'internalid'
+                        // });
+                        // console.log('User Note ID: ' + note_id)
+                        // console.log('User Note Details: '+ note_name);
+                        
+                        // var oldNote = noteSet.getValue({
+                        //     name: 'note'
+                        // });
+                        // var author = noteSet.getText({
+                        //     name: 'author'
+                        // });
+                        var currRec = currentRecord.get();
+                        var oldNote = currRec.getValue({
+                            fieldId: 'custpage_old_note_' + invoiceNumber
                         });
-                        var note_id = noteSet.getValue({
-                            name: 'internalid'
-                        });
-                        log.audit({
-                            title: 'User Note ID',
-                            details: note_id
-                        })
-                        log.audit({
-                            title: 'User Note Details',
-                            details: note_name
-                        });
-                        var oldNote = noteSet.getValue({
-                            name: 'note'
-                        });
-                        var author = noteSet.getValue({
-                            name: 'author'
-                        })
                         console.log('Old Notes Info: ' + oldNote);
-                        bodyNoteOld += '<textarea id="note_id_' + note_id + '" class="form-control note_old">' + oldNote + '</textarea>';
-                        bodyNoteNew += '<h2>' + author + '</h2>';
-                    });
-                } else {
-                    bodyNoteOld += '<h2>Currently No Notes Have Been Created For This Customer</h2>';
-                    bodyNoteNew += '<h2>No Team Member</h2>';
-                }                
+                        // var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
+                        // var newNote = initials + ' - ' + date + ': ';
+                        // var initialNote = author + ' - ' + date + ': ';
+                        // var newNote = author + ' - ' + date + ': ' + noteVal;
+
+                        bodyNoteOld += '<textarea id="note_id_' + invoiceNumber + '" class="form-control note_old" style="width: 500px; ">' + oldNote + '</textarea>'; //+ newNote +
+                        // bodyAuthor += '<h4>' + author + '</h4>';
+                        
+                        var noteLength = oldNote.split('\n').length;
+                        var editAuthor = (oldNote.split('\n')[noteLength-1]).split("-")[0];
+                        bodyAuthor += '<h4>' + editAuthor + '</h4>';
+                        bodyNoteEdit += '<h4>' + editAuthor + '</h4>';
+                    // });
+                // } else {
+                //     bodyNoteOld += '<h2>Currently No Notes Have Been Created For This Customer</h2>';
+                //     bodyNoteEdit += '<h2>No Team Member</h2>';
+                // }                
                 bodyNoteOld += '</div>';
-                bodyNoteNew += '</div>'; 
-                
+                bodyNoteEdit += '</div>'; 
+ 
+                bodyNoteOld += '<br>';
+                bodyNoteEdit += '<br>';
+                bodyAuthor += '<br>';
+
+                body += bodyAuthor;
+                body += bodyNoteEdit;
                 body += bodyNoteOld;
-                body += bodyNoteNew;
 
                 $('#myModal .modal-header').html(header);
                 $('#myModal .modal-body').html("");
@@ -405,7 +520,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var index = row.data();
                 var tick_status = index[15];
                 var custid = (index[14]);
-                var noteVal = $('#note_' + custid).val();
+                var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+                var noteVal = $('#note_' + invoiceNumber).val();
                 console.log("Note Value: " + noteVal);
 
                 if (!isNullorEmpty(noteVal)){
@@ -416,6 +532,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         $(this).find('.span_class').addClass('glyphicon-ok');
                         $(this).find('.span_class').removeClass('glyphicon-plus');
                         
+                        $('#note_more_' + invoiceNumber + '').removeAttr('disabled');
                     } else {
                         // If Opened
                         $(this).removeClass('btn-success');
@@ -433,8 +550,204 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         name: 'Error - notes',
                         notifyOff: false
                     });
+                    alert('Notes Section Empty. Please fill this before submitting');
                 }
             }); 
+
+            /**
+             *  Snooze Button
+             */
+            $(document).on('click', '.timer', function(){
+                var tr = $(this).closest('tr');
+                var row = dataTable.row(tr);
+                var index = row.data();
+                var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+                console.log("Invoice Number: " + invoiceNumber);
+                var recordID = index[16];
+
+                var header = '<div><h3><label class="control-label">Snooze Timers</label></h3></div>';
+                var body = '<div><h4><label class="control-label">Please Select the Duration You Wish To Snooze The Customer For</label></h4></div>';
+
+                body += '<br>'
+
+                var bodyTimers = '<div /*class="col col-lg-12"*/ id="oldnote">';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="' + invoiceNumber + '" class="timer-1day form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">1 Day</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="' + invoiceNumber + '" class="timer-2day form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">2 Days</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="' + invoiceNumber + '" class="timer-1week form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">1 Week</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="' + invoiceNumber + '" class="timer-2week form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">2 Weeks</span></button></div>';
+
+                bodyTimers += '<br>';
+                bodyTimers += '</div>'; 
+                
+                body += bodyTimers;
+
+                $('#myModal2 .modal-header').html(header);
+                $('#myModal2 .modal-body').html("");
+                $('#myModal2 .modal-body').html(body);
+                $('#myModal2').modal("show");
+            });
+
+            var today = new Date();
+            var today_year = today.getFullYear();
+            var today_month = today.getMonth();
+            var today_day = today.getDate();
+
+            var today_in_day  = new Date(Date.UTC(today_year, today_month, today_day + 1));
+            today_in_day = today_in_day.toISOString().split('T')[0]; // Split Date String to get the date.
+            today_in_day = dateISOToNetsuite(today_in_day); // Convert from 2021-01-28 to 28/1/2021
+            today_in_day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+            console.log('Today Format Netsuite ' + today_in_day)
+
+            var today_in_2day  = new Date(Date.UTC(today_year, today_month, today_day + 2));
+            today_in_2day = today_in_2day.toISOString().split('T')[0];
+            today_in_2day = dateISOToNetsuite(today_in_2day);
+            today_in_2day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+
+            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            today_in_week = today_in_week.toISOString().split('T')[0];
+            today_in_week = dateISOToNetsuite(today_in_week);
+            today_in_week = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+
+            var today_in_2week  = new Date(Date.UTC(today_year, today_month, today_day + 8));
+            today_in_2week = today_in_2week.toISOString().split('T')[0];
+            today_in_2week = dateISOToNetsuite(today_in_2week);
+            today_in_2week = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+
+            $(document).on('click', '.timer-1day', function(){
+                var invoiceNumber = $(this).attr('id');
+                var recordID = $(this).attr('record');
+                console.log("Invoice Number: " + invoiceNumber);
+                console.log(today_in_day);
+
+                var snoozeRecord = record.load({
+                    type: 'invoice',
+                    id: invoiceNumber
+                });
+                var date = snoozeRecord.getValue({
+                    fieldId: 'custbody_invoice_snooze_date'
+                });
+                snoozeRecord.setValue({
+                    fieldId: 'custbody_invoice_snooze_date',
+                    value: today_in_day
+                });
+                snoozeRecord.save();
+                
+                var snoozeDelete = record.delete({
+                    type: 'customrecord_debt_coll_inv',
+                    id: recordID
+                });
+                console.log('Delete initiated - Record ID: ' + recordID);
+                // snoozeDelete.save();
+
+                $(this).addClass('btn-success');
+                $(this).removeClass('btn-info');
+            });
+            $(document).on('click', '.timer-2day', function(){
+                var invoiceNumber = $(this).attr('id');
+                console.log("Invoice Number: " + invoiceNumber);
+
+                var snoozeRecord = record.load({
+                    type: 'invoice',
+                    id: invoiceNumber
+                });
+                var date = snoozeRecord.getValue({
+                    fieldId: 'custbody_invoice_snooze_date'
+                });
+                snoozeRecord.setValue({
+                    fieldId: 'custbody_invoice_snooze_date',
+                    value: today_in_2day
+                });
+                snoozeRecord.save();
+                
+                $(this).addClass('btn-success');
+                $(this).removeClass('btn-info');
+            });
+            $(document).on('click', '.timer-1week', function(){
+                var invoiceNumber = $(this).attr('id');
+                console.log("Invoice Number: " + invoiceNumber);
+
+                var snoozeRecord = record.load({
+                    type: 'invoice',
+                    id: invoiceNumber
+                });
+                var date = snoozeRecord.getValue({
+                    fieldId: 'custbody_invoice_snooze_date'
+                });
+                console.log('Date for Snooze ' + date)
+                snoozeRecord.setValue({
+                    fieldId: 'custbody_invoice_snooze_date',
+                    value: today_in_week
+                });
+                snoozeRecord.save();
+                
+                $(this).addClass('btn-success');
+                $(this).removeClass('btn-info');
+            });
+            $(document).on('click', '.timer-2week', function(){
+                var invoiceNumber = $(this).attr('id');
+                console.log("Invoice Number: " + invoiceNumber);
+
+                var snoozeRecord = record.load({
+                    type: 'invoice',
+                    id: invoiceNumber
+                });
+                var date = snoozeRecord.getValue({
+                    fieldId: 'custbody_invoice_snooze_date'
+                });
+                snoozeRecord.setValue({
+                    fieldId: 'custbody_invoice_snooze_date',
+                    value: today_in_2week
+                });
+                snoozeRecord.save();
+                
+                $(this).addClass('btn-success');
+                $(this).removeClass('btn-info');
+            });
+
+            /**
+             *  Save Preferences for Users
+             */
+            $(document).ready(function(){
+                console.log('ID ' + userId)
+                var prefAuthorFilter = search.createFilter({
+                    name: 'name',
+                    operator: search.Operator.IS,
+                    values: userId
+                })
+                var prefSearch = search.load({
+                    type: 'customrecord_debt_coll_pref',
+                    id: 'customsearch_debt_coll_pref'
+                });
+                prefSearch.filters.push(prefAuthorFilter);
+                prefSearch.run().each(function(pref){
+                    var internalID = pref.getValue({
+                        name: 'internalid'
+                    });
+                    var prefRecord = record.load({
+                        type: 'customrecord_debt_coll_pref',
+                        id: internalID
+                    });
+                    var range_id = prefRecord.getValue({
+                        fieldId: 'custrecord_pref_range_id',
+                    });
+                    var date_from = prefRecord.getValue({
+                        fieldId: 'custrecord_pref_date_from'
+                    });
+                    var date_to =  prefRecord.getValue({
+                        fieldId: 'custrecord_pref_date_to'
+                    });
+                    console.log('range_id ' + range_id)
+                    console.log('date_from ' + date_from)
+                    console.log('date_to ' + date_to)
+                    // range_id = $('#range_filter').val(range_id);
+                    // date_from_date = new Date(date_from);
+                    // date_from = date_from_date.toISOString()['T'];
+                    // date_from = $('#date_from').val(date_from);
+                    // date_to_date = new Date(date_to);
+                    // date_to = date_to_date.toISOString()['T'];
+                    // date_to = $('#date_to').val(date_to);
+                });
+            });
         }
 
         function onclick_noteSection(index, custid, noteVal) {
@@ -443,17 +756,18 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var record_value = index[16];
             console.log('record Value: ' + record_value);
 
-            var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
-            var newNote = initials + ' - ' + getDate().toString() + ' ' + formatAMPM() + ': ' + noteVal;
+            // var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
+            var newNote = userName + ' - ' + getDate().toString() + ' ' + formatAMPM() + ': ' + noteVal;
+            // var newNote = noteVal;
             
             var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
             console.log("Invoice Number: " + invoiceNumber);
-            var noteInfo = index[17];
+            // var noteInfo = index[17];
 
             var note_filter = search.createFilter({
                 name: 'title',
-                operator: search.Operator.IS,
-                values: 'Debt Collection _ ' + invoiceNumber
+                operator: search.Operator.CONTAINS,
+                values: invoiceNumber
             });
             var noteSearch = search.load({
                 id: 'customsearch_debt_coll_note',
@@ -469,24 +783,24 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var noteID = noteResult.getValue({
                         name: 'internalid'
                     });
-                    console.log('User note Found: ' + noteID);
-                    var userNoteRecord = record.load({
-                        type: 'note',
-                        id: noteID
+                    var oldNote = noteResult.getValue({
+                        name: 'note'
                     });
-                    if (!isNullorEmpty(noteInfo)){
-                        var userNote = userNoteRecord.setValue({
-                            fieldId: 'note',
-                            value: noteInfo + '\n' + newNote
-                        });
-                    } else {
-                        var userNote = userNoteRecord.setValue({
+                    console.log('User note Found: ' + noteID);
+
+                    // if (!isNullorEmpty(oldNote)){
+                    //     var userNote = noteResult.setValue({
+                    //         fieldId: 'note',
+                    //         value: oldNote + '\n' + newNote
+                    //     });
+                    // } else {
+                        var userNote = noteResult.setValue({
                             fieldId: 'note',
                             value: newNote
                         });
-                    }
+                    // }
                     if (!isNullorEmpty(userNote)){
-                        userNoteRecord.save();
+                        noteResult.save();
                     }
                 });
             } else {
@@ -497,7 +811,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 });
                 userNoteRecord.setValue({
                     fieldId: 'title',
-                    value: 'Debt Collections _ ' + invoiceNumber
+                    value: 'Debt Collections _ :' + invoiceNumber
                 });
                 userNoteRecord.setValue({
                     fieldId: 'entity',
@@ -517,45 +831,45 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     fieldId: 'notedate',
                     value: parsedDateStringAsRawDateObject
                 });
-                if (!isNullorEmpty(noteInfo)){
-                    var userNote = userNoteRecord.setValue({
-                        fieldId: 'note',
-                        value: noteInfo + '\n' + newNote
-                    });
-                } else {
+                // if (!isNullorEmpty(noteInfo)){
+                //     var userNote = userNoteRecord.setValue({
+                //         fieldId: 'note',
+                //         value: oldNote + '\n' + newNote
+                //     });
+                // } else {
                     var userNote = userNoteRecord.setValue({
                         fieldId: 'note',
                         value: newNote
                     });
-                }
+                // }
                 if (!isNullorEmpty(userNote)){
                     userNoteRecord.save();
                 } 
             }
 
             // Load Note from Debt Coll Record and Set as New Note Value
-            var tickRecord = record.load({
-                type: 'customrecord_debt_coll_inv',
-                id: record_value
-            });
-            if (!isNullorEmpty(noteInfo)){ // For invoices already containing a note
-                var tick_note = tickRecord.setValue({
-                    value: noteInfo + '\n' + newNote,
-                    fieldId: 'custrecord_debt_coll_inv_note'
-                });
-            } else {
-                var tick_note = tickRecord.setValue({
-                    value: newNote,
-                    fieldId: 'custrecord_debt_coll_inv_note'
-                });
-            }
-            tick_status = tickRecord.setValue({
-                value: 'true',
-                fieldId: 'custrecord_debt_coll_inv_note_status'
-            });
-            if (!isNullorEmpty(tick_note)){
-                var tickRecSave = tickRecord.save();
-            }
+            // var tickRecord = record.load({
+            //     type: 'customrecord_debt_coll_inv',
+            //     id: record_value
+            // });
+            // if (!isNullorEmpty(noteInfo)){ // For invoices already containing a note
+            //     var tick_note = tickRecord.setValue({
+            //         value: oldNote + '\n' + newNote,
+            //         fieldId: 'custrecord_debt_coll_inv_note'
+            //     });
+            // } else {
+            //     var tick_note = tickRecord.setValue({
+            //         value: newNote,
+            //         fieldId: 'custrecord_debt_coll_inv_note'
+            //     });
+            // }
+            // tick_status = tickRecord.setValue({
+            //     value: 'true',
+            //     fieldId: 'custrecord_debt_coll_inv_note_status'
+            // });
+            // if (!isNullorEmpty(tick_note)){
+            //     var tickRecSave = tickRecord.save();
+            // }
         }
 
         function loadDebtRecord(range, date_from, date_to) {
@@ -805,21 +1119,26 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var due_date = debt_row.dd;
                     var overdue = debt_row.od;
                     var period = debt_row.p;
-                    var noteInfo = debt_row.nt;      
-                    if (isNullorEmpty(noteInfo)){ // If there is no note, then disable button.
-                        var note = '<div class="col-xs-3"><button type="button" class="form-control btn-xs btn-secondary note disabled" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
+                    var noteInfo = currRec.getValue({
+                        fieldId: 'custpage_old_note_' + invoice_id
+                    });      
+                     // If there is no note, then disable button.
+                     if (isNullorEmpty(noteInfo)){
+                        var note = '<div class="col-xs-3"><button type="button" id="note_more_' + invoice_id + '" class="form-control btn-xs btn-secondary note" data-toggle="modal" data-target="#myModal" disabled><span class="glyphicon glyphicon-eye-open"></span></button></div>';
                     } else {
-                        var note = '<div class="col-xs-3"><button type="button" class="form-control btn-xs btn-secondary note" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
-                    } 
-                    note += '<div class="col-xs-9"><input id="note_' + customer_id + '" class="form-control note_section"/></div>'; //value="' + noteInfo + '"
-                    var checkbox = '<button type="button" id="tickbox_' + customer_id + '" class="tickbox form=control btn-xs btn-warning"><span class="span_class glyphicon glyphicon-plus"></span></button>';
+                        var note = '<div class="col-xs-3"><button type="button" id="note_more_' + invoice_id + '" class="form-control btn-xs btn-secondary note" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
+                    }
+                    note += '<div class="col-xs-7"><input id="note_' + invoice_id + '" class="form-control note_section"/></div>'; 
+                    note += '<div class="col-xs-auto"><button type="button" id="tickbox_' + invoice_id + '" class="tickbox form=control btn-xs btn-warning"><span class="span_class glyphicon glyphicon-plus"></span></button></div>';
+                    var checkbox = '<div class="col-xs-3"><button type="button" id="timer_' + invoice_id + '" class="timer form=control btn-xs btn-info"><span class="span_class glyphicon glyphicon-time"></span></button></div>';
+
                     var mp_ticket = debt_row.mp
                     var maap_status = debt_row.ms;
                     var tick_status = debt_row.ts;
                     var record_id = debt_row.id;
 
                     if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) {
-                        debtDataSet.push([date, invoice, maap_bank, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id, noteInfo]);
+                        debtDataSet.push([date, invoice, maap_bank, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id]);
                     }
                 });
             }
@@ -827,7 +1146,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             datatable.clear();
             datatable.rows.add(debtDataSet);
             datatable.draw();
-            // clearInterval(load_record_interval);
+            
             return true;
         }
 

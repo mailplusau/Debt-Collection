@@ -14,8 +14,8 @@
  * 
  */
 
-define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/task'],
-    function(ui, email, runtime, search, record, http, log, redirect, task) {
+define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/task', 'N/format'],
+    function(ui, email, runtime, search, record, http, log, redirect, task, format) {
         var zee = 0;
         var role = 0;
 
@@ -38,10 +38,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             var type = 'create';
 
             if (context.request.method === 'GET') {
-
-                var range_id = [2];
-                var date_from = '1/11/2020';
-                var date_to = '30/11/2020';
                 var is_params = 'T';
 
                 // var params = context.request.parameters;
@@ -52,10 +48,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 //     date_from = params.date_from;
                 //     date_to = params.date_to;
                 // }
-                // log.debug({
-                //     title: 'Parameters',
-                //     details: params
-                // });
 
                 type = context.request.parameters.type;
 
@@ -91,11 +83,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // Load Bootstrap
                 inlineHtml += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">';
                 inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
-                // inlineHtml += '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">';
-                // inlineHtml += '<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>';
-                // inlineHtml += '<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>';
-                // inlineHtml += '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>';
-
                 // Load DataTables
                 inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">';
                 inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>';
@@ -112,80 +99,103 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 // Popup Notes Section
                 inlineHtml += '<div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Notes Section</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
+                inlineHtml += '<div id="myModal2" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Snooze Timers</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
 
                 // Popup Notes Section - JS & StyleSheet
                 // inlineHtml += '<link rel="stylesheet" type="text/css" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2392606&c=1048144&h=a4ffdb532b0447664a84&_xt=.css"/><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><script type="text/javascript"  src="https://cdn.datatables.net/v/dt/dt-1.10.18/datatables.min.js"></script>';
 
-
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
-                inlineHtml += submitSection(range_id, date_from, date_to);
+                inlineHtml += submitSection();
+
+                // var today = new Date();
+                // var today_year = today.getFullYear();
+                // var today_month = today.getMonth();
+                // var today_day = today.getDate();
+
+                // var today_in_day  = new Date(Date.UTC(today_year, today_month, today_day + 1));
+                // inlineHtml += '<h2>' + today_in_day + '</h2>'
+                // today_in_day = today_in_day.toISOString().split('T')[0]; // Split Date String to get the date.
+                // today_in_day = dateISOToNetsuite(today_in_day); // Convert from 2021-01-28 to 28/1/2021
+                // today_in_day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+                // var snoozeRecord = record.load({
+                //     type: 'invoice',
+                //     id: 3406298
+                // });
+                // snoozeRecord.setValue({
+                //     fieldId: 'custbody_invoice_snooze_date',
+                //     value: today_in_day
+                // });
+                // inlineHtml += '<h4>' + today_in_day + '</h4>';
+                // inlineHtml += '<h4>' + snoozeRecord.getValue({ fieldId: 'custbody_invoice_snooze_date' }) + '</h4>';
+                // snoozeRecord.save();
+
                 inlineHtml += loadingSection();
                 inlineHtml += tableFilter();
                 inlineHtml += dataTable();
+
+                var note_filter = search.createFilter({
+                    name: 'title',
+                    operator: search.Operator.CONTAINS,
+                    values: 'Debt Collections'
+                });
+                var noteSearch = search.load({
+                    id: 'customsearch_debt_coll_note',
+                    type: 'note'
+                });
+                noteSearch.filters.push(note_filter);
+                var noteResults = noteSearch.run().getRange({ start: 0, end: 10});
+                noteResults.forEach(function(noteSet, index) {
+                    var oldNote = noteSet.getValue({
+                        name: 'note'
+                    });
+                    var name = noteSet.getValue({
+                        name: 'title'
+                    })
+                    var invoiceID = name.split('_ ')[1];
+                    form.addField({
+                        id: 'custpage_old_note_' + invoiceID,
+                        type: ui.FieldType.TEXT,
+                        label: 'Old Note - ' + invoiceID
+                    }).updateDisplayType({
+                        displayType: ui.FieldDisplayType.HIDDEN
+                    }).defaultValue = oldNote;
+                });
 
                 form.addButton({
                     id: 'submit',
                     label: 'Submit Search'
                 });
-
+      
                 form.addField({
                     id: 'preview_table',
                     label: 'inlinehtml',
                     type: 'inlinehtml'
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
-                }).defaultValue = inlineHtml;
-
-                form.addField({
-                    id: 'custscript_debt_inv_date_from',
-                    type: ui.FieldType.TEXT,
-                    label: 'Date From'
-                }).updateDisplayType({
-                    displayType: ui.FieldDisplayType.HIDDEN
-                }).defaultValue = date_from;
-                form.addField({
-                    id: 'custscript_debt_inv_date_to',
-                    type: ui.FieldType.TEXT,
-                    label: 'Date To'
-                }).updateDisplayType({
-                    displayType: ui.FieldDisplayType.HIDDEN
-                }).defaultValue = date_to;
-                form.addField({
-                    id: 'custscript_debt_inv_range',
-                    type: ui.FieldType.TEXT,
-                    label: 'Range ID'
-                }).updateDisplayType({
-                    displayType: ui.FieldDisplayType.HIDDEN
-                }).defaultValue = range_id;
-
-                form.addField({
-                    id: 'custpage_customer_franchisee',
-                    type: ui.FieldType.TEXT,
-                    label: 'Franchisee ID'
-                }).updateDisplayType({
-                    displayType: ui.FieldDisplayType.HIDDEN
-                }).defaultValue = zee;
+                }).defaultValue = inlineHtml;               
 
                 form.clientScriptFileId = 4497169; //4241008
 
                 context.response.writePage(form);
             } else {
-                var params = context.request.parameters;
-                var range_id = params.range;
-                var date_from = params.date_from;
-                var date_to = params.date_to;
+                // var params = context.request.parameters;
+                // var range_id = params.range;
+                // var date_from = params.date_from;
+                // var date_to = params.date_to;
 
-                var dc_params = {
-                    custparam_zee_id: range_id,
-                    custparam_date_from: date_from,
-                    custparam_date_to: date_to
-                }
-                redirect.toSuitelet({
-                    scriptId: 'customscript_sl_debt_collection',
-                    deploymentId: 'customdeploy_sl_debt_collection',
-                    parameters: dc_params
-                });
+                // var dc_params = {
+                //     custparam_zee_id: range_id,
+                //     custparam_date_from: date_from,
+                //     custparam_date_to: date_to
+                // }
+                // redirect.toSuitelet({
+                //     scriptId: 'customscript_sl_debt_collection',
+                //     deploymentId: 'customdeploy_sl_debt_collection',
+                //     parameters: dc_params
+                // });
+
+                
             }
         }
 
@@ -220,19 +230,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">TABLE FILTERS</span></h4></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
-
-            // inlineQty += '<div class="form-group container table_filter_section">';
-            // inlineQty += '<div class="row">';
-            // inlineQty += '<div class="col-xs-12 priority_filter">';
-            // inlineQty += '<div class="input-group">';
-            // inlineQty += '<span class="input-group-addon" id="priority_filter_text">Priority Filter Selection</span>';
-            // inlineQty += '<select multiple id="priority_filter" class="form-control priority_filter" size="3">';
-            // inlineQty += '<option value="Payed" class="priority_filter" selected>Matching MAAP Allocation</option>';
-            // inlineQty += '<option value="Under" class="priority_filter" selected>Medium Priority</option>';
-            // inlineQty += '<option value="Over" class="priority_filter" selected>High Priority</option>';
-            // inlineQty += '</select>';
-            // inlineQty += '</div></div>'
-            // inlineQty += '</div></div>';
 
             inlineQty += '<div class="form-group container table_filter_section">';
             inlineQty += '<div class="row">';
@@ -277,9 +274,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * The header showing that the results are loading.
          * @returns {String} `inlineQty`
          */
-        function submitSection(range_id, date_from, date_to) {
-            var hide_loading_section = (!isNullorEmpty(range_id) && (!isNullorEmpty(date_from) || !isNullorEmpty(date_to))) ? '' : 'hide';
-            var inlineQty = '<div id="submit_section" class="form-group container submission_section' + hide_loading_section + '" style="text-align:center">';
+        function submitSection() {
+            // var hide_loading_section = (!isNullorEmpty(range_id) && (!isNullorEmpty(date_from) || !isNullorEmpty(date_to))) ? '' : 'hide';
+            // var inlineQty = '<div id="submit_section" class="form-group container submission_section' + hide_loading_section + '" style="text-align:center">';
+            var inlineQty = '<div id="submit_section" class="form-group container submission_section" style="text-align:center">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-12 submit_div">';
             inlineQty += '<h1>Please Submit Search</h1>';
@@ -400,6 +398,24 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         //     inlineQty += '</div>';
         //     return inlineQty;
         // }
+
+        /**
+         * Used to pass the values of `date_from` and `date_to` between the scripts and to Netsuite for the records and the search.
+         * @param   {String} date_iso       "2020-06-01"
+         * @returns {String} date_netsuite  "1/6/2020"
+         */
+        function dateISOToNetsuite(date_iso) {
+            var date_netsuite = '';
+            if (!isNullorEmpty(date_iso)) {
+                var date_utc = new Date(date_iso);
+                // var date_netsuite = nlapiDateToString(date_utc);
+                var date_netsuite = format.format({
+                    value: date_utc,
+                    type: format.Type.DATE
+                });
+            }
+            return date_netsuite;
+        }
 
         function isNullorEmpty(val) {
             if (val == '' || val == null) {
