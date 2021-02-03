@@ -153,6 +153,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         name: 'title'
                     })
                     var invoiceID = name.split('_ ')[1];
+                    log.debug({
+                        title: 'invoiceID',
+                        details: invoiceID
+                    })
                     form.addField({
                         id: 'custpage_old_note_' + invoiceID,
                         type: ui.FieldType.TEXT,

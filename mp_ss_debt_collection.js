@@ -149,7 +149,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         name: 'custbody_invoice_snooze_date'
                     });
                     if (!isNullorEmpty(snoozeDate)){
-                        if (snoozeDate < getDate()){
+                        if (getDate() < snoozeDate){
                             log.audit({
                                 title: "Skip This Invoice as it's been Snooze",
                                 details: snoozeDate

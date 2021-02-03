@@ -811,7 +811,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 });
                 userNoteRecord.setValue({
                     fieldId: 'title',
-                    value: 'Debt Collections _ :' + invoiceNumber
+                    value: 'Debt Collections _ ' + invoiceNumber
                 });
                 userNoteRecord.setValue({
                     fieldId: 'entity',
@@ -1091,7 +1091,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var invoice_id = debt_row.inid;
                     var invoice_name = debt_row.in;
                     var upload_url_inv = '/app/accounting/transactions/custinvc.nl?id=';
-                    var invoice = '<a href="' + baseURL + upload_url_inv + invoice_id + '">' + invoice_name + '</a>';
+                    var invoice = '<a href="' + baseURL + upload_url_inv + invoice_id + '" target="_blank">' + invoice_name + '</a>';
                     var maap_bank = debt_row.mba;
                     var customer_id = debt_row.cid;
                     var cm_link = debt_row.cm;
@@ -1102,7 +1102,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     }
                     params = JSON.stringify(params);
                     var upload_url_cust = '/app/common/entity/custjob.nl?id=';
-                    var company_name = '<a href="' + baseURL + upload_url_cust + customer_id + '">' + cm_link + '</a>';
+                    var company_name = '<a href="' + baseURL + upload_url_cust + customer_id + '" target="_blank">' + cm_link + '</a>';
                     var zee = debt_row.zee;
                     var amount = parseFloat(debt_row.ta);
                     debt_rows.forEach(function(debt) {
