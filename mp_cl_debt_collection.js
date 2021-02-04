@@ -182,62 +182,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         }
                     }
                 });
-            // });
-
-            // var prefAuthorFilter = search.createFilter({
-            //     name: 'custrecord_pref_author',
-            //     operator: search.Operator.CONTAINS,
-            //     values: userName
-            // })
-            // var prefSearch = search.load({
-            //     type: 'customrecord_debt_coll_pref',
-            //     id: 'customsearch_debt_coll_pref'
-            // });
-            // prefSearch.filters.push(prefAuthorFilter);
-            // prefSearch.each(function(pref){
-            //     var userName = pref.getValue({
-            //         fieldId: 'custrecord_pref_author'
-            //     });
-            //     var range_id = prefName.getValue({
-            //         fieldId: 'custrecord_pref_range_id',
-            //     });
-            //     var date_from = prefName.getValue({
-            //         fieldId: 'custrecord_pref_date_from'
-            //     });
-            //     var date_to =  prefName.getValue({
-            //         fieldId: 'custrecord_pref_date_to'
-            //     });
-                
-            //     // form.addField({
-            //     //     id: 'custpage_pref_date_from',
-            //     //     type: ui.FieldType.TEXT,
-            //     //     label: 'Date From'
-            //     // }).updateDisplayType({
-            //     //     displayType: ui.FieldDisplayType.HIDDEN
-            //     // }).defaultValue = date_from;
-            //     // form.addField({
-            //     //     id: 'custpage_pref_date_to',
-            //     //     type: ui.FieldType.TEXT,
-            //     //     label: 'Date To'
-            //     // }).updateDisplayType({
-            //     //     displayType: ui.FieldDisplayType.HIDDEN
-            //     // }).defaultValue = date_to;
-            //     // form.addField({
-            //     //     id: 'custpage_pref_range_id',
-            //     //     type: ui.FieldType.TEXT,
-            //     //     label: 'Range ID'
-            //     // }).updateDisplayType({
-            //     //     displayType: ui.FieldDisplayType.HIDDEN
-            //     // }).defaultValue = range_id;
-            //     // form.addField({
-            //     //     id: 'custpage_pref_author',
-            //     //     type: ui.FieldType.TEXT,
-            //     //     label: 'Author'
-            //     // }).updateDisplayType({
-            //     //     displayType: ui.FieldDisplayType.HIDDEN
-            //     // }).defaultValue = userName;
-            // });
-
 
             /** 
              *  Submit Button Function
@@ -299,11 +243,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var prefRec = record.create({
                             type: 'customrecord_debt_coll_pref'
                         });
+                        console.log('New Record Created For New User :' + prefRec);
                     } else {
                         var prefRec = record.load({
                             type: 'customrecord_debt_coll_pref',
                             id: internalid
                         });
+                        console.log('Record loaded :' + prefRec);
                     }
                     prefRec.setValue({
                         fieldId: 'name',
@@ -386,10 +332,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             });
             $(document).on('click', '.toggle-maap-danger', function (e){
                 e.preventDefault();
-                // $(this).toggleClass('btn-success');
-                // $(this).toggleClass('btn-danger');
-                // $(this).find('.span_class').toggleClass('glyphicon-plus');
-                // $(this).find('.span_class').toggleClass('glyphicon-minus');
                 $.fn.dataTable.ext.search.pop('');
                 dataTable.draw();
             });
@@ -424,13 +366,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 console.log(row.data());
                 var index = row.data();
 
-                var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
                 console.log("Invoice Number: " + invoiceNumber);
                 // var noteInfo = index[17];
                 var customer_id = index[14];
                 console.log('NOTES Section: ID - ' + customer_id);
 
-                var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
 
                 var note_filter = search.createFilter({
                     name: 'title',
@@ -455,47 +397,22 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 bodyNoteOld += '<br>';
                 bodyAuthor += '<br>';
 
-                // if (!isNullorEmpty(noteResults)){
-                //     console.log('Inside First');
-                //     noteResults.each(function(noteSet, index) {
-                        console.log('Inside Second');
-                        // var note_name = noteSet.getValue({
-                        //     name: 'title'
-                        // });
-                        // var note_id = noteSet.getValue({
-                        //     name: 'internalid'
-                        // });
-                        // console.log('User Note ID: ' + note_id)
-                        // console.log('User Note Details: '+ note_name);
-                        
-                        // var oldNote = noteSet.getValue({
-                        //     name: 'note'
-                        // });
-                        // var author = noteSet.getText({
-                        //     name: 'author'
-                        // });
-                        var currRec = currentRecord.get();
-                        var oldNote = currRec.getValue({
-                            fieldId: 'custpage_old_note_' + invoiceNumber
-                        });
-                        console.log('Old Notes Info: ' + oldNote);
-                        // var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
-                        // var newNote = initials + ' - ' + date + ': ';
-                        // var initialNote = author + ' - ' + date + ': ';
-                        // var newNote = author + ' - ' + date + ': ' + noteVal;
-
-                        bodyNoteOld += '<textarea id="note_id_' + invoiceNumber + '" class="form-control note_old" style="width: 500px; ">' + oldNote + '</textarea>'; //+ newNote +
-                        // bodyAuthor += '<h4>' + author + '</h4>';
-                        
-                        var noteLength = oldNote.split('\n').length;
-                        var editAuthor = (oldNote.split('\n')[noteLength-1]).split("-")[0];
-                        bodyAuthor += '<h4>' + editAuthor + '</h4>';
-                        bodyNoteEdit += '<h4>' + editAuthor + '</h4>';
-                    // });
-                // } else {
-                //     bodyNoteOld += '<h2>Currently No Notes Have Been Created For This Customer</h2>';
-                //     bodyNoteEdit += '<h2>No Team Member</h2>';
-                // }                
+                console.log('Inside Second');
+                var currRec = currentRecord.get();
+                var oldNote = currRec.getValue({
+                    fieldId: 'custpage_old_note_' + invoiceNumber
+                });
+                console.log('Old Notes Info: ' + oldNote);
+                // var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
+                // var newNote = initials + ' - ' + date + ': ';
+                // var initialNote = author + ' - ' + date + ': ';
+                // var newNote = author + ' - ' + date + ': ' + noteVal;
+                bodyNoteOld += '<textarea id="note_id_' + invoiceNumber + '" class="form-control note_old" style="width: 500px; ">' + oldNote + '</textarea>'; //+ newNote +
+                
+                var editAuthor = (oldNote.split("-"))[0];
+                bodyAuthor += '<h4>' + editAuthor + '</h4>';
+                bodyNoteEdit += '<h4>' + editAuthor + '</h4>';
+          
                 bodyNoteOld += '</div>';
                 bodyNoteEdit += '</div>'; 
  
@@ -520,9 +437,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var index = row.data();
                 var tick_status = index[15];
                 var custid = (index[14]);
-                var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
                 var noteVal = $('#note_' + invoiceNumber).val();
                 console.log("Note Value: " + noteVal);
+                var recordID = index[16];
 
                 if (!isNullorEmpty(noteVal)){
                     if ($(this).find('btn-warning') || tick_status == 'true'){
@@ -543,6 +461,25 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
                     onclick_noteSection(row.data(), custid, noteVal);
 
+                    var snoozeRecord = record.load({
+                        type: 'invoice',
+                        id: invoiceNumber
+                    });
+                    var today_in_month  = new Date(Date.UTC(today_year, today_month, today_day + 8));
+                    today_in_month = today_in_month.toISOString().split('T')[0];
+                    today_in_month = dateISOToNetsuite(today_in_month);
+                    today_in_month = format.parse({ value: today_in_month, type: format.Type.DATE }); // Date Object
+                    var new_date = snoozeRecord.setValue({
+                        fieldId: 'custbody_invoice_snooze_date',
+                        value: today_in_month
+                    });
+                    snoozeRecord.save();
+                    var snoozeDelete = record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: recordID
+                    });
+                    console.log('Delete initiated - Record ID: ' + recordID);
+
                 } else {
                     console.log('Notes Section - ID: ' + index[14] + '. Message missing');
                     error.create({
@@ -561,7 +498,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var tr = $(this).closest('tr');
                 var row = dataTable.row(tr);
                 var index = row.data();
-                var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = index[16];
 
@@ -577,9 +514,27 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 bodyTimers += '<div class="col-md-3"><button type="button" id="' + invoiceNumber + '" class="timer-2week form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">2 Weeks</span></button></div>';
 
                 bodyTimers += '<br>';
-                bodyTimers += '</div>'; 
+                bodyTimers += '</div>';
+                
+                var bodyCurrentDate = '<div /*class="col col-lg-12"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Current Date</h3>';
+                var snoozeRecord = record.load({
+                    type: 'invoice',
+                    id: invoiceNumber
+                });
+                var date = snoozeRecord.getValue({
+                    fieldId: 'custbody_invoice_snooze_date'
+                });
+                if (isNullorEmpty(date)){
+                    date = 'No Snooze Value has been Set'
+                } else if( date > getDate()){
+                    date = 'Snooze has Expired. Please Select Snooze Amount If You Want To Snooze Customer Again'
+                }
+                bodyTimers += '<h3>' + date + '</h3>';
+                bodyTimers += '<br>';
+                bodyTimers += '</div>';
                 
                 body += bodyTimers;
+                body += bodyCurrentDate;
 
                 $('#myModal2 .modal-header').html(header);
                 $('#myModal2 .modal-body').html("");
@@ -601,17 +556,17 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var today_in_2day  = new Date(Date.UTC(today_year, today_month, today_day + 2));
             today_in_2day = today_in_2day.toISOString().split('T')[0];
             today_in_2day = dateISOToNetsuite(today_in_2day);
-            today_in_2day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+            today_in_2day = format.parse({ value: today_in_2day, type: format.Type.DATE }); // Date Object
 
             var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
             today_in_week = today_in_week.toISOString().split('T')[0];
             today_in_week = dateISOToNetsuite(today_in_week);
-            today_in_week = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+            today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
 
             var today_in_2week  = new Date(Date.UTC(today_year, today_month, today_day + 8));
             today_in_2week = today_in_2week.toISOString().split('T')[0];
             today_in_2week = dateISOToNetsuite(today_in_2week);
-            today_in_2week = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+            today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object
 
             $(document).on('click', '.timer-1day', function(){
                 var invoiceNumber = $(this).attr('id');
@@ -637,7 +592,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     id: recordID
                 });
                 console.log('Delete initiated - Record ID: ' + recordID);
-                // snoozeDelete.save();
 
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
@@ -653,12 +607,18 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var date = snoozeRecord.getValue({
                     fieldId: 'custbody_invoice_snooze_date'
                 });
+                console.log('Date for Snooze ' + date)
                 snoozeRecord.setValue({
                     fieldId: 'custbody_invoice_snooze_date',
                     value: today_in_2day
                 });
                 snoozeRecord.save();
                 
+                var snoozeDelete = record.delete({
+                    type: 'customrecord_debt_coll_inv',
+                    id: recordID
+                });
+                console.log('Delete initiated - Record ID: ' + recordID);
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
             });
@@ -680,6 +640,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 });
                 snoozeRecord.save();
                 
+                var snoozeDelete = record.delete({
+                    type: 'customrecord_debt_coll_inv',
+                    id: recordID
+                });
+                console.log('Delete initiated - Record ID: ' + recordID);
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
             });
@@ -694,12 +659,18 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var date = snoozeRecord.getValue({
                     fieldId: 'custbody_invoice_snooze_date'
                 });
+                console.log('Date for Snooze ' + date)
                 snoozeRecord.setValue({
                     fieldId: 'custbody_invoice_snooze_date',
                     value: today_in_2week
                 });
                 snoozeRecord.save();
                 
+                var snoozeDelete = record.delete({
+                    type: 'customrecord_debt_coll_inv',
+                    id: recordID
+                });
+                console.log('Delete initiated - Record ID: ' + recordID);
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
             });
@@ -760,7 +731,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var newNote = userName + ' - ' + getDate().toString() + ' ' + formatAMPM() + ': ' + noteVal;
             // var newNote = noteVal;
             
-            var invoiceNumber = (index[1].split('id=')[1]).split('">')[0];
+            var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
             console.log("Invoice Number: " + invoiceNumber);
             // var noteInfo = index[17];
 
@@ -821,10 +792,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     fieldId: 'author',
                     value: runtime.getCurrentUser().id
                 });
-                // userNoteRecord.setValue({
-                //     fieldId: 'entity',
-                //     value: custid
-                // });
                 var initialFormattedDateString = getDate().toString();
                 var parsedDateStringAsRawDateObject = format.parse({ value: initialFormattedDateString, type: format.Type.DATE });
                 userNoteRecord.setValue({
@@ -870,6 +837,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             // if (!isNullorEmpty(tick_note)){
             //     var tickRecSave = tickRecord.save();
             // }
+
+
         }
 
         function loadDebtRecord(range, date_from, date_to) {
