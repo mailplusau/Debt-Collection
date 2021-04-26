@@ -37,19 +37,20 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         function onRequest(context) {
             if (context.request.method === 'GET') {
                 var params = context.request.parameters;
-                var is_params = 'F';
+                var is_params = false;
 
-                var invoice_id;
+                var invoice_id = params.invid;
                 var date;
                 var period;
-                var record_id
+                var record_id;
+                var viewed;
 
-                if (!isNullorEmpty(is_params)){
-                    is_params = 'T';
+                if (!isNullorEmpty(invoice_id)){
+                    is_params = true;
 
                     invoice_id = params.invid;
                     date = params.date;
-                    period = JSON.stringify(params.period);
+                    period = params.period;
                     record_id = params.recordid;
                     viewed = params.viewed;
                 }
@@ -69,6 +70,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 log.debug({
                     title: 'record_id',
                     details: record_id
+                });
+                log.debug({
+                    title: 'viewed',
+                    details: viewed
                 });
                 
                 var form = ui.createForm({
@@ -97,11 +102,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
-                if (is_params = 'T'){
+                if (is_params == true){
                     if (isNullorEmpty(period)){
-                        inlineHtml += '<div><h4 style="text-align: center">Invoice has been set as viewed!</h4></div>';
+                        inlineHtml += '<div><h4 style="text-align: center">Invoice has been set as viewed!</h4></div><br>';
                     } else {
-                        inlineHtml += '<div><h4 style="text-align: center">Invoice has successfully been snoozed for a period of ' + period + '!</h4></div>';
+                        inlineHtml += '<div><h4 style="text-align: center">Invoice has successfully been snoozed for a period of ' + period + '!</h4></div><br>';
                     }
                 } else {
                     inlineHtml += '<div><h4 style="text-align: center">Invalid Parameters. Please Go Back to Debt Collections Page and Try Again</h4></div>'
@@ -224,7 +229,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             log.debug({
                 title: 'today_day',
                 details: today_day
-            })
+            });
 
             var today_in_day  = new Date(Date.UTC(parseInt(today_year), parseInt(today_month), parseInt(today_day) + 1));
             today_in_day.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });
@@ -250,129 +255,167 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             today_in_2week = dateISOToNetsuite(today_in_2week);
             today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object
 
-            if(period = '1day'){   
-                log.debug({
-                    title: '1 Day',
-                    details: '1 Day'
-                });       
-                var snoozeRecord = record.load({
-                    type: 'invoice',
-                    id: invoice_id
-                });
-                var date = snoozeRecord.getValue({
-                    fieldId: 'custbody_invoice_snooze_date'
-                });
-                log.debug({
-                    title: 'Date on Invoice Record',
-                    details: today_in_day
-                });
-                snoozeRecord.setValue({
-                    fieldId: 'custbody_invoice_snooze_date',
-                    value: today_in_day
-                });
-                snoozeRecord.save();
-                
-                var snoozeDelete = record.delete({
-                    type: 'customrecord_debt_coll_inv',
-                    id: record_id
-                });
-                log.debug({
-                    title: 'Delete initiated - Record ID: ' + record_id,
-                    details: 'Delete initiated - Record ID: ' + record_id
-                });
-            } else if (period = '2day'){
-                log.debug({
-                    title: '2 Day',
-                    details: '2 Day'
-                }); 
-                
-                var snoozeRecord = record.load({
-                    type: 'invoice',
-                    id: invoice_id
-                });
-                var date = snoozeRecord.getValue({
-                    fieldId: 'custbody_invoice_snooze_date'
-                });
-                log.debug({
-                    title: 'Date for Snooze ' + date,
-                    details: 'Date for Snooze ' + date
-                });
-                snoozeRecord.setValue({
-                    fieldId: 'custbody_invoice_snooze_date',
-                    value: today_in_2day
-                });
-                snoozeRecord.save();
-                
-                var snoozeDelete = record.delete({
-                    type: 'customrecord_debt_coll_inv',
-                    id: record_id
-                });
-                log.debug({
-                    title: 'Delete initiated - Record ID: ' + record_id,
-                    details: 'Delete initiated - Record ID: ' + record_id
-                });
-            } else if (period = '1week'){
-                log.debug({
-                    title: '1 Week',
-                    details: '1 Week'
-                }); 
-                
-                var snoozeRecord = record.load({
-                    type: 'invoice',
-                    id: invoice_id
-                });
-                var date = snoozeRecord.getValue({
-                    fieldId: 'custbody_invoice_snooze_date'
-                });
-                log.debug({
-                    title: 'Date for Snooze ' + date,
-                    details: 'Date for Snooze ' + date,
-                })
-                snoozeRecord.setValue({
-                    fieldId: 'custbody_invoice_snooze_date',
-                    value: today_in_week
-                });
-                snoozeRecord.save();
-                
-                var snoozeDelete = record.delete({
-                    type: 'customrecord_debt_coll_inv',
-                    id: record_id
-                });
-                log.debug({
-                    title: 'Delete initiated - Record ID: ' + record_id,
-                    details: 'Delete initiated - Record ID: ' + record_id
-                });
-            } else if (period = '2week'){
-                log.debug({
-                    title: '2 Week',
-                    details: '2 Week'
-                }); 
-                
-                var snoozeRecord = record.load({
-                    type: 'invoice',
-                    id: invoice_id
-                });
-                var date = snoozeRecord.getValue({
-                    fieldId: 'custbody_invoice_snooze_date'
-                });
-                log.debug({
-                    title: 'Date for Snooze ' + date,
-                    details: 'Date for Snooze ' + date
-                })
-                snoozeRecord.setValue({
-                    fieldId: 'custbody_invoice_snooze_date',
-                    value: today_in_2week
-                });
-                snoozeRecord.save();
-                
-                var snoozeDelete = record.delete({
-                    type: 'customrecord_debt_coll_inv',
-                    id: record_id
-                });
-                log.debug({
-                    title: 'Delete initiated - Record ID: ' + record_id,
-                    details: 'Delete initiated - Record ID: ' + record_id
-                });
+            var one_year = new Date(Date.UTC(today_year + 1, today_month, today_day));
+            one_year.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+            one_year = one_year.toISOString().split('T')[0];
+            one_year = dateISOToNetsuite(one_year);
+            one_year = format.parse({ value: one_year, type: format.Type.DATE }); // Date Object
+
+            switch(period) {
+                case '1day': 
+                    log.debug({
+                        title: '1 Day',
+                        details: '1 Day'
+                    });       
+                    var snoozeRecord = record.load({
+                        type: 'invoice',
+                        id: invoice_id
+                    });
+                    var date = snoozeRecord.getValue({
+                        fieldId: 'custbody_invoice_snooze_date'
+                    });
+                    log.debug({
+                        title: 'Date on Invoice Record',
+                        details: today_in_day
+                    });
+                    snoozeRecord.setValue({
+                        fieldId: 'custbody_invoice_snooze_date',
+                        value: today_in_day
+                    });
+                    snoozeRecord.save();
+                    var snoozeDelete = record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_id
+                    });
+                    log.debug({
+                        title: 'Delete initiated - Record ID: ' + record_id,
+                        details: 'Delete initiated - Record ID: ' + record_id
+                    });
+                    break; 
+                case '2day': 
+                    log.debug({
+                        title: '2 Day',
+                        details: '2 Day'
+                    }); 
+                    var snoozeRecord = record.load({
+                        type: 'invoice',
+                        id: invoice_id
+                    });
+                    var date = snoozeRecord.getValue({
+                        fieldId: 'custbody_invoice_snooze_date'
+                    });
+                    log.debug({
+                        title: 'Date for Snooze ' + date,
+                        details: 'Date for Snooze ' + date
+                    });
+                    snoozeRecord.setValue({
+                        fieldId: 'custbody_invoice_snooze_date',
+                        value: today_in_2day
+                    });
+                    snoozeRecord.save();
+                    var snoozeDelete = record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_id
+                    });
+                    log.debug({
+                        title: 'Delete initiated - Record ID: ' + record_id,
+                        details: 'Delete initiated - Record ID: ' + record_id
+                    });
+                    break;
+                case '1week':
+                    log.debug({
+                        title: '1 Week',
+                        details: '1 Week'
+                    }); 
+                    var snoozeRecord = record.load({
+                        type: 'invoice',
+                        id: invoice_id
+                    });
+                    var date = snoozeRecord.getValue({
+                        fieldId: 'custbody_invoice_snooze_date'
+                    });
+                    log.debug({
+                        title: 'Date for Snooze ' + date,
+                        details: 'Date for Snooze ' + date,
+                    })
+                    snoozeRecord.setValue({
+                        fieldId: 'custbody_invoice_snooze_date',
+                        value: today_in_week
+                    });
+                    snoozeRecord.save();
+                    var snoozeDelete = record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_id
+                    });
+                    log.debug({
+                        title: 'Delete initiated - Record ID: ' + record_id,
+                        details: 'Delete initiated - Record ID: ' + record_id
+                    });
+                    break;
+                case '2week': 
+                    log.debug({
+                        title: '2 Week',
+                        details: '2 Week'
+                    });
+                    var snoozeRecord = record.load({
+                        type: 'invoice',
+                        id: invoice_id
+                    });
+                    var date = snoozeRecord.getValue({
+                        fieldId: 'custbody_invoice_snooze_date'
+                    });
+                    log.debug({
+                        title: 'Date for Snooze ' + date,
+                        details: 'Date for Snooze ' + date
+                    })
+                    snoozeRecord.setValue({
+                        fieldId: 'custbody_invoice_snooze_date',
+                        value: today_in_2week
+                    });
+                    snoozeRecord.save();    
+                    var snoozeDelete = record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_id
+                    });
+                    log.debug({
+                        title: 'Delete initiated - Record ID: ' + record_id,
+                        details: 'Delete initiated - Record ID: ' + record_id
+                    });
+                    break;
+                case 'permanent':
+                    log.debug({
+                        title: 'Permanent',
+                        details: 'Permanent'
+                    });
+                    var snoozeRecord = record.load({
+                        type: 'invoice',
+                        id: invoice_id
+                    });
+                    var date = snoozeRecord.getValue({
+                        fieldId: 'custbody_invoice_snooze_date'
+                    });
+                    log.debug({
+                        title: 'Date for Snooze ' + date,
+                        details: 'Date for Snooze ' + date
+                    })
+                    snoozeRecord.setValue({
+                        fieldId: 'custbody_invoice_snooze_date',
+                        value: one_year
+                    });
+                    snoozeRecord.save();    
+                    var snoozeDelete = record.delete({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_id
+                    });
+                    log.debug({
+                        title: 'Delete initiated - Record ID: ' + record_id,
+                        details: 'Delete initiated - Record ID: ' + record_id
+                    });
+                default:
+                    log.debug({
+                        title: "No Snooze Date Note Saved",
+                        details: period
+                    });
             }
 
             return true;

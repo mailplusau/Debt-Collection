@@ -155,94 +155,50 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     var snoozeDate = invoiceSet.getValue({
                         name: 'custbody_invoice_snooze_date'
                     });
-                    
                     var viewed = invoiceSet.getValue({
                         name: 'custbody_invoice_viewed'
                     });
-                    // if(!isNullorEmpty(viewed)){
-                    //     log.audit({
-                    //         title: 'Viewed has Value',
-                    //         details: 'Invoice ID: ' + invoice_id 
-                    //     });
-                    //     log.audit({
-                    //         title: 'Viewed Val',
-                    //         details: viewed
-                    //     })
-                    //     if(viewed = 'true'){
-                    //         log.audit({
-                    //             title: 'Viewed == True',
-                    //             details: 'Invoice ID: ' + invoice_id 
-                    //         });
-                    //         return;
-                    //     }
-                    // }
-                    var date_split = getDate().split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
-                    if (date_split[0].length == 1){
-                        var days = '0' + date_split[0]; //get DD
-                        var month = date_split[1]; //get MM
-                        var year = date_split[2]; //get YYYY
-                        // var date = days + '/' + month + '/' + year;
-                        var date = year + '-' + month + '-' + days;
-                    } else {
-                        var days = date_split[0]; //get DD
-                        var month = date_split[1]; //get MM
-                        var year = date_split[2]; //get YYYY
-                        var getDateVal = year + '-' + month + '-' + days;
-                    }
 
-                    function dateToISOString(date){
-                        var date_split = date.split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
-                        if (date_split[0].length == 1){
-                            var days = '0' + date_split[0]; //get DD
-                            var month = date_split[1]; //get MM
-                            var year = date_split[2]; //get YYYY
-                            // var date = days + '/' + month + '/' + year;
-                            var date = year + '-' + month + '-' + days;
-                        } else {
-                            var days = date_split[0]; //get DD
-                            var month = date_split[1]; //get MM
-                            var year = date_split[2]; //get YYYY
-
-                            var date = year + '-' + month + '-' + days;
-
-                            return date;
-                        }
-                    }
-                    var date_split = snoozeDate.split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
-                    if (date_split[0].length == 1){
-                        var days = '0' + date_split[0]; //get DD
-                        var month = date_split[1]; //get MM
-                        var year = date_split[2]; //get YYYY
-                        // var date = days + '/' + month + '/' + year;
-                        var date = year + '-' + month + '-' + days;
-                    } else {
-                        var days = date_split[0]; //get DD
-                        var month = date_split[1]; //get MM
-                        var year = date_split[2]; //get YYYY
-                        var getDateVal = year + '-' + month + '-' + days;
-                    }
                     if (!isNullorEmpty(snoozeDate)){
+                        var getDateVal = dateToISOString(getDate());
+                        var snoozeDateVal = dateToISOString(snoozeDate);
                         log.audit({
                             title: 'snoozeDate',
                             details: snoozeDate
                         });
                         log.audit({
+                            title: 'snoozeDateVal',
+                            details: snoozeDateVal
+                        });
+                        log.audit({
                             title: 'getDate() as getDateVal',
                             details: getDateVal
                         });
-                        log.audit({
-                            title: 'Invoice With Snooze Date',
-                            details: invoice_id
-                        })
-                        if (getDateVal < snoozeDate){
+                        if (snoozeDateVal > getDateVal == true){
                             log.audit({
                                 title: 'Skip This Invoice '+ invoice_id +' as its been Snooze',
                                 details: 'Snooze Date: ' + snoozeDate + ' Invoice ID: ' + invoice_id
                             });
-                            // invoiceSet.setValue({ fieldId:'custrecord_debt_coll_inv_snooze', value: 'true'})
+
                             return;
                         }
                     }
+
+                    if(!isNullorEmpty(viewed)){
+                        log.audit({
+                            title: 'Viewed has Value',
+                            details: 'Invoice ID: ' + invoice_id + ' & Viewed Value = ' + viewed 
+                        });
+                        if (viewed = true){
+                            log.audit({
+                                title: 'Viewed == True',
+                                details: viewed
+                            });
+
+                            return;
+                        }
+                    }
+
                     log.debug({
                         title: 'Invoice ID',
                         details: invoice_id
@@ -297,14 +253,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         if (!isNullorEmpty(noteResults)){
                             noteResults.each(function(noteSet, index) {
                                 var note_name = noteSet.getValue({
-                                    name: 'title'
+                                    name: 'name'
                                 });
                                 log.audit({
                                     title: 'User Note Details',
                                     details: note_name
                                 })
                                 var note = noteSet.getValue({
-                                    name: 'note'
+                                    name: 'custrecord_debt_coll_note'
                                 });
                                 log.audit({
                                     title: 'Note information',
@@ -368,7 +324,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         } else {
                             var snooze = 'true';
                         }
-                        // if (invoiceSet.getValue({ name: 'custrecord_debt_coll_viewed'}) == true){
+                        // if (invoiceSet.getValue({ name: 'custrecord_debt_coll_viewed'}) == 'true'){
                         //     viewed = true;
                         // } else {
                         //     viewed = false;
@@ -451,10 +407,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 fieldId: 'custrecord_debt_coll_inv_snooze',
                                 value: snooze
                             });
-                            invRecord.setValue({
-                                fieldId: 'custrecord_debt_coll_viewed',
-                                value: viewed
-                            });
+                            // invRecord.setValue({
+                            //     fieldId: 'custrecord_debt_coll_viewed',
+                            //     value: viewed
+                            // });
 
                             invRecord.save();
                         }
@@ -577,9 +533,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             invoiceResult.filters.push(date_from_Filter);
             if (!isNullorEmpty(myFilter1)) { invoiceResult.filters.push(myFilter1); }
             if (!isNullorEmpty(myFilter2)) { invoiceResult.filters.push(myFilter2); }
-            // if (!isNullorEmpty(myFilter2_2)) { invoiceResult.filters.push(myFilter2_2); }
             if (!isNullorEmpty(myFilter3)) { invoiceResult.filters.push(myFilter3); }
-            // if (!isNullorEmpty(myFilter3_3)) { invoiceResult.filters.push(myFilter3_3); }
+
             var searchResult = invoiceResult.run();
 
             return searchResult;
@@ -634,6 +589,27 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
          */
         function dateCompare(date1, date2){
             return date1 > date2;
+        }
+
+        function dateToISOString(date){
+            var date_split = date.split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
+            if (date_split[0].length == 1){
+                var days = '0' + date_split[0]; //get DD
+                var month = date_split[1]; //get MM
+                var year = date_split[2]; //get YYYY
+            } else {
+                var days = date_split[0]; //get DD
+                var month = date_split[1]; //get MM
+                var year = date_split[2]; //get YYYY
+            }
+            if (date_split[1].length == 1){
+                month = '0' + date_split[1]; //get MM
+            } else {
+                month = date_split[1]; //get MM
+            }
+            var date = year + '-' + month + '-' + days;
+
+            return date;
         }
 
         /**
