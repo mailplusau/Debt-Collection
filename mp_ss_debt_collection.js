@@ -184,20 +184,20 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         }
                     }
 
-                    if(!isNullorEmpty(viewed)){
-                        log.audit({
-                            title: 'Viewed has Value',
-                            details: 'Invoice ID: ' + invoice_id + ' & Viewed Value = ' + viewed 
-                        });
-                        if (viewed = true){
-                            log.audit({
-                                title: 'Viewed == True',
-                                details: viewed
-                            });
+                    // if(!isNullorEmpty(viewed)){
+                    //     log.audit({
+                    //         title: 'Viewed has Value',
+                    //         details: 'Invoice ID: ' + invoice_id + ' & Viewed Value = ' + viewed 
+                    //     });
+                    //     if (viewed = true){
+                    //         log.audit({
+                    //             title: 'Viewed == True',
+                    //             details: viewed
+                    //         });
 
-                            return;
-                        }
-                    }
+                    //         return;
+                    //     }
+                    // }
 
                     log.debug({
                         title: 'Invoice ID',

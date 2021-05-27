@@ -87,6 +87,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
         }
 
         function pageInit() {    
+            //background-colors
+            $("#NS_MENU_ID0-item0").css("background-color", "#CFE0CE");
+            $("#NS_MENU_ID0-item0 a").css("background-color", "#CFE0CE");
+            $("#body").css("background-color", "#CFE0CE");
+
             selectRangeOptions();       
      
             debtDataSet = [];
@@ -168,6 +173,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Auto Load Submit Search and Load Results on Page Initialisation
              */
+             $('#loading_section').hide();
             pageLoad();
             submitSearch();  
             var dataTable = $('#debt_preview').DataTable();          
@@ -203,13 +209,35 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     $(tr).addClass('thisWorked');
                 } else {
                     $(tr).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                    $(tr).addClass('showDanger')
+                    $(tr).addClass('thisWorked');
                 }
 
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + getDate() + '&viewed=true' + '&recordid=' + index[16],
                 '_blank'
                 );
             });
+            $(document).on('click', '.eyeplus', function() {
+                var tr = $(this).closest('tr');
+                var row = dataTable.row(tr);
+                console.log(row.data());
+                var index = row.data();
+
+                if ($(tr).hasClass('odd')) {
+                    $(tr).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                    $(tr).addClass('thisWorked');
+                } else {
+                    $(tr).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                    $(tr).addClass('thisWorked');
+                }
+
+                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
+                console.log("Invoice Number: " + invoiceNumber);
+
+                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + getDate() + '&multiviewed=true' + '&recordid=' + index[16] + '&custid=' + index[14],
+                '_blank'
+                );
+            });
+
 
             /**
              *  Notes Section
@@ -598,8 +626,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     }, // 8
                     { title: 'Period' }, // 9
                     { title: 'MP Ticket' }, // 10
-                    { title: 'Notes' }, // 11
-                    { title: 'Viewed | Snooze' }, // 12
+                    { title: 'Notes | Viewed' }, // 11
+                    { title: 'Multi-Viewed | Snooze' }, // 12
                     { title: 'MAAP Payment Status'} // 13
                     // 14 - Customer ID
                     // 15 - Tick Status / This is for the added notes section. Redundent
@@ -638,10 +666,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     // $('td:eq(1)', row).html;                    
                     if (data[18] == true){
                         if ($(row).hasClass('odd')) {
-                            $(row).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Salmon
+                            $(row).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light-Purple
                             $(row).addClass('showDanger')
                         } else {
-                            $(row).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Red
+                            $(row).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Darker-Purple
                             $(row).addClass('showDanger')
                         }
                     } else if (data[13] == 'Payed') {
@@ -1062,8 +1090,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var period = debt_row.p;
                     
                     var noteInfo = debt_row.nt;
-                    var note = '<div><button type="button" id="note_' + invoice_id + '" class="note form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-pencil"></span></button></div>';
-                    var checkbox =  '<div class="col-xs-9"><button type="button" id="eye_more_' + invoice_id + '" class="eye form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
+                    var note = '<div class="col-xs-6"><button type="button" id="note_' + invoice_id + '" class="note form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-pencil"></span></button></div>';
+                    note +=  '<div class="col-xs-6"><button type="button" id="eye_more_' + invoice_id + '" class="eye form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
+                    var checkbox =  '<div class="col-xs-9"><button type="button" id="eye_multi_' + invoice_id + '" class="eyeplus form-control btn-xs btn-secondary"><span class="glyphicon glyphicon glyphicon-list"></span>  </button></div>';
                     checkbox += '<div class="col-xs-auto"><button type="button" id="timer_' + invoice_id + '" class="timer form=control btn-xs btn-info"><span class="span_class glyphicon glyphicon-time"></span></button></div>';
                                         
                     var mp_ticket = debt_row.mp

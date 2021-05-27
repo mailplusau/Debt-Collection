@@ -53,6 +53,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     period = params.period;
                     record_id = params.recordid;
                     viewed = params.viewed;
+                    cust_id = params.custid;
+                    multi_viewed = params.multiviewed;
                 }
 
                 log.debug({
@@ -75,6 +77,15 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     title: 'viewed',
                     details: viewed
                 });
+                log.debug({
+                    title: 'Customer ID',
+                    details: cust_id
+                })
+                log.debug({
+                    title: 'Multiple Invoices Viewed?',
+                    details: multi_viewed
+                });
+
                 
                 var form = ui.createForm({
                     title: 'Debt Collection - Snooze'
@@ -122,6 +133,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 if (!isNullorEmpty(viewed)){
                     saveViewed(invoice_id, period, viewed, date)
+                }
+
+                if (!isNullorEmpty(multi_viewed)){
+                    multiViewed(invoice_id, period, multi_viewed, date, cust_id);
                 }
 
                 form.addField({
@@ -422,28 +437,35 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         }
 
         function saveViewed(invoice_id, period, viewed, date){
-            
+            // 1 Week Snooze
             var today = new Date(Date.UTC());
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
             var today_day = today.getDate() + 1;
-            var today_in_2week  = new Date(Date.UTC(today_year, today_month, today_day + 14));
-            today_in_2week = today_in_2week.toISOString().split('T')[0];
-            today_in_2week = dateISOToNetsuite(today_in_2week);
-            today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object  
+            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+            today_in_week = today_in_week.toISOString().split('T')[0];
+            today_in_week = dateISOToNetsuite(today_in_week);
+            today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
 
             var invoiceRecord = record.load({
                 type: 'invoice',
                 id: invoice_id
             });              
-            // var new_date = invoiceRecord.setValue({
-            //     fieldId: 'custbody_invoice_snooze_date',
-            //     value: today_in_2week
-            // });
-            // log.debug({
-            //     title: 'new_date record ID',
-            //     details: new_date
-            // })
+            var new_date = invoiceRecord.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_week
+            });
+
+            // Purple for All Customers with the same customer name
+                // Purple for Invoice for 1 Week - DONE
+                // Purple All Invoices under Customer - In Progress
+            // Search of All Customers, Send to Yassine - DONE
+
+            log.debug({
+                title: 'new_date record ID',
+                details: new_date
+            })
             var viewed = invoiceRecord.getValue({
                 fieldId: 'custbody_invoice_viewed'
             });
@@ -459,6 +481,103 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             invoiceRecord.save();
 
             return true;
+        }
+
+        function multiViewed(invoice_id, period, multi_viewed, date, cust_id){
+
+            var paidInvoiceSearch = search.load({ id: 'customsearch_debt_coll_inv', type: 'invoice'});
+            paidInvoiceSearch.filters.push(search.createFilter({
+                name: 'internalid',
+                join: 'customer',
+                operator: search.Operator.IS,
+                values: cust_id
+            }))
+            
+            var today = new Date(Date.UTC());
+            var today_year = today.getFullYear();
+            var today_month = today.getMonth();
+            var today_day = today.getDate();
+            var three_months_ago = new Date(Date.UTC(today_year, today_month - 6, today_day));
+                three_months_ago.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+                three_months_ago = three_months_ago.toISOString().split('T')[0];
+                three_months_ago = dateISOToNetsuite(three_months_ago);
+                three_months_ago = format.format({ value: three_months_ago, type: format.Type.DATE, timezone: format.Timezone.AUSTRALIA_SYDNEY}); // Date Object
+            var date_from = three_months_ago;
+            var date_to = getDate();
+            paidInvoiceSearch.filters.push(search.createFilter({
+                name: 'trandate',
+                operator: search.Operator.ONORBEFORE,
+                values: date_to
+            }));
+            paidInvoiceSearch.filters.push(search.createFilter({
+                name: 'trandate',
+                operator: search.Operator.ONORAFTER,
+                values: date_from
+            }));
+
+            paidInvoiceSearch.run().each(function(res, index){
+                var invoiceid = res.getValue({ name: 'internalid'});
+                log.debug({
+                    title: 'Search Invoice ID',
+                    details: invoiceid
+                });
+                var invoiceRecord = record.load({
+                    type: 'invoice',
+                    id: invoiceid
+                });   
+                
+                // Snooze for 1 Week 
+                var today = new Date(Date.UTC());
+                var today_year = today.getFullYear();
+                var today_month = today.getMonth();
+                var today_day = today.getDate() + 1;
+                var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+                today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+                today_in_week = today_in_week.toISOString().split('T')[0];
+                today_in_week = dateISOToNetsuite(today_in_week);
+                today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
+                var new_date = invoiceRecord.setValue({
+                    fieldId: 'custbody_invoice_snooze_date',
+                    value: today_in_week
+                });
+
+                // Purple for All Customers with the same customer name
+                    // Purple All Invoices under Customer - In Progress
+    
+                log.debug({
+                    title: 'Snooze Invoice ' + invoiceid + ' for 1 Week',
+                    details: new_date
+                })
+                var viewed = invoiceRecord.setValue({
+                    fieldId: 'custbody_invoice_viewed',
+                    value: true
+                });
+                
+                var invTableSearch = search.load({
+                    id: 'customsearch_debt_coll_table',
+                    type: 'customrecord_debt_coll_inv'
+                });
+                invTableSearch.filters.push(search.createFilter({
+                    name: 'custrecord_debt_coll_inv_id',
+                    operator: search.Operator.IS,
+                    values: invoiceid
+                }));
+                invTableSearch.run().each(function(invTableRes){
+                    var tableID = invTableRes.getValue({ name: 'internalid'});
+                    var tableRec = record.load({
+                        type: 'customrecord_debt_coll_inv',
+                        id: tableID
+                    });
+                    tableRec.setValue({
+                        fieldId: 'custrecord_debt_coll_viewed',
+                        value: true
+                    });
+                    tableRec.save(); 
+                });
+                invoiceRecord.save();
+    
+                return true;
+            })
         }
 
 

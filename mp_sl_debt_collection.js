@@ -65,12 +65,18 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
+                inlineHtml += '<div class="a" style="width: 100%; background-color: #CFE0CE; padding: 20px; min-height: 100vh; height: 100%;">';
+                // inlineHtml += '<h1 style="text-align: center; color: #103D39; display: inline-block; font-size: 22px; font-weight: bold; line-height: 33px; vertical-align: top; margin-bottom: 4px;">Consolidation Invoice</h1>';
+                inlineHtml += '<style>.nav > li.active > a, .nav > li.active > a:focus, .nav > li.active > a:hover { background-color: #379E8F; color: #fff }';
+                inlineHtml += '.nav > li > a, .nav > li > a:focus, .nav > li > a:hover { margin-left: 5px; margin-right: 5px; border: 2px solid #379E8F; color: #379E8F; }';
+                inlineHtml += '</style>';
+
                 // Popup Notes Section
                 inlineHtml += '<div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Notes Section</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
                 inlineHtml += '<div id="myModal2" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Snooze Timers</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
                 
                 // Click for Instructions
-                inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b>';
+                inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="background-color: #FBEA51; color: #103D39;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b>';
                 inlineHtml += '<ul><li><input type="button" class="btn-xs" style="background-color: #fff; color: black;" disabled value="Submit Search" /> - <ul><li>Click "Submit Search" to load Datatable using current parameters</li></ul></li>'
                 inlineHtml += '<li>Functionalities available on the Debt Collections Table:<ul><li><b>Sort</b><ul><li>Click on column headers to sort collections invoices according to the values in the columns. This is default to "Days Overdue".</li><li>Hold "Shift" and click another column to sort according to multiple columns.</li></ul></li><li><b>Search</b><ul><li>You can search for specific Customer or Invoice by typing into the "Search" field</li></ul></li></ul></li>';
                 inlineHtml += '<li>Table Filters:<ul><li><b>Matching MAAP Allocation</b><ul><li><button type="button" class="btn-xs btn-success " disabled><span class="glyphicon glyphicon-plus"></span></button> - Click to apply MAAP Allocation filters search filters on table. ONLY click once. </li><li><button type="button" class="btn-xs btn-danger " disabled><span class="glyphicon glyphicon-minus"></span></button> - Click to remove MAAP Allocation search filter from table. This is set default to "Days Overdue".</li></ul></li> <li><b>MP Ticket Column</b><ul><button type="button" class="btn-xs btn-success" disabled><span class="glyphicon glyphicon-plus"></span></button> - Click to apply MAAP Allocation filters search filters on table. ONLY click once. </li></ul></li></ul></li><li>Clickable Actions Available Per Invoice in DataTable:</li>';
@@ -84,6 +90,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += dateFilterSection();
                 inlineHtml += tableFilter();
                 inlineHtml += dataTable();
+
+                inlineHtml += '</div></div>'
 
                 form.addButton({
                     id: 'submit',
@@ -112,7 +120,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         function dataTable() {
             var inlineQty = '<style>table#debt_preview {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#debt_preview th{text-align: center;} .bolded{font-weight: bold;}</style>';
             inlineQty += '<table id="debt_preview" class="table table-responsive table-striped customer tablesorter hide" style="width: 100%;">';
-            inlineQty += '<thead style="color: white;background-color: #607799;">';
+            inlineQty += '<thead style="color: white; background-color: #379E8F;">';
             inlineQty += '<tr class="text-center">';
             inlineQty += '</tr>';
             inlineQty += '</thead>';
@@ -133,7 +141,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             var inlineQty = '<div id="table_filter_section" class="table_filters_section hide">';
             inlineQty += '<div class="form-group container">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">TABLE FILTERS</span></h4></div>';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12" style="background-color: #379E8F; color: white;">TABLE FILTERS</span></h4></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
 
@@ -142,15 +150,15 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
             inlineQty += '<div class="col-sm-4 showMPTicket_box">';
             inlineQty += '<div class="input-group">';
-            inlineQty += '<span class="input-group-addon" id="showMPTicket_box">Show/Hide | MP Ticket Column</span>';
-            inlineQty += '<button type="button" id="showMPTicket_box" class="toggle-mp-ticket btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '<span class="input-group-addon" id="showMPTicket_box" >Show/Hide | MP Ticket Column</span>';
+            inlineQty += '<button type="button" id="showMPTicket_box" class="toggle-mp-ticket btn btn-success" style="background-color: #379E8F;"><span class="span_class glyphicon glyphicon-plus"></span></button>'
             inlineQty += '</div></div>';
 
             // // MAAP Allocation
             inlineQty += '<div class="col-sm-5 showMAAP_box">';
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="showMAAP_box">Show/Hide | Matching MAAP Allocation</span>';
-            inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap btn btn-success"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap btn btn-success" style="background-color: #379E8F;"><span class="span_class glyphicon glyphicon-plus"></span></button>'
             inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap-danger btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
             inlineQty += '</div></div>';
 
@@ -173,10 +181,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * @returns {String} `inlineQty`
          */
         function loadingSection() {
-            var inlineQty = '<div id="loading_section" class="form-group container loading_section hide" style="text-align:center">';
+            var inlineQty = '<div id="loading_section" class="form-group container loading_section" style="text-align:center">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 loading_div">';
-            inlineQty += '<h1>Loading...</h1>';
+            inlineQty += '<div class="col-xs-12 loading_div color--primary-1 page-header-text" style="margin-bottom: 20px; text-align: center; color: #379e8f; font-size: 40px">';
+            inlineQty += '<h1>Loading Preferences ...</h1>';
             inlineQty += '</div></div></div>';
 
             return inlineQty;
@@ -185,7 +193,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         function rangeSelection() {
             var inlineQty = '<div class="form-group container range_filter_section_top">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">RANGE FILTER</span></h4></div>';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12" style="background-color: #379E8F; color: white;">RANGE FILTER</span></h4></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
 
@@ -216,7 +224,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         function dateFilterSection() {
             var inlineQty = '<div class="form-group container date_filter_section">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12">DATE FILTER</span></h4></div>';
+            inlineQty += '<div class="col-xs-12 heading1"><h4><span class="label label-default col-xs-12" style="background-color: #379E8F; color: white;">DATE FILTER</span></h4></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
 
