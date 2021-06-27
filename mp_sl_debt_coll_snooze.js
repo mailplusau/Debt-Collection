@@ -81,11 +81,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     title: 'Customer ID',
                     details: cust_id
                 })
-                log.debug({
-                    title: 'Multiple Invoices Viewed?',
-                    details: multi_viewed
-                });
-
                 
                 var form = ui.createForm({
                     title: 'Debt Collection - Snooze'
@@ -137,6 +132,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                 if (!isNullorEmpty(multi_viewed)){
                     multiViewed(invoice_id, period, multi_viewed, date, cust_id);
+                    period = 'Multi Snooze 1 Week'
                 }
 
                 form.addField({
@@ -211,7 +207,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="form-group container _section">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-6 period"><div class="input-group"><span class="input-group-addon" id="period_text">Period Duration</span><input id="period" class="form-control period" value="' + period + '" data-oldvalue="' + period + '"/></div></div>';
-            inlineQty += '<div class="col-xs-6 date"><div class="input-group"><span class="input-group-addon" id="date_text">Date Snoozed Until</span><input id="date" class="form-control date" value="' + date + '" data-oldvalue="' + date + '"/></div></div>';
+            inlineQty += '<div class="col-xs-6 date"><div class="input-group"><span class="input-group-addon" id="date_text">Invoice Date</span><input id="date" class="form-control date" value="' + date + '" data-oldvalue="' + date + '"/></div></div>';
             inlineQty += '</div></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
@@ -223,7 +219,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return inlineQty;
         }
 
-        function saveSnooze(invoice_id, period, record_id, date){
+        function saveSnooze(invoice_id, period, record_id){
             var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
@@ -436,9 +432,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return true;
         }
 
-        function saveViewed(invoice_id, period, viewed, date){
+        function saveViewed(invoice_id, period, viewed){
             // 1 Week Snooze
-            var today = new Date(Date.UTC());
+            var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
             var today_day = today.getDate() + 1;
@@ -485,6 +481,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
         function multiViewed(invoice_id, period, multi_viewed, date, cust_id){
 
+            log.debug({
+                title: 'Multiple Invoices Viewed',
+                details: multi_viewed
+            });
+
             var paidInvoiceSearch = search.load({ id: 'customsearch_debt_coll_inv', type: 'invoice'});
             paidInvoiceSearch.filters.push(search.createFilter({
                 name: 'internalid',
@@ -493,17 +494,18 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 values: cust_id
             }))
             
-            var today = new Date(Date.UTC());
+            var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
-            var today_day = today.getDate();
-            var three_months_ago = new Date(Date.UTC(today_year, today_month - 6, today_day));
-                three_months_ago.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
-                three_months_ago = three_months_ago.toISOString().split('T')[0];
-                three_months_ago = dateISOToNetsuite(three_months_ago);
-                three_months_ago = format.format({ value: three_months_ago, type: format.Type.DATE, timezone: format.Timezone.AUSTRALIA_SYDNEY}); // Date Object
-            var date_from = three_months_ago;
-            var date_to = getDate();
+            var today_day = today.getDate() + 1;
+            var six_months_ago = new Date(today_year, today_month - 6, today_day);
+                six_months_ago.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+                six_months_ago = six_months_ago.toISOString().split('T')[0];
+                six_months_ago = dateISOToNetsuite(six_months_ago);
+                // six_months_ago = format.format({ value: six_months_ago, type: format.Type.DATE, timezone: format.Timezone.AUSTRALIA_SYDNEY}); // Date Object
+            var date_from = six_months_ago;
+            var date_to = date;
+
             paidInvoiceSearch.filters.push(search.createFilter({
                 name: 'trandate',
                 operator: search.Operator.ONORBEFORE,
@@ -514,6 +516,28 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 operator: search.Operator.ONORAFTER,
                 values: date_from
             }));
+            paidInvoiceSearch.filters.push(search.createFilter({
+                name: 'memorized',
+                operator: search.Operator.IS,
+                values: false
+            }))
+
+            // Snooze for 1 Week 
+            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+            today_in_week = today_in_week.toISOString().split('T')[0];
+            today_in_week = dateISOToNetsuite(today_in_week);
+            today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
+
+            var invoiceRecord2 = record.load({
+                type: 'invoice',
+                id: invoice_id
+            });              
+            var new_date = invoiceRecord2.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_week
+            });
+            invoiceRecord2.save();
 
             paidInvoiceSearch.run().each(function(res, index){
                 var invoiceid = res.getValue({ name: 'internalid'});
@@ -526,16 +550,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     id: invoiceid
                 });   
                 
-                // Snooze for 1 Week 
-                var today = new Date(Date.UTC());
-                var today_year = today.getFullYear();
-                var today_month = today.getMonth();
-                var today_day = today.getDate() + 1;
-                var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
-                today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
-                today_in_week = today_in_week.toISOString().split('T')[0];
-                today_in_week = dateISOToNetsuite(today_in_week);
-                today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
+                log.audit({
+                    title: 'New Snooze Date Set - Multi Invoices',
+                    details: today_in_week
+                })
                 var new_date = invoiceRecord.setValue({
                     fieldId: 'custbody_invoice_snooze_date',
                     value: today_in_week
@@ -546,7 +564,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
     
                 log.debug({
                     title: 'Snooze Invoice ' + invoiceid + ' for 1 Week',
-                    details: new_date
+                    details: today_in_week
                 })
                 var viewed = invoiceRecord.setValue({
                     fieldId: 'custbody_invoice_viewed',
@@ -564,6 +582,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 }));
                 invTableSearch.run().each(function(invTableRes){
                     var tableID = invTableRes.getValue({ name: 'internalid'});
+                    log.audit({
+                        title: 'Invoice Table Set to True',
+                        details: tableID
+                    })
                     var tableRec = record.load({
                         type: 'customrecord_debt_coll_inv',
                         id: tableID
@@ -574,8 +596,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     });
                     tableRec.save(); 
                 });
-                invoiceRecord.save();
-    
+                var saveRecord = invoiceRecord.save();
+                
+                log.audit({
+                    title: 'Invoice Saved',
+                    details: saveRecord
+                })
                 return true;
             })
         }

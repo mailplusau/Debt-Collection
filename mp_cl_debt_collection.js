@@ -182,146 +182,168 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
              *  Viewed Invoices by Finance Team 
              */
             $(document).on('click', '.eye', function() {
-                var tr = $(this).closest('tr');
-                var row = dataTable.row(tr);
-                console.log(row.data());
-                var index = row.data();
+                try{
+                    var tr = $(this).closest('tr');
+                    var row = dataTable.row(tr);
+                    console.log(row.data());
+                    var index = row.data();
 
-                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
-                console.log("Invoice Number: " + invoiceNumber);
+                    var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
+                    console.log("Invoice Number: " + invoiceNumber);
 
-                var snoozeInvoice = record.load({
-                    type: 'customrecord_debt_coll_inv',
-                    id: index[16]
-                });
-                // var viewed = snoozeInvoice.getValue({
-                //     fieldId: 'custrecord_debt_coll_viewed'
-                // });
-                // console.log('Viewed? ' + viewed);
-                snoozeInvoice.setValue({
-                    fieldId: 'custrecord_debt_coll_viewed',
-                    value: true
-                });
-                snoozeInvoice.save();   
+                    var snoozeInvoice = record.load({
+                        type: 'customrecord_debt_coll_inv',
+                        id: index[16]
+                    });
+                    // var viewed = snoozeInvoice.getValue({
+                    //     fieldId: 'custrecord_debt_coll_viewed'
+                    // });
+                    // console.log('Viewed? ' + viewed);
+                    snoozeInvoice.setValue({
+                        fieldId: 'custrecord_debt_coll_viewed',
+                        value: true
+                    });
+                    snoozeInvoice.save();   
 
-                if ($(tr).hasClass('odd')) {
-                    $(tr).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                    $(tr).addClass('thisWorked');
-                } else {
-                    $(tr).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                    $(tr).addClass('thisWorked');
+                    if ($(tr).hasClass('odd')) {
+                        $(tr).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                        $(tr).addClass('thisWorked');
+                    } else {
+                        $(tr).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                        $(tr).addClass('thisWorked');
+                    }
+
+                    window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + getDate() + '&viewed=true' + '&recordid=' + index[16],
+                    '_blank'
+                    );
+                } catch (e){
+                    alert('Netsuite Error Message (Contact IT if Issue Persists): ' + e)
                 }
-
-                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + getDate() + '&viewed=true' + '&recordid=' + index[16],
-                '_blank'
-                );
             });
             $(document).on('click', '.eyeplus', function() {
-                var tr = $(this).closest('tr');
-                var row = dataTable.row(tr);
-                console.log(row.data());
-                var index = row.data();
+                try{
+                    var tr = $(this).closest('tr');
+                    var row = dataTable.row(tr);
+                    console.log(row.data());
+                    var index = row.data();
 
-                if ($(tr).hasClass('odd')) {
-                    $(tr).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                    $(tr).addClass('thisWorked');
-                } else {
-                    $(tr).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                    $(tr).addClass('thisWorked');
+                    if ($(tr).hasClass('odd')) {
+                        $(tr).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                        $(tr).addClass('thisWorked');
+                    } else {
+                        $(tr).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                        $(tr).addClass('thisWorked');
+                    }
+
+                    var snoozeInvoice = record.load({
+                        type: 'customrecord_debt_coll_inv',
+                        id: index[16]
+                    });
+                    snoozeInvoice.setValue({
+                        fieldId: 'custrecord_debt_coll_viewed',
+                        value: true
+                    });
+                    snoozeInvoice.save(); 
+
+                    var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
+                    console.log("Invoice Number: " + invoiceNumber);
+
+                    window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + index[0] + '&multiviewed=true' + '&recordid=' + index[16] + '&custid=' + index[14],
+                    '_blank'
+                    );
+                } catch (e){
+                    alert('Netsuite Error Message (Contact IT If Issue Persists): ' + e)
                 }
-
-                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
-                console.log("Invoice Number: " + invoiceNumber);
-
-                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + getDate() + '&multiviewed=true' + '&recordid=' + index[16] + '&custid=' + index[14],
-                '_blank'
-                );
             });
 
 
-            /**
-             *  Notes Section
-             */
-            // More Notes Option
-            $(document).on('click', '.note', function(){
-                var tr = $(this).closest('tr');
-                var row = dataTable.row(tr);
-                console.log(row.data());
-                var index = row.data();
+                /**
+                 *  Notes Section
+                 */
+                // More Notes Option
+                $(document).on('click', '.note', function(){
+                    try{
+                    var tr = $(this).closest('tr');
+                    var row = dataTable.row(tr);
+                    console.log(row.data());
+                    var index = row.data();
 
-                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
-                console.log("Invoice Number: " + invoiceNumber);
-                var custid = index[14];
-                var recordID = index[16]
+                    var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
+                    console.log("Invoice Number: " + invoiceNumber);
+                    var custid = index[14];
+                    var recordID = index[16]
 
-                var viewedRecord = record.load({
-                    type: 'invoice',
-                    id: invoiceNumber
-                });
-                var viewed = viewedRecord.getValue({
-                    fieldId: 'custbody_invoice_viewed'
-                });
-                console.log('Invoice Viewed? ' + viewed);
+                    var viewedRecord = record.load({
+                        type: 'invoice',
+                        id: invoiceNumber
+                    });
+                    var viewed = viewedRecord.getValue({
+                        fieldId: 'custbody_invoice_viewed'
+                    });
+                    console.log('Invoice Viewed? ' + viewed);
 
-                var header = '<div><h3><label class="control-label" style="width: 500px;text-align: center;">Notes Section</label></h3></div>';
-                var body = '';
-                
-                var bodyNoteOld = '<div /*class="col col-lg-12"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Created By</h3>';
-                var bodyNoteEdit = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">Last Edited By</h3>';
-                var bodyAuthor = '<div /*class="col-lg-12"*/ id="authornote"><h3 style="color: rgb(50, 122, 183);">Author</h3>';
-
-                console.log('Inside Second');
-                // console.log('Old Notes Info: ' + oldNote);
-
-                // var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
-                // var newNote = initials + ' - ' + date + ': ';
-                // var initialNote = author + ' - ' + date + ': ';
-                // var newNote = author + ' - ' + date + ': ' + noteVal;
-
-                var noteVal = '';
-                var noteSearch = search.load({
-                    id: 'customsearch_debt_coll_user_note',
-                    type: 'customrecord_debt_coll_user_note'
-                })
-                noteSearch.filters.push(search.createFilter({
-                    name: 'name',
-                    operator: search.Operator.CONTAINS,
-                    values: invoiceNumber
-                }));
-                noteSearch.run().each(function(res){
-                    noteVal += res.getValue({ name: 'custrecord_debt_coll_note'});
-                    date = res.getValue({ name: 'custrecord_debt_coll_note_date'})
-                    author = res.getValue({ name: 'custrecord_debt_coll_note_author'});
+                    var header = '<div><h3><label class="control-label" style="width: 500px;text-align: center;">Notes Section</label></h3></div>';
+                    var body = '';
                     
-                    var editAuthor = (noteVal.split("-"))[0];
-                    bodyNoteEdit += '<h4>' + editAuthor + '</h4>';
-                    bodyAuthor += '<h4>' + author + '</h4>';
-                    
-                    bodyNoteOld += '<textarea id="note_id_' + invoiceNumber + '" class="form-control note_old" style="width: 500px; ">' + noteVal + '</textarea>'; //+ newNote +
-                            
-                    bodyNoteOld += '</div>';
-                    bodyNoteEdit += '</div>'; 
+                    var bodyNoteOld = '<div /*class="col col-lg-12"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Created By</h3>';
+                    var bodyNoteEdit = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">Last Edited By</h3>';
+                    var bodyAuthor = '<div /*class="col-lg-12"*/ id="authornote"><h3 style="color: rgb(50, 122, 183);">Author</h3>';
 
-                });
+                    console.log('Inside Second');
+                    // console.log('Old Notes Info: ' + oldNote);
 
-                bodyNoteOld += '<br>';
-                bodyNoteEdit += '<br>';
-                bodyAuthor += '<br>';
+                    // var initials = userName.split(' ').map(function (n) {return n[0]}).join(".");
+                    // var newNote = initials + ' - ' + date + ': ';
+                    // var initialNote = author + ' - ' + date + ': ';
+                    // var newNote = author + ' - ' + date + ': ' + noteVal;
 
-                var note = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">New User Note</h3>';
-                note += '<div class="col-xs-12"><div class="col-xs-11"><input id="note_' + invoiceNumber + '" class="form-control note_section"></input></div>'; 
-                note += '<div class="col-xs-1"><button type="button" id="tickbox_' + invoiceNumber + '" class="tickbox form=control btn-xs btn-warning" custid="'+ custid +'" record="'+ recordID +'" ><span class="span_class glyphicon glyphicon-plus"></span></button></div></div>';
-                note += '<br><br>';
+                    var noteVal = '';
+                    var noteSearch = search.load({
+                        id: 'customsearch_debt_coll_user_note',
+                        type: 'customrecord_debt_coll_user_note'
+                    })
+                    noteSearch.filters.push(search.createFilter({
+                        name: 'name',
+                        operator: search.Operator.CONTAINS,
+                        values: invoiceNumber
+                    }));
+                    noteSearch.run().each(function(res){
+                        noteVal += res.getValue({ name: 'custrecord_debt_coll_note'});
+                        date = res.getValue({ name: 'custrecord_debt_coll_note_date'})
+                        author = res.getValue({ name: 'custrecord_debt_coll_note_author'});
+                        
+                        var editAuthor = (noteVal.split("-"))[0];
+                        bodyNoteEdit += '<h4>' + editAuthor + '</h4>';
+                        bodyAuthor += '<h4>' + author + '</h4>';
+                        
+                        bodyNoteOld += '<textarea id="note_id_' + invoiceNumber + '" class="form-control note_old" style="width: 500px; ">' + noteVal + '</textarea>'; //+ newNote +
+                                
+                        bodyNoteOld += '</div>';
+                        bodyNoteEdit += '</div>'; 
 
-                body += bodyAuthor;
-                body += bodyNoteEdit;
-                body += bodyNoteOld;
-                body += note;
+                    });
 
-                $('#myModal .modal-header').html(header);
-                $('#myModal .modal-body').html("");
-                $('#myModal .modal-body').html(body);
-                $('#myModal').modal("show");
+                    bodyNoteOld += '<br>';
+                    bodyNoteEdit += '<br>';
+                    bodyAuthor += '<br>';
+
+                    var note = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">New User Note</h3>';
+                    note += '<div class="col-xs-12"><div class="col-xs-11"><input id="note_' + invoiceNumber + '" class="form-control note_section"></input></div>'; 
+                    note += '<div class="col-xs-1"><button type="button" id="tickbox_' + invoiceNumber + '" class="tickbox form=control btn-xs btn-warning" custid="'+ custid +'" record="'+ recordID +'" ><span class="span_class glyphicon glyphicon-plus"></span></button></div></div>';
+                    note += '<br><br>';
+
+                    body += bodyAuthor;
+                    body += bodyNoteEdit;
+                    body += bodyNoteOld;
+                    body += note;
+
+                    $('#myModal .modal-header').html(header);
+                    $('#myModal .modal-body').html("");
+                    $('#myModal .modal-body').html(body);
+                    $('#myModal').modal("show");
+                } catch (e){
+                    alert('Netsuite Error Message (Contact IT if Issue Persists): ' + e)
+                }
             })
 
             // Notes Input and Submit
@@ -462,7 +484,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
 
-                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2day + '&period=1day' + '&recordid=' + recordID,
+                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_day + '&period=1day' + '&recordid=' + recordID,
                 '_blank'
                 );
             });
@@ -488,7 +510,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
 
-                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2day + '&period=2day' + '&recordid=' + recordID,
+                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_week + '&period=2day' + '&recordid=' + recordID,
                 '_blank'
                 );
             });
@@ -500,7 +522,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).addClass('btn-success');
                 $(this).removeClass('btn-info');
 
-                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2day + '&period=2week' + '&recordid=' + recordID,
+                window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2week + '&period=2week' + '&recordid=' + recordID,
                 '_blank'
                 );
             });
