@@ -222,6 +222,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var customer_name = invoiceSet.getText({
                             name: 'entity'
                         });
+
+                        var finance_role = invoiceSet.getValue({
+                            name: 'custentity_debt_coll_fin_role',
+                            join: 'customer'
+                        });
+
                         var zee_name = invoiceSet.getText({
                             name: 'partner'
                         });
@@ -407,6 +413,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 fieldId: 'custrecord_debt_coll_inv_snooze',
                                 value: snooze
                             });
+                            invRecord.setValue({
+                                fieldId: 'custrecord_debt_coll_auth_id',
+                                value: finance_role
+                            })
                             // invRecord.setValue({
                             //     fieldId: 'custrecord_debt_coll_viewed',
                             //     value: viewed

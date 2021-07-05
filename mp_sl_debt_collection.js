@@ -65,7 +65,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
-                inlineHtml += '<div class="a" style="width: 100%; background-color: #CFE0CE; padding: 20px; min-height: 100vh; height: 100%;">';
+                inlineHtml += '<div class="a" style="width: 100%; background-color: #CFE0CE; padding: 20px; min-height: 100%; height: 100%;">';
                 // inlineHtml += '<h1 style="text-align: center; color: #103D39; display: inline-block; font-size: 22px; font-weight: bold; line-height: 33px; vertical-align: top; margin-bottom: 4px;">Consolidation Invoice</h1>';
                 inlineHtml += '<style>.nav > li.active > a, .nav > li.active > a:focus, .nav > li.active > a:hover { background-color: #379E8F; color: #fff }';
                 inlineHtml += '.nav > li > a, .nav > li > a:focus, .nav > li > a:hover { margin-left: 5px; margin-right: 5px; border: 2px solid #379E8F; color: #379E8F; }';
@@ -74,7 +74,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // Popup Notes Section
                 inlineHtml += '<div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Notes Section</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
                 inlineHtml += '<div id="myModal2" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Snooze Timers</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
-                
+                inlineHtml += '<div id="myModal3" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document" style="width :max-content"><div class="modal-content" style="width :max-content; max-width: 900px"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Assign Customer to Team Member</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
+
                 // Click for Instructions
                 inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="background-color: #FBEA51; color: #103D39;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b>';
                 inlineHtml += '<ul><li><input type="button" class="btn-xs" style="background-color: #fff; color: black;" disabled value="Submit Search" /> - <ul><li>Click "Submit Search" to load Datatable using current parameters</li></ul></li>'
@@ -84,7 +85,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<li><button type="button" class="btn-xs btn-secondary" disabled><span class="glyphicon glyphicon-eye-open"></span></button> - Click to Set Invoice has "Viewed" by a member of the Finance Team.</li>';
                 inlineHtml += '<li><button type="button" class="btn-xs btn-info" disabled><span class="glyphicon glyphicon-time"></span></button> - Click to view Snooze Timers</li><li><button type="button" class="timer-1day form=control btn-xs btn-info" disabled><span class="span_class">1 Day</span></button> - Click to select Snooze duration of invoice from Debt Collections Page.</li>';
                 inlineHtml += '</li></ul></div>';
-    
+
                 inlineHtml += loadingSection();
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
@@ -97,20 +98,19 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     id: 'submit',
                     label: 'Submit Search'
                 });
-      
+
                 form.addField({
                     id: 'preview_table',
                     label: 'inlinehtml',
                     type: 'inlinehtml'
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
-                }).defaultValue = inlineHtml;               
+                }).defaultValue = inlineHtml;
 
                 form.clientScriptFileId = 4497169; //4241008
 
                 context.response.writePage(form);
-            } else {
-            }
+            } else {}
         }
 
         /**
@@ -202,18 +202,33 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="col-xs-12 range_section">';
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="range_filter_text">Range Selection</span>';
-            inlineQty += '<select multiple id="range_filter" class="form-control" size="3">';
+            inlineQty += '<select multiple id="range_filter" class="form-control">';
             inlineQty += '<option value="1">MPEX Products</option>';
             inlineQty += '<option value="2" selected>0 - 59 Days</option>';
             inlineQty += '<option value="3">60+ Days</option>';
             inlineQty += '</select>';
-            inlineQty += '</div></div>'
+            inlineQty += '</div></div>';
+            inlineQty += '</div></div>';
+
+            inlineQty += '<div class="form-group container team_filter_section">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-xs-12 team_section">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="team_filter_text">Team Member Select</span>';
+            inlineQty += '<select id="team_filter" class="form-control">';
+            inlineQty += '<option value="0" selected></option>';
+            inlineQty += '<option value="691582">Turkan</option>';
+            inlineQty += '<option value="755585">Yassine</option>';
+            inlineQty += '<option value="1403209">Jasmeet</option>';
+            inlineQty += '<option value="924435">Test</option>';
+            inlineQty += '</select>';
+            inlineQty += '</div></div>';
+            inlineQty += '</div></div>';
 
             inlineQty += '</div></div>';
 
             return inlineQty;
         }
-
 
         /**
          * The date input fields to filter the invoices.

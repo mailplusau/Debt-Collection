@@ -41,7 +41,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
         var debtDataSet = JSON.parse(JSON.stringify([]));
         var debt_set = JSON.parse(JSON.stringify([]));
 
-        function pageLoad(){
+        function pageLoad() {
             $('.range_filter_section').addClass('hide');
             $('.range_filter_section_top').addClass('hide');
             $('.date_filter_section').addClass('hide');
@@ -50,18 +50,18 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $('.loading_section').removeClass('hide');
         }
 
-        function beforeSubmit(){
+        function beforeSubmit() {
             $('#debt_preview').hide();
             $('#debt_preview').addClass('hide');
 
             $('.loading_section').removeClass('hide');
         }
 
-        function duringSubmit(){
+        function duringSubmit() {
             // $('.loading_section').addClass('hide');
         }
 
-        function afterSubmit(){
+        function afterSubmit() {
             $('.range_filter_section').removeClass('hide');
             $('.range_filter_section_top').removeClass('hide');
             $('.date_filter_section').removeClass('hide');
@@ -72,12 +72,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $('#table_filter_section').removeClass('hide');
             $('#table_filter_section').show();
 
-            if (!isNullorEmpty($('#result_debt').val())){
+            if (!isNullorEmpty($('#result_debt').val())) {
                 $('#debt_preview').removeClass('hide');
                 $('#debt_preview').show();
             }
 
-            $('#result_debt').on('change', function(){
+            $('#result_debt').on('change', function() {
                 $('#debt_preview').removeClass('hide');
                 $('#debt_preview').show();
             });
@@ -86,14 +86,15 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             $('#debt_preview').show();
         }
 
-        function pageInit() {    
+        function pageInit() {
             //background-colors
             $("#NS_MENU_ID0-item0").css("background-color", "#CFE0CE");
             $("#NS_MENU_ID0-item0 a").css("background-color", "#CFE0CE");
             $("#body").css("background-color", "#CFE0CE");
 
-            selectRangeOptions();       
-     
+            selectRangeOptions();
+            selectTeamOptions();
+
             debtDataSet = [];
             debt_set = [];
 
@@ -113,9 +114,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var btn = $(this);
                 btn.addClass('disabled');
                 // btn.addClass('')
-                setTimeout(function(){
+                setTimeout(function() {
                     btn.removeClass('disabled');
-                }, fewSeconds*1000);
+                }, fewSeconds * 1000);
 
                 debtDataSet = [];
                 debt_set = [];
@@ -129,7 +130,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Save Preferences for Users
              */
-            $(document).ready(function(){
+            $(document).ready(function() {
                 console.log('ID: ' + userName);
                 log.audit({
                     title: 'User Whos Using It',
@@ -144,7 +145,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     operator: search.Operator.IS,
                     values: userId
                 }));
-                prefSearch.run().each(function(pref){
+                prefSearch.run().each(function(pref) {
                     var internalID = pref.getValue({
                         name: 'internalid'
                     });
@@ -160,11 +161,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var date_from = prefRecord.getValue({
                         fieldId: 'custrecord_pref_date_from'
                     });
-                    var date_to =  prefRecord.getValue({
+                    var date_to = prefRecord.getValue({
                         fieldId: 'custrecord_pref_date_to'
                     });
                     range_id = $('#range_filter').val(range_id);
+                    team_member = $('#team_filter').val(userId);
                     selectRangeOptions();
+                    selectTeamOptions()
                     date_from = $('#date_from').val(date_from);
                     date_to = $('#date_to').val(date_to);
                 });
@@ -173,16 +176,16 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Auto Load Submit Search and Load Results on Page Initialisation
              */
-             $('#loading_section').hide();
+            $('#loading_section').hide();
             pageLoad();
-            submitSearch();  
-            var dataTable = $('#debt_preview').DataTable();          
+            submitSearch();
+            var dataTable = $('#debt_preview').DataTable();
 
             /**
              *  Viewed Invoices by Finance Team 
              */
             $(document).on('click', '.eye', function() {
-                try{
+                try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
                     console.log(row.data());
@@ -203,7 +206,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         fieldId: 'custrecord_debt_coll_viewed',
                         value: true
                     });
-                    snoozeInvoice.save();   
+                    snoozeInvoice.save();
 
                     if ($(tr).hasClass('odd')) {
                         $(tr).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
@@ -214,14 +217,14 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     }
 
                     window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + getDate() + '&viewed=true' + '&recordid=' + index[16],
-                    '_blank'
+                        '_blank'
                     );
-                } catch (e){
+                } catch (e) {
                     alert('Netsuite Error Message (Contact IT if Issue Persists): ' + e)
                 }
             });
             $(document).on('click', '.eyeplus', function() {
-                try{
+                try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
                     console.log(row.data());
@@ -243,26 +246,26 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         fieldId: 'custrecord_debt_coll_viewed',
                         value: true
                     });
-                    snoozeInvoice.save(); 
+                    snoozeInvoice.save();
 
                     var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
                     console.log("Invoice Number: " + invoiceNumber);
 
                     window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + index[0] + '&multiviewed=true' + '&recordid=' + index[16] + '&custid=' + index[14],
-                    '_blank'
+                        '_blank'
                     );
-                } catch (e){
+                } catch (e) {
                     alert('Netsuite Error Message (Contact IT If Issue Persists): ' + e)
                 }
             });
 
 
-                /**
-                 *  Notes Section
-                 */
-                // More Notes Option
-                $(document).on('click', '.note', function(){
-                    try{
+            /**
+             *  Notes Section
+             */
+            // More Notes Option
+            $(document).on('click', '.note', function() {
+                try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
                     console.log(row.data());
@@ -284,7 +287,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
                     var header = '<div><h3><label class="control-label" style="width: 500px;text-align: center;">Notes Section</label></h3></div>';
                     var body = '';
-                    
+
                     var bodyNoteOld = '<div /*class="col col-lg-12"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Created By</h3>';
                     var bodyNoteEdit = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">Last Edited By</h3>';
                     var bodyAuthor = '<div /*class="col-lg-12"*/ id="authornote"><h3 style="color: rgb(50, 122, 183);">Author</h3>';
@@ -307,19 +310,19 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         operator: search.Operator.CONTAINS,
                         values: invoiceNumber
                     }));
-                    noteSearch.run().each(function(res){
-                        noteVal += res.getValue({ name: 'custrecord_debt_coll_note'});
-                        date = res.getValue({ name: 'custrecord_debt_coll_note_date'})
-                        author = res.getValue({ name: 'custrecord_debt_coll_note_author'});
-                        
+                    noteSearch.run().each(function(res) {
+                        noteVal += res.getValue({ name: 'custrecord_debt_coll_note' });
+                        date = res.getValue({ name: 'custrecord_debt_coll_note_date' })
+                        author = res.getValue({ name: 'custrecord_debt_coll_note_author' });
+
                         var editAuthor = (noteVal.split("-"))[0];
                         bodyNoteEdit += '<h4>' + editAuthor + '</h4>';
                         bodyAuthor += '<h4>' + author + '</h4>';
-                        
+
                         bodyNoteOld += '<textarea id="note_id_' + invoiceNumber + '" class="form-control note_old" style="width: 500px; ">' + noteVal + '</textarea>'; //+ newNote +
-                                
+
                         bodyNoteOld += '</div>';
-                        bodyNoteEdit += '</div>'; 
+                        bodyNoteEdit += '</div>';
 
                     });
 
@@ -328,8 +331,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     bodyAuthor += '<br>';
 
                     var note = '<div /*class="col-lg-12"*/ id="newnote"><h3 style="color: rgb(50, 122, 183);">New User Note</h3>';
-                    note += '<div class="col-xs-12"><div class="col-xs-11"><input id="note_' + invoiceNumber + '" class="form-control note_section"></input></div>'; 
-                    note += '<div class="col-xs-1"><button type="button" id="tickbox_' + invoiceNumber + '" class="tickbox form=control btn-xs btn-warning" custid="'+ custid +'" record="'+ recordID +'" ><span class="span_class glyphicon glyphicon-plus"></span></button></div></div>';
+                    note += '<div class="col-xs-12"><div class="col-xs-11"><input id="note_' + invoiceNumber + '" class="form-control note_section"></input></div>';
+                    note += '<div class="col-xs-1"><button type="button" id="tickbox_' + invoiceNumber + '" class="tickbox form=control btn-xs btn-warning" custid="' + custid + '" record="' + recordID + '" ><span class="span_class glyphicon glyphicon-plus"></span></button></div></div>';
                     note += '<br><br>';
 
                     body += bodyAuthor;
@@ -341,7 +344,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     $('#myModal .modal-body').html("");
                     $('#myModal .modal-body').html(body);
                     $('#myModal').modal("show");
-                } catch (e){
+                } catch (e) {
                     alert('Netsuite Error Message (Contact IT if Issue Persists): ' + e)
                 }
             })
@@ -356,19 +359,19 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var invoiceNumber = ($(this).attr('id')).split('_')[1];
                 var noteVal = $('#note_' + invoiceNumber).val();
                 console.log("Note Value: " + noteVal);
-                
+
                 // var invoiceNumber = $(this).attr('id');
                 var recordID = $(this).attr('record');
                 var custid = $(this).attr('custid');
 
-                if (!isNullorEmpty(noteVal)){
-                    if ($(this).find('btn-warning')){
+                if (!isNullorEmpty(noteVal)) {
+                    if ($(this).find('btn-warning')) {
                         // If Closed
                         $(this).addClass('btn-success');
                         $(this).removeClass('btn-warning');
                         $(this).find('.span_class').addClass('glyphicon-ok');
                         $(this).find('.span_class').removeClass('glyphicon-plus');
-                        
+
                         // $('#eye_more_' + invoiceNumber + '').removeAttr('disabled');
                     } else {
                         // If Opened
@@ -389,12 +392,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     });
                     alert('Notes Section Empty. Please fill this before submitting');
                 }
-            }); 
+            });
 
             /**
              *  Snooze Button
              */
-            $(document).on('click', '.timer', function(){
+            $(document).on('click', '.timer', function() {
                 var tr = $(this).closest('tr');
                 var row = dataTable.row(tr);
                 var index = row.data();
@@ -403,21 +406,21 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var recordID = index[16];
 
                 var header = '<div><h3 style="text-align: center;"><label class="control-label">Snooze Timers</label></h3></div>';
-                
+
                 var body = '<div><h4><label class="control-label">Please Select the Duration You Wish To Snooze The Customer For</label></h4></div>';
 
                 body += '<br>'
 
                 var bodyTimers = '<div /*class="col col-lg-12"*/ id="oldnote">';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-1day form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">1 Day</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-2day form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">2 Days</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-1week form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">1 Week</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-2week form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">2 Weeks</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-permanent form=control btn-xs btn-info" record="' + recordID +'"><span class="span_class">Permanent</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-1day form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">1 Day</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-2day form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">2 Days</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-1week form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">1 Week</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-2week form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">2 Weeks</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-permanent form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">Permanent</span></button></div>';
 
                 bodyTimers += '</div>';
                 bodyTimers += '<br><br>';
-                
+
                 var snoozeRecord = record.load({
                     type: 'invoice',
                     id: invoiceNumber
@@ -427,20 +430,58 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 });
                 var dateText = '';
                 var bodyCurrentDate = '';
-                if (!isNullorEmpty(date)){
+                if (!isNullorEmpty(date)) {
                     bodyCurrentDate += '<div /*class="col col-lg-12"*/ id="oldnote"><h3 style="color: rgb(50, 122, 183);">Previous Snooze Date</h3>';
                     bodyCurrentDate += '<br>';
                     bodyCurrentDate += date;
                     bodyCurrentDate += '</div>';
                 }
-                if (isNullorEmpty(date)){
+                if (isNullorEmpty(date)) {
                     dateText = 'No Snooze Value has been Set'
-                } else if(date > getDate()){
+                } else if (date > getDate()) {
                     dateText = 'Snooze has Expired. Please Select Snooze Amount If You Want To Snooze Customer Again'
-                } 
+                }
                 bodyTimers += '<br>';
                 bodyTimers += '<div><h4 style="text-align: center">' + dateText + '</h4></div>';
-                
+
+                body += bodyTimers;
+                body += bodyCurrentDate;
+
+                $('#myModal2 .modal-header').html(header);
+                $('#myModal2 .modal-body').html("");
+                $('#myModal2 .modal-body').html(body);
+                $('#myModal2').modal("show");
+            });
+
+            /**
+             *  Team Member Button
+             */
+            $(document).on('click', '.team', function() {
+                var tr = $(this).closest('tr');
+                var row = dataTable.row(tr);
+                var index = row.data();
+                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
+                console.log("Invoice Number: " + invoiceNumber);
+                var recordID = index[16];
+
+                var header = '<div><h3 style="text-align: center;"><label class="control-label">Assign Invoice to a Finance Role</label></h3></div>';
+
+                var body = '<div><h4><label class="control-label">Please Select a Finance Team Member to Assign This Customer To</label></h4></div>';
+
+                body += '<br>'
+
+                var bodyTimers = '<div /*class="col col-lg-12"*/ id="oldnote">';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">Turkan</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">Yassine</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">Jasmeet</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">- Blank -</span></button></div>';
+                bodyTimers += '</div>';
+                bodyTimers += '<br><br>';
+
+                var dateText = '';
+                var bodyCurrentDate = '';
+                bodyTimers += '<br>';
+
                 body += bodyTimers;
                 body += bodyCurrentDate;
 
@@ -455,28 +496,28 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var today_month = today.getMonth();
             var today_day = today.getDate();
 
-            var today_in_day  = new Date(Date.UTC(today_year, today_month, today_day + 1));
+            var today_in_day = new Date(Date.UTC(today_year, today_month, today_day + 1));
             today_in_day = today_in_day.toISOString().split('T')[0]; // Split Date String to get the date.
             today_in_day = dateISOToNetsuite(today_in_day); // Convert from 2021-01-28 to 28/1/2021
             today_in_day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
             // console.log('Today Format Netsuite ' + today_in_day)
 
-            var today_in_2day  = new Date(Date.UTC(today_year, today_month, today_day + 2));
+            var today_in_2day = new Date(Date.UTC(today_year, today_month, today_day + 2));
             today_in_2day = today_in_2day.toISOString().split('T')[0];
             today_in_2day = dateISOToNetsuite(today_in_2day);
             today_in_2day = format.parse({ value: today_in_2day, type: format.Type.DATE }); // Date Object
 
-            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            var today_in_week = new Date(Date.UTC(today_year, today_month, today_day + 7));
             today_in_week = today_in_week.toISOString().split('T')[0];
             today_in_week = dateISOToNetsuite(today_in_week);
             today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
 
-            var today_in_2week  = new Date(Date.UTC(today_year, today_month, today_day + 14));
+            var today_in_2week = new Date(Date.UTC(today_year, today_month, today_day + 14));
             today_in_2week = today_in_2week.toISOString().split('T')[0];
             today_in_2week = dateISOToNetsuite(today_in_2week);
             today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object
 
-            $(document).on('click', '.timer-1day', function(){
+            $(document).on('click', '.timer-1day', function() {
                 var invoiceNumber = $(this).attr('id');
                 var recordID = $(this).attr('record');
                 console.log("Invoice Number: " + invoiceNumber);
@@ -485,11 +526,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).removeClass('btn-info');
 
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_day + '&period=1day' + '&recordid=' + recordID,
-                '_blank'
+                    '_blank'
                 );
             });
 
-            $(document).on('click', '.timer-2day', function(){
+            $(document).on('click', '.timer-2day', function() {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -498,11 +539,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).removeClass('btn-info');
 
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2day + '&period=2day' + '&recordid=' + recordID,
-                '_blank'
+                    '_blank'
                 );
-                
+
             });
-            $(document).on('click', '.timer-1week', function(){
+            $(document).on('click', '.timer-1week', function() {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -511,10 +552,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).removeClass('btn-info');
 
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_week + '&period=2day' + '&recordid=' + recordID,
-                '_blank'
+                    '_blank'
                 );
             });
-            $(document).on('click', '.timer-2week', function(){
+            $(document).on('click', '.timer-2week', function() {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -523,10 +564,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).removeClass('btn-info');
 
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2week + '&period=2week' + '&recordid=' + recordID,
-                '_blank'
+                    '_blank'
                 );
             });
-            $(document).on('click', '.timer-permanent', function(){
+            $(document).on('click', '.timer-permanent', function() {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -535,7 +576,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).removeClass('btn-info');
 
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=permanent&period=permanent' + '&recordid=' + recordID,
-                '_blank'
+                    '_blank'
                 );
             });
 
@@ -543,13 +584,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
              * Table Filters Section
              */
             // MP Ticket Column
-            $(document).on('click', '.toggle-mp-ticket', function (e){
+            $(document).on('click', '.toggle-mp-ticket', function(e) {
                 e.preventDefault();
                 // Get the column API object
                 var column = dataTable.column(10);
                 // Toggle the visibility
                 column.visible(!column.visible());
-                if (column.visible() == true){
+                if (column.visible() == true) {
                     $(this).addClass('btn-danger');
                     $(this).removeClass('btn-success');
                     $(this).find('.span_class').addClass('glyphicon-minus');
@@ -563,37 +604,37 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             });
 
             // Matching MAAP Allocation Column
-            $(document).on('click', '.toggle-maap', function (e){
+            $(document).on('click', '.toggle-maap', function(e) {
                 e.preventDefault();
 
                 // Ajax request
                 var fewSeconds = 5;
                 var btn = $(this);
                 btn.addClass('disabled');
-                setTimeout(function(){
+                setTimeout(function() {
                     btn.removeClass('disabled');
-                }, fewSeconds*1000);
-                
-                if ($(this).find('btn-danger')){
+                }, fewSeconds * 1000);
+
+                if ($(this).find('btn-danger')) {
                     $.fn.dataTable.ext.search.push(
                         function(settings, searchData, index, rowData, counter) {
-                            if (rowData[13] == 'Not Payed'){
+                            if (rowData[13] == 'Not Payed') {
                                 return true;
                             }
                             return false;
                         }
-                    );  
+                    );
                     dataTable.draw();
                 }
             });
-            $(document).on('click', '.toggle-maap-danger', function (e){
+            $(document).on('click', '.toggle-maap-danger', function(e) {
                 e.preventDefault();
                 $.fn.dataTable.ext.search.pop('');
                 dataTable.draw();
             });
 
             // MAAP Bank Account Column
-            $(document).on('click', '.toggle-maap-bank', function (e){
+            $(document).on('click', '.toggle-maap-bank', function(e) {
                 e.preventDefault();
                 // Get the column API object
                 var column = dataTable.column(2);
@@ -609,25 +650,27 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
              *  Click for Instructions Section Collapse
              */
             $('.collapse').on('shown.bs.collapse', function() {
-                $(".range_filter_section_top").css("padding-top","500px");
+                $(".range_filter_section_top").css("padding-top", "500px");
             })
             $('.collapse').on('hide.bs.collapse', function() {
-                $(".range_filter_section_top").css("padding-top","0px");
+                $(".range_filter_section_top").css("padding-top", "0px");
             })
         }
 
-        function submitSearch(){
+        function submitSearch() {
             // duringSubmit();
 
             datatable = $('#debt_preview').DataTable({
                 destroy: true,
                 data: debtDataSet,
                 pageLength: 1000,
-                order: [[8, 'asc']],
+                order: [
+                    [8, 'asc']
+                ],
                 columns: [
                     { title: 'Date' }, //0
                     { title: 'Invoice Number' }, // 1
-                    { title: 'MAAP Bank Account'}, // 2
+                    { title: 'MAAP Bank Account' }, // 2
                     { title: 'Company Name' }, // 3
                     { title: 'Franchisee' }, // 4
                     {
@@ -650,7 +693,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     { title: 'MP Ticket' }, // 10
                     { title: 'Notes | Viewed' }, // 11
                     { title: 'Multi-Viewed | Snooze' }, // 12
-                    { title: 'MAAP Payment Status'} // 13
+                    { title: 'MAAP Payment Status' } // 13
                     // 14 - Customer ID
                     // 15 - Tick Status / This is for the added notes section. Redundent
                     // 16 - Record ID
@@ -686,7 +729,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 autoWidth: false,
                 rowCallback: function(row, data) {
                     // $('td:eq(1)', row).html;                    
-                    if (data[18] == true){
+                    if (data[18] == true) {
                         if ($(row).hasClass('odd')) {
                             $(row).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light-Purple
                             $(row).addClass('showDanger')
@@ -720,17 +763,17 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     }
                 }
             });
-            
+
             var range = $('#range_filter').val();
             var date_from = $('#date_from').val();
             var date_to = $('#date_to').val();
             date_from = dateISOToNetsuite(date_from);
             date_to = dateISOToNetsuite(date_to);
-            
+
             console.log('Load DataTable Params: ' + range + ' | ' + date_from + ' | ' + date_to);
 
             if (!isNullorEmpty(range) || !isNullorEmpty(date_from) || !isNullorEmpty(date_to)) {
-                loadDebtRecord(range, date_from, date_to);
+                loadDebtRecord(range, userId, date_from, date_to);
             } else {
                 error.create({
                     message: 'Please Select Date Range and Date Filter',
@@ -751,7 +794,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             }));
             var prefResult = prefSearch.run();
             var prefCount = prefSearch.runPaged().count;
-            
+
             if (prefCount == 0) {
                 var prefRec = record.create({
                     type: 'customrecord_debt_coll_pref'
@@ -779,7 +822,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var prefRecId = prefRec.save();
                 console.log('New Record Created For New User :' + prefRec);
             } else {
-                prefResult.each(function(pref){
+                prefResult.each(function(pref) {
                     var internalid = pref.getValue({
                         name: 'internalid'
                     });
@@ -832,11 +875,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 operator: search.Operator.CONTAINS,
                 values: invoiceNumber
             }));
-            var noteResults = noteSearch.run().getRange({ start: 0, end: 1});
+            var noteResults = noteSearch.run().getRange({ start: 0, end: 1 });
 
-            if (!isNullorEmpty(noteResults)){
-                noteResults.forEach(function(noteResult){  
-                    
+            if (!isNullorEmpty(noteResults)) {
+                noteResults.forEach(function(noteResult) {
+
                     // Load User Note and Save onto User Note record  
                     var noteID = noteResult.getValue({
                         name: 'internalid'
@@ -847,7 +890,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     });
                     console.log('User note Found: ' + noteID);
 
-                    if (!isNullorEmpty(oldNote)){
+                    if (!isNullorEmpty(oldNote)) {
                         var userNoteRecord = record.load({
                             type: 'customrecord_debt_coll_user_note',
                             id: noteID
@@ -862,13 +905,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             value: newNote
                         });
                     }
-                    if (!isNullorEmpty(userNote)){
+                    if (!isNullorEmpty(userNote)) {
                         userNoteRecord.save();
                     }
                 });
             } else {
                 console.log('USer Note not found. Creating New One')
-                //Create new User Note and Save on record.
+                    //Create new User Note and Save on record.
                 var userNoteRecord = record.create({
                     type: 'customrecord_debt_coll_user_note'
                 });
@@ -894,9 +937,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     fieldId: 'custrecord_debt_coll_note',
                     value: newNote
                 });
-                if (!isNullorEmpty(userNote)){
+                if (!isNullorEmpty(userNote)) {
                     userNoteRecord.save();
-                } 
+                }
             }
 
             // Load Note from Debt Coll Record and Set as New Note Value
@@ -924,7 +967,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             // }
         }
 
-        function loadDebtRecord(range, date_from, date_to) {
+        function loadDebtRecord(range, userId, date_from, date_to) {
             var invoiceResults = search.load({
                 type: 'customrecord_debt_coll_inv',
                 id: 'customsearch_debt_coll_table'
@@ -939,37 +982,40 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             }
             if (range.includes('2') == true) {
                 console.log('0 - 59 Days Selected');
-                if (range.length <= 1 || range.includes('1') == false){
+                if (range.length <= 1 || range.includes('1') == false) {
                     rangeExpression.push(['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 2]);
                 } else {
-                    rangeExpression.push('OR', ['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 2]);  
+                    rangeExpression.push('OR', ['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 2]);
                 }
             }
-            if(range.includes('3') == true) {
+            if (range.includes('3') == true) {
                 console.log('60+ Days Selected');
-                if (range.length <= 1){
+                if (range.length <= 1) {
                     rangeExpression.push(['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 3]);
                 } else {
                     rangeExpression.push('OR', ['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 3]);
                 }
             }
-            filterExpression.push('AND', rangeExpression);
+            // if ($()){
+            //     rangeExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, userId])
+            // }
+            // filterExpression.push('AND', rangeExpression);
             filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'Secure Cash']);
             filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'NP']);
             invoiceResults.filterExpression = filterExpression;
 
             var invResultRun = invoiceResults.run();
-            
+
             var invResultSet = [];
             var main_index = 0;
-            for (var main_index = 0; main_index < 10000; main_index += 1000){
-                invResultSet.push(invResultRun.getRange({start: main_index, end: main_index + 999}));
+            for (var main_index = 0; main_index < 10000; main_index += 1000) {
+                invResultSet.push(invResultRun.getRange({ start: main_index, end: main_index + 999 }));
             }
 
             if (!isNullorEmpty(invResultSet)) {
-                for (var i = 0; i < invResultSet.length; i++){
+                for (var i = 0; i < invResultSet.length; i++) {
                     invResultSet[i].forEach(function(invoiceSet, index) {
-                        var recID = invoiceSet.getValue({ 
+                        var recID = invoiceSet.getValue({
                             name: 'internalid'
                         });
                         var invoice_id = invoiceSet.getValue({
@@ -1031,10 +1077,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var viewed = invoiceSet.getValue({
                             name: 'custrecord_debt_coll_viewed'
                         });
-                        
+
                         if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
                             debt_set.push({
-                                dt: date,// 0
+                                dt: date, // 0
                                 inid: invoice_id, //1
                                 in: invoice_name, // 2
                                 mba: maap_bank,
@@ -1073,7 +1119,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var count = 0;
                     var dateValue = debt_row.dt
                     var date_split = dateValue.split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
-                    if (date_split[0].length == 1){
+                    if (date_split[0].length == 1) {
                         var days = '0' + date_split[0]; //get DD
                         var month = date_split[1]; //get MM
                         var year = date_split[2]; //get YYYY
@@ -1110,13 +1156,14 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var due_date = debt_row.dd;
                     var overdue = debt_row.od;
                     var period = debt_row.p;
-                    
+
                     var noteInfo = debt_row.nt;
-                    var note = '<div class="col-xs-6"><button type="button" id="note_' + invoice_id + '" class="note form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-pencil"></span></button></div>';
-                    note +=  '<div class="col-xs-6"><button type="button" id="eye_more_' + invoice_id + '" class="eye form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
-                    var checkbox =  '<div class="col-xs-9"><button type="button" id="eye_multi_' + invoice_id + '" class="eyeplus form-control btn-xs btn-secondary"><span class="glyphicon glyphicon glyphicon-list"></span>  </button></div>';
+                    // var note = '<div class="col-xs-6"><button type="button" id="note_' + invoice_id + '" class="note form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-pencil"></span></button></div>';
+                    var note = '<div class="col-xs-6"><button type="button" id="team_' + invoice_id + '" class="team form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal2"><span class="glyphicon glyphicon-user"></span></button></div>';
+                    note += '<div class="col-xs-6"><button type="button" id="eye_more_' + invoice_id + '" class="eye form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
+                    var checkbox = '<div class="col-xs-9"><button type="button" id="eye_multi_' + invoice_id + '" class="eyeplus form-control btn-xs btn-secondary"><span class="glyphicon glyphicon glyphicon-list"></span>  </button></div>';
                     checkbox += '<div class="col-xs-auto"><button type="button" id="timer_' + invoice_id + '" class="timer form=control btn-xs btn-info"><span class="span_class glyphicon glyphicon-time"></span></button></div>';
-                                        
+
                     var mp_ticket = debt_row.mp
                     var maap_status = debt_row.ms;
                     var tick_status = debt_row.ts;
@@ -1141,7 +1188,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             datatable.clear();
             datatable.rows.add(debtDataSet);
             datatable.draw();
-            
+
             return true;
         }
 
@@ -1154,7 +1201,18 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var range_filter = $('#range_filter option:selected').map(function() { return $(this).val() });
             range_filter = $.makeArray(range_filter);
             $('#range_filter').selectpicker('val', range_filter);
+
+            var team_filter = $('#team_filter option:selected').map(function() { return $(this).val() });
+            team_filter = $.makeArray(team_filter);
+            $('#team_filter').selectpicker('val', team_filter);
         }
+
+        function selectTeamOptions() {
+            var team_filter = $('#team_filter option:selected').map(function() { return $(this).val() });
+            team_filter = $.makeArray(team_filter);
+            $('#team_filter').selectpicker('val', team_filter);
+        }
+
 
         /**
          * Sets the values of `date_from` and `date_to` based on the selected option in the '#period_dropdown'.
@@ -1168,7 +1226,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var today_year = today.getFullYear();
 
             var today_date = new Date(Date.UTC(today_year, today_month, today_day_in_month))
-            
+
             switch (period_selected) {
                 case "this_week":
                     // This method changes the variable "today" and sets it on the previous monday
@@ -1262,7 +1320,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var ampm = hours >= 12 ? 'pm' : 'am';
             hours = hours % 12;
             hours = hours ? hours : 12; // the hour '0' should be '12'
-            minutes = minutes < 10 ? '0'+minutes : minutes;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
             var strTime = hours + ':' + minutes + ' ' + ampm;
             return strTime;
         }
