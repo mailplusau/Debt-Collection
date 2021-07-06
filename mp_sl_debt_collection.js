@@ -206,6 +206,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<option value="1">MPEX Products</option>';
             inlineQty += '<option value="2" selected>0 - 59 Days</option>';
             inlineQty += '<option value="3">60+ Days</option>';
+            inlineQty += '<option value="0">- None -</option>';
             inlineQty += '</select>';
             inlineQty += '</div></div>';
             inlineQty += '</div></div>';

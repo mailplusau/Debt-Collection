@@ -39,42 +39,84 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function debtCollection() {
+            var auth_id = ctx.getParameter({ name: 'custscript_debt_inv_auth_id' }); // 1 == Turkan, 2 == Jasmeet, 3 == Yassine.
+            if (isNullorEmpty(auth_id)) {
+                auth_id = 1;
+            }
+            log.debug({
+                title: 'Allocate/Author ID',
+                details: auth_id
+            })
 
-            var auth_id = 1; // 1 == Turkan, 2 == Jasmeet, 3 == Yassine.
+            var main_index = ctx.getParameter({ name: 'custscript_debt_inv_auth_main_index' });
+            if (isNullorEmpty(main_index)) {
+                main_index = 0;
+            }
+            log.debug({
+                title: 'main_index',
+                details: main_index
+            });
 
+            var invoice_id_set = ctx.getParameter({ name: 'custscript_debt_inv_auth_invoice_id_set' });
+            if (isNullorEmpty(invoice_id_set)) {
+                invoice_id_set = JSON.parse(JSON.stringify([]));
+            } else {
+                invoice_id_set = JSON.parse(invoice_id_set);
+            }
+            var columns = [];
+            columns[0] = search.createColumn({
+                name: "companyname",
+                join: "customer",
+                summary: search.Summary.GROUP
+            });
+            columns[0] = search.createColumn({
+                name: "internalid",
+                join: "customer",
+                sort: search.Sort.ASC,
+                summary: search.Summary.GROUP
+            });
             var invResultSet = search.load({
                 id: 'customsearch_debt_coll_inv',
-                type: 'invoice'
+                type: 'invoice',
+                columns: columns
             });
-            // var filter = search.createFilter({
-            //     name: string,
-            //     join: string,
-            //     operator: string,
-            //     values: 
-            // });
+            var resultsSet = invResultSet.run().getRange({
+                start: 0,
+                end: 21
+            });
+
             var count = invResultSet.runPaged().count;
-            var div_count = count / 3; // count = 12000, div_count == 4000. Everytime its 4000, it will increment auth_id, changing team member name and setting that.
+            log.debug({
+                title: 'Count',
+                details: count
+            })
+            var split_count = count / 3; // count = 12000, split_count == 4000. Everytime its 4000, it will increment auth_id, changing team member name and setting that.
+            log.debug({
+                title: 'Divided Count',
+                details: split_count
+            })
 
-            var resultsSet = invResultSet.getRange({
-                start: main_index,
-                end: main_index + 999
-            });
-
+            // log.debug({
+            //     title: 'Results: JSON String',
+            //     details: JSON.parse(JSON.stringify(resultsSet))
+            // });
             resultsSet.forEach(function(invoiceSet, index) {
                 indexInCallback = index;
+                // main_index = index;
+                seconday_index = main_index + index;
 
                 var usageLimit = ctx.getRemainingUsage();
                 if (usageLimit < 200) {
                     params = {
-                        custscript_debt_inv_main_index: main_index + index - 10,
-                        custscript_debt_inv_range: auth_id,
-                        custscript_debt_inv_count: div_count,
-                        custscript_debt_inv_invoice_id_set: JSON.stringify(invoice_id_set)
+                        custscript_debt_inv_auth_main_index: main_index - 5,
+                        custscript_debt_inv_auth_id: auth_id,
+                        custscript_debt_inv_auth_count: split_count,
+                        custscript_debt_inv_auth_invoice_id_set: JSON.stringify(invoice_id_set)
                     };
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: 'customscript_ss_debt_collection',
-                        deploymentId: 'customdeploy_ss_debt_collection',
+                        scriptId: 'customscript_ss_debt_collection_auth',
+                        deploymentId: 'customdeploy_ss_debt_collection_auth',
                         params: params
                     });
                     var reschedule_id = reschedule.submit();
@@ -83,43 +125,72 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         details: reschedule
                     });
                     return false;
-                    // }
                 } else {
                     var cust_id = invoiceSet.getValue({
                         name: 'internalid',
-                        join: 'customer'
+                        // join: 'customer'
                     });
-                    var custRecord = record.load({
-                        type: 'customer',
-                        id: cust_id
-                    });
-                    var custAuthField = custRecord.getValue({
-                        fieldId: 'custentity_debt_coll_auth_id'
-                    });
-                    if (isNullorEmpty(custAuthField)) {
-                        if (auth_id = 1) {
+                    log.audit({
+                        title: 'In Search: Customer ID',
+                        details: cust_id
+                    })
+                    if (invoice_id_set.indexOf(cust_id) == -1) {
+                        invoice_id_set.push(cust_id);
+                        var custRecord = record.load({
+                            type: 'customer',
+                            id: cust_id
+                        });
+                        var custAuthField = custRecord.getValue({
+                            fieldId: 'custentity_debt_coll_auth_id'
+                        });
+                        log.audit({
+                                title: 'In Search: Get Cust Value',
+                                details: 'Customer ID: ' + cust_id + '| Author ID: ' + custAuthField
+                            })
+                            // if (isNullorEmpty(custAuthField)) {
+                        log.audit({
+                            title: 'In Search: Allocate/Author ID',
+                            details: auth_id
+                        })
+                        if (auth_id == 1) {
                             custRecord.setValue({
-                                fieldId: 'custrecord_debt_coll_auth_id',
-                                value: '691582' // Turkan
+                                fieldId: 'custentity_debt_coll_auth_id',
+                                value: 691582 // Turkan
                             });
                         }
-                        if (auth_id = 2) {
+                        if (auth_id == 2) {
                             custRecord.setValue({
-                                fieldId: 'custrecord_debt_coll_auth_id',
-                                value: '1403209' // Jasmeet
+                                fieldId: 'custentity_debt_coll_auth_id',
+                                value: 1403209 // Jasmeet
                             });
                         }
-                        if (auth_id = 3) {
+                        if (auth_id == 3) {
                             custRecord.setValue({
-                                fieldId: 'custrecord_debt_coll_auth_id',
-                                value: '755585' // Yassine
+                                fieldId: 'custentity_debt_coll_auth_id',
+                                value: 755585 // Yassine
                             });
                         }
 
-                        if (main_index = div_count) { // 4000 = 4000
-                            auth_id++; // 2
+                        var custRecSaveTicket = custRecord.save();
+                        // var custRecSaveTicket = 'Saved'
+                        log.audit({
+                            title: 'Record Finished',
+                            details: custRecSaveTicket
+                        });
+
+                        split_count = 7;
+                        log.audit({
+                            title: 'Allocation ID',
+                            details: auth_id
+                        });
+                        if (seconday_index % split_count == 0) { // 4000 = 4000
+                            if (auth_id <= 3) {
+                                auth_id++; // ie, whenever it hits the split count amount, increment auth_id by 1, changing allocated finance team member.
+                            }
                         }
+                        // }
                     }
+
 
                     return true;
                 }

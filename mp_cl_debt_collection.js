@@ -454,43 +454,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             });
 
             /**
-             *  Team Member Button
+             *  Snooze Timers
              */
-            $(document).on('click', '.team', function() {
-                var tr = $(this).closest('tr');
-                var row = dataTable.row(tr);
-                var index = row.data();
-                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
-                console.log("Invoice Number: " + invoiceNumber);
-                var recordID = index[16];
-
-                var header = '<div><h3 style="text-align: center;"><label class="control-label">Assign Invoice to a Finance Role</label></h3></div>';
-
-                var body = '<div><h4><label class="control-label">Please Select a Finance Team Member to Assign This Customer To</label></h4></div>';
-
-                body += '<br>'
-
-                var bodyTimers = '<div /*class="col col-lg-12"*/ id="oldnote">';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">Turkan</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">Yassine</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">Jasmeet</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="team form=control btn-xs" record="' + recordID + '"><span class="span_class">- Blank -</span></button></div>';
-                bodyTimers += '</div>';
-                bodyTimers += '<br><br>';
-
-                var dateText = '';
-                var bodyCurrentDate = '';
-                bodyTimers += '<br>';
-
-                body += bodyTimers;
-                body += bodyCurrentDate;
-
-                $('#myModal2 .modal-header').html(header);
-                $('#myModal2 .modal-body').html("");
-                $('#myModal2 .modal-body').html(body);
-                $('#myModal2').modal("show");
-            });
-
             var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
@@ -529,7 +494,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     '_blank'
                 );
             });
-
             $(document).on('click', '.timer-2day', function() {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
@@ -578,6 +542,80 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=permanent&period=permanent' + '&recordid=' + recordID,
                     '_blank'
                 );
+            });
+
+            /**
+             *  Team Member Button
+             */
+            $(document).on('click', '.team', function() {
+                var tr = $(this).closest('tr');
+                var row = dataTable.row(tr);
+                var index = row.data();
+                console.log(JSON.stringify(index));
+                // var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
+                // console.log("Invoice Number: " + invoiceNumber);
+                var recordID = parseInt(index[16]);
+                // var recordID = 1735002;
+                console.log("Record Number: " + recordID);
+                var custID = index[14];
+                console.log("Customer ID: " + custID)
+
+                var header = '<div><h3 style="text-align: center;"><label class="control-label">Assign Invoice to a Finance Role</label></h3></div>';
+                var body = '<div><p><label class="control-label">Please Select a Finance Team Member to Assign This Customer To</label></p></div>';
+                body += '<br>'
+
+                var bodyTimers = '<div /*class="col col-lg-12"*/ id="team_allocate">';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="691582" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Turkan</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="1403209" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Jasmeet</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="755585" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Yassine</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="924435" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">- Blank -</span></button></div>';
+                bodyTimers += '</div>';
+                bodyTimers += '<br><br>';
+
+                var dateText = '';
+                var bodyCurrentDate = '';
+                bodyTimers += '<br>';
+
+                body += bodyTimers;
+                body += bodyCurrentDate;
+
+                $('#myModal3 .modal-header').html(header);
+                $('#myModal3 .modal-body').html("");
+                $('#myModal3 .modal-body').html(body);
+                $('#myModal3').modal("show");
+            });
+
+            $(document).on('click', '.team_allocate', function() {
+                try {
+                    var auth_id = $(this).attr('id');
+                    var record_id = $(this).attr('record');
+                    var cust_id = $(this).attr('custid');
+                    console.log('Team Allocation of ID ' + auth_id)
+                        // console.log('Record ID: ' + record_id);
+
+                    var custRecord = record.load({
+                        type: 'customer',
+                        id: cust_id
+                    });
+                    custRecord.setValue({
+                        fieldId: 'custentity_debt_coll_auth_id',
+                        value: auth_id
+                    });
+                    var recLoad = record.load({
+                        type: 'customrecord_debt_coll_inv',
+                        id: record_id
+                    });
+                    recLoad.setValue({
+                        fieldId: 'custrecord_debt_coll_auth_id',
+                        value: auth_id
+                    });
+                    custRecord.save();
+                    recLoad.save();
+
+                    $(this).addClass('btn-success');
+                } catch (e) {
+                    alert('Error Message - If error persists, contact IT \n\n' + e.message);
+                }
             });
 
             /** 
@@ -691,8 +729,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     }, // 8
                     { title: 'Period' }, // 9
                     { title: 'MP Ticket' }, // 10
-                    { title: 'Notes | Viewed' }, // 11
-                    { title: 'Multi-Viewed | Snooze' }, // 12
+                    { title: 'Viewed | Multi-Viewed' }, // 11
+                    { title: 'Allocate | Snooze' }, // 12
                     { title: 'MAAP Payment Status' } // 13
                     // 14 - Customer ID
                     // 15 - Tick Status / This is for the added notes section. Redundent
@@ -996,10 +1034,26 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     rangeExpression.push('OR', ['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 3]);
                 }
             }
-            // if ($()){
-            //     rangeExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, userId])
-            // }
-            // filterExpression.push('AND', rangeExpression);
+            if (parseInt(range) == 0) {
+                rangeExpression.push(['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 1]);
+                rangeExpression.push('OR', ['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 2]);
+                rangeExpression.push('OR', ['custrecord_debt_coll_inv_range', search.Operator.CONTAINS, 3]);
+            }
+            if (!isNullorEmpty(userId)) {
+                var auth_id = $('#team_filter').val();
+                console.log('On Load Auth ID in Team Filter: ' + auth_id)
+                if ((parseInt(auth_id) == 691582) || (parseInt(auth_id) == 755585) || (parseInt(auth_id) == 1403209) || (parseInt(auth_id) == 924435)) {
+                    if (!isNullorEmpty(auth_id)) {
+                        rangeExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id])
+                    } else {
+                        rangeExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, userId])
+                    }
+                } else {
+                    console.log('No Team Member Select Filter has been Added')
+                        // Don't Filter. 
+                }
+            }
+            filterExpression.push('AND', rangeExpression);
             filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'Secure Cash']);
             filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'NP']);
             invoiceResults.filterExpression = filterExpression;
@@ -1159,9 +1213,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
                     var noteInfo = debt_row.nt;
                     // var note = '<div class="col-xs-6"><button type="button" id="note_' + invoice_id + '" class="note form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-pencil"></span></button></div>';
-                    var note = '<div class="col-xs-6"><button type="button" id="team_' + invoice_id + '" class="team form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal2"><span class="glyphicon glyphicon-user"></span></button></div>';
-                    note += '<div class="col-xs-6"><button type="button" id="eye_more_' + invoice_id + '" class="eye form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
-                    var checkbox = '<div class="col-xs-9"><button type="button" id="eye_multi_' + invoice_id + '" class="eyeplus form-control btn-xs btn-secondary"><span class="glyphicon glyphicon glyphicon-list"></span>  </button></div>';
+
+                    var note = '<div class="col-xs-6"><button type="button" id="eye_more_' + invoice_id + '" class="eye form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>';
+                    note += '<div class="col-xs-6"><button type="button" id="eye_multi_' + invoice_id + '" class="eyeplus form-control btn-xs btn-secondary"><span class="glyphicon glyphicon glyphicon-list"></span>  </button></div>';
+                    var checkbox = '<div class="col-xs-6"><button type="button" id="team_' + invoice_id + '" class="team form-control btn-xs btn-secondary" data-toggle="modal" data-target="#myModal3"><span class="glyphicon glyphicon-user"></span></button></div>';
                     checkbox += '<div class="col-xs-auto"><button type="button" id="timer_' + invoice_id + '" class="timer form=control btn-xs btn-info"><span class="span_class glyphicon glyphicon-time"></span></button></div>';
 
                     var mp_ticket = debt_row.mp
