@@ -57,6 +57,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 details: main_index
             });
 
+            var split_count = ctx.getParameter({ name: 'custscript_debt_inv_auth_count' });
+            if (isNullorEmpty(split_count)) {
+                split_count = 0;
+            }
+
             var invoice_id_set = ctx.getParameter({ name: 'custscript_debt_inv_auth_invoice_id_set' });
             if (isNullorEmpty(invoice_id_set)) {
                 invoice_id_set = JSON.parse(JSON.stringify([]));
@@ -64,33 +69,32 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 invoice_id_set = JSON.parse(invoice_id_set);
             }
             var columns = [];
-            columns[0] = search.createColumn({
-                name: "companyname",
-                join: "customer",
-                summary: search.Summary.GROUP
-            });
-            columns[0] = search.createColumn({
-                name: "internalid",
-                join: "customer",
-                sort: search.Sort.ASC,
-                summary: search.Summary.GROUP
-            });
+            // columns[0] = search.createColumn({
+            //     name: "companyname",
+            //     join: "customer",
+            //     summary: search.Summary.GROUP
+            // });
+            // columns[1] = search.createColumn({
+            //     name: "internalid",
+            //     join: "customer",
+            //     sort: search.Sort.ASC,
+            //     summary: search.Summary.GROUP
+            // });
             var invResultSet = search.load({
-                id: 'customsearch_debt_coll_inv',
+                id: 'customsearch_debt_coll_inv_2',
                 type: 'invoice',
                 columns: columns
             });
             var resultsSet = invResultSet.run().getRange({
-                start: 0,
-                end: 21
+                start: main_index,
+                end: main_index + 999
             });
-
             var count = invResultSet.runPaged().count;
             log.debug({
                 title: 'Count',
                 details: count
             })
-            var split_count = count / 3; // count = 12000, split_count == 4000. Everytime its 4000, it will increment auth_id, changing team member name and setting that.
+            split_count = parseInt(count / 3); // count = 12000, split_count == 4000. Everytime its 4000, it will increment auth_id, changing team member name and setting that.
             log.debug({
                 title: 'Divided Count',
                 details: split_count
@@ -106,17 +110,17 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 seconday_index = main_index + index;
 
                 var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 200) {
+                if (usageLimit < 200 || main_index == 999) {
                     params = {
-                        custscript_debt_inv_auth_main_index: main_index - 5,
+                        custscript_debt_inv_auth_main_index: main_index + index - 5,
                         custscript_debt_inv_auth_id: auth_id,
                         custscript_debt_inv_auth_count: split_count,
                         custscript_debt_inv_auth_invoice_id_set: JSON.stringify(invoice_id_set)
                     };
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: 'customscript_ss_debt_collection_auth',
-                        deploymentId: 'customdeploy_ss_debt_collection_auth',
+                        scriptId: 'customscript_ss_debt_coll_auth',
+                        deploymentId: 'customdeploy_ss_debt_coll_auth',
                         params: params
                     });
                     var reschedule_id = reschedule.submit();
@@ -126,9 +130,28 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     });
                     return false;
                 } else {
+                    // log.audit({
+                    //     title: 'In Search: Results Value',
+                    //     details: JSON.stringify(invoiceSet)
+                    // });
+
+                    log.audit({
+                            title: 'In Search: Secondary Index',
+                            details: seconday_index
+                        })
+                        // var cust_name = invoiceSet.getValue({
+                        //     name: 'companyname',
+                        //     summary: search.Summary.GROUP,
+                        //     join: 'customer'
+                        // });
+                        // log.audit({
+                        //     title: 'In Search: Customer Name',
+                        //     details: cust_name
+                        // })
                     var cust_id = invoiceSet.getValue({
                         name: 'internalid',
-                        // join: 'customer'
+                        summary: search.Summary.GROUP,
+                        join: 'customer'
                     });
                     log.audit({
                         title: 'In Search: Customer ID',
@@ -145,7 +168,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
                         log.audit({
                                 title: 'In Search: Get Cust Value',
-                                details: 'Customer ID: ' + cust_id + '| Author ID: ' + custAuthField
+                                details: 'Customer ID: ' + cust_id + ' | Author ID: ' + custAuthField
                             })
                             // if (isNullorEmpty(custAuthField)) {
                         log.audit({
@@ -178,19 +201,16 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             details: custRecSaveTicket
                         });
 
-                        split_count = 7;
                         log.audit({
                             title: 'Allocation ID',
                             details: auth_id
                         });
-                        if (seconday_index % split_count == 0) { // 4000 = 4000
+                        if (seconday_index % split_count == 0 && seconday_index != 0) { // 4000 = 4000
                             if (auth_id <= 3) {
                                 auth_id++; // ie, whenever it hits the split count amount, increment auth_id by 1, changing allocated finance team member.
                             }
                         }
-                        // }
                     }
-
 
                     return true;
                 }

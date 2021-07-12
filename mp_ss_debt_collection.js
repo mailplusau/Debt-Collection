@@ -39,7 +39,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function debtCollection() {
-            
+
             var range_id = ctx.getParameter({ name: 'custscript_debt_inv_range' });
             if (isNullorEmpty(range_id)) {
                 range_id = [1];
@@ -105,7 +105,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             //         // return true;
             //     });
             // }
-            
+
             var invResultSet = invoiceSearch(range_id, date_from, date_to);
             var resultsSet = invResultSet.getRange({
                 start: main_index,
@@ -159,7 +159,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         name: 'custbody_invoice_viewed'
                     });
 
-                    if (!isNullorEmpty(snoozeDate)){
+                    if (!isNullorEmpty(snoozeDate)) {
                         var getDateVal = dateToISOString(getDate());
                         var snoozeDateVal = dateToISOString(snoozeDate);
                         log.audit({
@@ -174,9 +174,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             title: 'getDate() as getDateVal',
                             details: getDateVal
                         });
-                        if (snoozeDateVal > getDateVal == true){
+                        if (snoozeDateVal > getDateVal == true) {
                             log.audit({
-                                title: 'Skip This Invoice '+ invoice_id +' as its been Snooze',
+                                title: 'Skip This Invoice ' + invoice_id + ' as its been Snooze',
                                 details: 'Snooze Date: ' + snoozeDate + ' Invoice ID: ' + invoice_id
                             });
 
@@ -224,7 +224,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
 
                         var finance_role = invoiceSet.getValue({
-                            name: 'custentity_debt_coll_fin_role',
+                            name: 'custentity_debt_coll_auth_id',
                             join: 'customer'
                         });
 
@@ -256,7 +256,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             values: 'Debt Collections _ ' + invoice_id
                         }));
                         var noteResults = noteSearch.run();
-                        if (!isNullorEmpty(noteResults)){
+                        if (!isNullorEmpty(noteResults)) {
                             noteResults.each(function(noteSet, index) {
                                 var note_name = noteSet.getValue({
                                     name: 'name'
@@ -283,12 +283,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             operator: search.Operator.IS,
                             values: maap_bank
                         });
-                        
+
                         var today = new Date();
                         var today_day_in_month = today.getDate();
                         var today_month = today.getMonth();
                         var today_year = today.getFullYear();
-                        var three_day_ago  = new Date(Date.UTC(today_year, today_month, today_day_in_month - 5));
+                        var three_day_ago = new Date(Date.UTC(today_year, today_month, today_day_in_month - 5));
                         var date_utc = new Date(three_day_ago);
                         var maap_date_from = format.format({
                             value: date_utc,
@@ -325,7 +325,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 })
                             }
                         });
-                        if (isNullorEmpty(invoiceSet.getValue({ name: 'custbody_invoice_snooze_date'}))){
+                        if (isNullorEmpty(invoiceSet.getValue({ name: 'custbody_invoice_snooze_date' }))) {
                             var snooze = 'false';
                         } else {
                             var snooze = 'true';
@@ -416,7 +416,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_auth_id',
                                 value: finance_role
-                            })
+                            });
                             // invRecord.setValue({
                             //     fieldId: 'custrecord_debt_coll_viewed',
                             //     value: viewed
@@ -429,11 +429,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 }
             });
 
-            while(JSON.parse(range_id) < 4){
+            while (JSON.parse(range_id) < 4) {
                 var debtNextResultArray = invResultSet.getRange({
                     start: main_index + indexInCallback + 1,
                     end: main_index + indexInCallback + 2
-                }); 
+                });
                 if (debtNextResultArray.length == 0) {
                     // if (range_id == [3]){
                     //     var invRecord = record.create({
@@ -477,7 +477,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 }
             }
         }
-        
+
         function invoiceSearch(range, date_from, date_to) {
             var date_to_Filter = search.createFilter({
                 name: 'trandate',
@@ -512,7 +512,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         operator: search.Operator.LESSTHAN,
                         values: '60'
                     });
-                    var myFilter2_2 =  search.createFilter({
+                    var myFilter2_2 = search.createFilter({
                         name: 'custbody_inv_type',
                         operator: search.Operator.ANYOF,
                         values: '8'
@@ -528,7 +528,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         operator: search.Operator.GREATERTHANOREQUALTO,
                         values: '60'
                     });
-                    var myFilter3_3 =  search.createFilter({
+                    var myFilter3_3 = search.createFilter({
                         name: 'custbody_inv_type',
                         operator: search.Operator.ANYOF,
                         values: '8'
@@ -574,7 +574,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     title: 'Removed',
                     details: 'Removed'
                 });
-            } 
+            }
         }
 
         /**
@@ -597,13 +597,13 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
          * @param {String} date1 Today's Date
          * @param {String} date2 Set Date
          */
-        function dateCompare(date1, date2){
+        function dateCompare(date1, date2) {
             return date1 > date2;
         }
 
-        function dateToISOString(date){
+        function dateToISOString(date) {
             var date_split = date.split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
-            if (date_split[0].length == 1){
+            if (date_split[0].length == 1) {
                 var days = '0' + date_split[0]; //get DD
                 var month = date_split[1]; //get MM
                 var year = date_split[2]; //get YYYY
@@ -612,7 +612,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 var month = date_split[1]; //get MM
                 var year = date_split[2]; //get YYYY
             }
-            if (date_split[1].length == 1){
+            if (date_split[1].length == 1) {
                 month = '0' + date_split[1]; //get MM
             } else {
                 month = date_split[1]; //get MM
