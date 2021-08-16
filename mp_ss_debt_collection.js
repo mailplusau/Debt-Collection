@@ -116,25 +116,25 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             // var invResultSet = invoiceSearch(range_id, date_from, date_to);
             // var resultsSet = invResultSet.getRange({
             //     start: 0,
-            //     end: 1
+            //     end: 10
             // });
 
             resultsSet.forEach(function(invoiceSet, index) {
                 indexInCallback = index;
 
                 var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 200) {
+                if (usageLimit < 100 || index == 999) {
                     params = {
-                        custscript_debt_inv_main_index: main_index + index - 10,
+                        custscript_debt_inv_main_index: main_index + index,
                         custscript_debt_inv_range: range_id,
                         custscript_debt_inv_date_from: date_from,
                         custscript_debt_inv_date_to: date_to,
                         custscript_debt_inv_invoice_id_set: JSON.stringify(invoice_id_set)
                     };
-                    // log.debug({
-                    //     title: 'Invoice ID Set - Length',
-                    //     details: invoice_id_set.length
-                    // });
+                    log.error({
+                        title: 'Invoice ID Set - Length',
+                        details: invoice_id_set.length
+                    });
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
                         scriptId: 'customscript_ss_debt_collection',
@@ -142,12 +142,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         params: params
                     });
                     var reschedule_id = reschedule.submit();
-                    log.debug({
+                    log.error({
                         title: 'Attempting: Rescheduling Script',
                         details: reschedule
                     });
                     return false;
-                    // }
                 } else {
                     var invoice_id = invoiceSet.getValue({
                         name: 'internalid'
@@ -203,8 +202,21 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         title: 'Invoice ID',
                         details: invoice_id
                     });
-                    if (invoice_id_set.indexOf(invoice_id) == -1) {
+                    if (invoice_id_set.indexOf(JSON.stringify(invoice_id)) == -1) {
+                        log.debug({
+                            title: 'Invoice ID Index OF',
+                            details: invoice_id_set.indexOf(JSON.stringify(invoice_id))
+                        })
                         invoice_id_set.push(invoice_id);
+                        log.debug({
+                            title: 'invoice_id_set',
+                            details: JSON.stringify(invoice_id_set)
+                        });
+                        log.debug({
+                            title: 'invoice_id',
+                            details: JSON.stringify(invoice_id)
+                        });
+
                         log.debug({
                             title: 'Index - Search',
                             details: 'Total Number of Invoices Loaded: ' + index
@@ -417,6 +429,13 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 fieldId: 'custrecord_debt_coll_auth_id',
                                 value: finance_role
                             });
+                            /**
+                             * Commencement Date of Customer
+                             */
+                            invRecord.setValue({
+                                fieldId: 'custrecord_debt_coll_commencement',
+                                value: commencement_date
+                            });
                             // invRecord.setValue({
                             //     fieldId: 'custrecord_debt_coll_viewed',
                             //     value: viewed
@@ -489,51 +508,49 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 operator: search.Operator.ONORAFTER,
                 values: date_from
             });
-            for (var i = 0; i < range.length; i++) {
-                var selector_id = JSON.parse(range[i]);
-                if (selector_id == '1') {
-                    log.debug({
-                        title: 'Range ID Selection',
-                        details: 'MPEX Products Selected'
-                    });
-                    var myFilter1 = search.createFilter({
-                        name: 'custbody_inv_type',
-                        operator: search.Operator.ANYOF,
-                        values: '8'
-                    });
-                }
-                if (selector_id == '2') {
-                    log.debug({
-                        title: 'Range ID Selection',
-                        details: '0 - 59 Days Selected'
-                    });
-                    var myFilter2 = search.createFilter({
-                        name: 'daysoverdue',
-                        operator: search.Operator.LESSTHAN,
-                        values: '60'
-                    });
-                    var myFilter2_2 = search.createFilter({
-                        name: 'custbody_inv_type',
-                        operator: search.Operator.ANYOF,
-                        values: '8'
-                    });
-                }
-                if (selector_id == '3') {
-                    log.debug({
-                        title: 'Range ID Selection',
-                        details: '60+ Days Selected'
-                    });
-                    var myFilter3 = search.createFilter({
-                        name: 'daysoverdue',
-                        operator: search.Operator.GREATERTHANOREQUALTO,
-                        values: '60'
-                    });
-                    var myFilter3_3 = search.createFilter({
-                        name: 'custbody_inv_type',
-                        operator: search.Operator.ANYOF,
-                        values: '8'
-                    });
-                }
+            var selector_id = JSON.parse(range);
+            if (selector_id == '1') {
+                log.debug({
+                    title: 'Range ID Selection',
+                    details: 'MPEX Products Selected'
+                });
+                var myFilter1 = search.createFilter({
+                    name: 'custbody_inv_type',
+                    operator: search.Operator.ANYOF,
+                    values: '8'
+                });
+            }
+            if (selector_id == '2') {
+                log.debug({
+                    title: 'Range ID Selection',
+                    details: '0 - 59 Days Selected'
+                });
+                var myFilter2 = search.createFilter({
+                    name: 'daysoverdue',
+                    operator: search.Operator.LESSTHAN,
+                    values: '60'
+                });
+                var myFilter2_2 = search.createFilter({
+                    name: 'custbody_inv_type',
+                    operator: search.Operator.NONEOF,
+                    values: '8'
+                });
+            }
+            if (selector_id == '3') {
+                log.debug({
+                    title: 'Range ID Selection',
+                    details: '60+ Days Selected'
+                });
+                var myFilter3 = search.createFilter({
+                    name: 'daysoverdue',
+                    operator: search.Operator.GREATERTHANOREQUALTO,
+                    values: '60'
+                });
+                // var myFilter3_3 = search.createFilter({
+                //     name: 'custbody_inv_type',
+                //     operator: search.Operator.NONEOF,
+                //     values: '8'
+                // });
             }
             var invoiceResult = search.load({
                 id: 'customsearch_debt_coll_inv',
@@ -543,7 +560,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             invoiceResult.filters.push(date_from_Filter);
             if (!isNullorEmpty(myFilter1)) { invoiceResult.filters.push(myFilter1); }
             if (!isNullorEmpty(myFilter2)) { invoiceResult.filters.push(myFilter2); }
+            if (!isNullorEmpty(myFilter2_2)) { invoiceResult.filters.push(myFilter2_2); }
             if (!isNullorEmpty(myFilter3)) { invoiceResult.filters.push(myFilter3); }
+            // if (!isNullorEmpty(myFilter3_3)) { invoiceResult.filters.push(myFilter2_2); }
 
             var searchResult = invoiceResult.run();
 

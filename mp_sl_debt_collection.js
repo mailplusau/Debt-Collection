@@ -217,11 +217,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<div class="input-group">';
             inlineQty += '<span class="input-group-addon" id="team_filter_text">Team Member Selection</span>';
             inlineQty += '<select id="team_filter" class="form-control">';
-            inlineQty += '<option value="0" selected></option>';
+            inlineQty += '<option value="" selected>- None -</option>';
             inlineQty += '<option value="691582">Turkan</option>';
             inlineQty += '<option value="1403209">Jasmeet</option>';
             inlineQty += '<option value="755585">Yassine</option>';
             inlineQty += '<option value="924435">Test</option>';
+            // inlineQty += '<option value=""></option>';
             inlineQty += '</select>';
             inlineQty += '</div></div>';
             inlineQty += '</div></div>';

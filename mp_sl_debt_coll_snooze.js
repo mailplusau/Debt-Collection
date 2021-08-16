@@ -45,7 +45,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var record_id;
                 var viewed;
 
-                if (!isNullorEmpty(invoice_id)){
+                if (!isNullorEmpty(invoice_id)) {
                     is_params = true;
 
                     invoice_id = params.invid;
@@ -81,7 +81,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     title: 'Customer ID',
                     details: cust_id
                 })
-                
+
                 var form = ui.createForm({
                     title: 'Debt Collection - Snooze'
                 });
@@ -108,8 +108,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
 
-                if (is_params == true){
-                    if (isNullorEmpty(period)){
+                if (is_params == true) {
+                    if (isNullorEmpty(period)) {
                         inlineHtml += '<div><h4 style="text-align: center">Invoice has been set as viewed!</h4></div><br>';
                     } else {
                         inlineHtml += '<div><h4 style="text-align: center">Invoice has successfully been snoozed for a period of ' + period + '!</h4></div><br>';
@@ -118,19 +118,19 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     inlineHtml += '<div><h4 style="text-align: center">Invalid Parameters. Please Go Back to Debt Collections Page and Try Again</h4></div>'
                 }
 
-                if (!isNullorEmpty(invoice_id) && !isNullorEmpty(record_id) && !isNullorEmpty(date)){
+                if (!isNullorEmpty(invoice_id) && !isNullorEmpty(record_id) && !isNullorEmpty(date)) {
                     inlineHtml += invoiceDetailsSection(invoice_id, period, record_id, date);
                 }
-                
-                if(!isNullorEmpty(period)){
+
+                if (!isNullorEmpty(period)) {
                     saveSnooze(invoice_id, period, record_id, date);
                 }
 
-                if (!isNullorEmpty(viewed)){
+                if (!isNullorEmpty(viewed)) {
                     saveViewed(invoice_id, period, viewed, date)
                 }
 
-                if (!isNullorEmpty(multi_viewed)){
+                if (!isNullorEmpty(multi_viewed)) {
                     multiViewed(invoice_id, period, multi_viewed, date, cust_id);
                     period = 'Multi Snooze 1 Week'
                 }
@@ -141,8 +141,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     type: 'inlinehtml'
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
-                }).defaultValue = inlineHtml;  
-                
+                }).defaultValue = inlineHtml;
+
                 form.addButton({
                     id: 'close',
                     label: 'Close'
@@ -188,7 +188,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             }
         }
 
-        function invoiceDetailsSection(invoice_id, period, record_id, date){
+        function invoiceDetailsSection(invoice_id, period, record_id, date) {
             var inlineQty = '';
             inlineQty = '<div class="form-group container invoice_section">';
             inlineQty += '<div class="row">';
@@ -219,7 +219,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return inlineQty;
         }
 
-        function saveSnooze(invoice_id, period, record_id){
+        function saveSnooze(invoice_id, period, record_id) {
             var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
@@ -242,25 +242,25 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 details: today_day
             });
 
-            var today_in_day  = new Date(Date.UTC(parseInt(today_year), parseInt(today_month), parseInt(today_day) + 1));
+            var today_in_day = new Date(Date.UTC(parseInt(today_year), parseInt(today_month), parseInt(today_day) + 1));
             today_in_day.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });
             today_in_day = today_in_day.toISOString().split('T')[0]; // Split Date String to get the date.
             today_in_day = dateISOToNetsuite(today_in_day); // Convert from 2021-01-28 to 28/1/2021
             today_in_day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
-            
-            var today_in_2day  = new Date(Date.UTC(today_year, today_month, today_day + 2));
+
+            var today_in_2day = new Date(Date.UTC(today_year, today_month, today_day + 2));
             today_in_2day.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
             today_in_2day = today_in_2day.toISOString().split('T')[0];
             today_in_2day = dateISOToNetsuite(today_in_2day);
             today_in_2day = format.parse({ value: today_in_2day, type: format.Type.DATE }); // Date Object
 
-            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            var today_in_week = new Date(Date.UTC(today_year, today_month, today_day + 7));
             today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
             today_in_week = today_in_week.toISOString().split('T')[0];
             today_in_week = dateISOToNetsuite(today_in_week);
             today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
 
-            var today_in_2week  = new Date(Date.UTC(today_year, today_month, today_day + 14));
+            var today_in_2week = new Date(Date.UTC(today_year, today_month, today_day + 14));
             today_in_2week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
             today_in_2week = today_in_2week.toISOString().split('T')[0];
             today_in_2week = dateISOToNetsuite(today_in_2week);
@@ -272,12 +272,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             one_year = dateISOToNetsuite(one_year);
             one_year = format.parse({ value: one_year, type: format.Type.DATE }); // Date Object
 
-            switch(period) {
-                case '1day': 
+            switch (period) {
+                case '1day':
                     log.debug({
                         title: '1 Day',
                         details: '1 Day'
-                    });       
+                    });
                     var snoozeRecord = record.load({
                         type: 'invoice',
                         id: invoice_id
@@ -302,12 +302,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         title: 'Delete initiated - Record ID: ' + record_id,
                         details: 'Delete initiated - Record ID: ' + record_id
                     });
-                    break; 
-                case '2day': 
+                    break;
+                case '2day':
                     log.debug({
                         title: '2 Day',
                         details: '2 Day'
-                    }); 
+                    });
                     var snoozeRecord = record.load({
                         type: 'invoice',
                         id: invoice_id
@@ -337,7 +337,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     log.debug({
                         title: '1 Week',
                         details: '1 Week'
-                    }); 
+                    });
                     var snoozeRecord = record.load({
                         type: 'invoice',
                         id: invoice_id
@@ -363,7 +363,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         details: 'Delete initiated - Record ID: ' + record_id
                     });
                     break;
-                case '2week': 
+                case '2week':
                     log.debug({
                         title: '2 Week',
                         details: '2 Week'
@@ -383,7 +383,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         fieldId: 'custbody_invoice_snooze_date',
                         value: today_in_2week
                     });
-                    snoozeRecord.save();    
+                    snoozeRecord.save();
                     var snoozeDelete = record.delete({
                         type: 'customrecord_debt_coll_inv',
                         id: record_id
@@ -413,7 +413,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         fieldId: 'custbody_invoice_snooze_date',
                         value: one_year
                     });
-                    snoozeRecord.save();    
+                    snoozeRecord.save();
                     var snoozeDelete = record.delete({
                         type: 'customrecord_debt_coll_inv',
                         id: record_id
@@ -432,13 +432,13 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return true;
         }
 
-        function saveViewed(invoice_id, period, viewed){
+        function saveViewed(invoice_id, period, viewed) {
             // 1 Week Snooze
             var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
             var today_day = today.getDate() + 1;
-            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            var today_in_week = new Date(Date.UTC(today_year, today_month, today_day + 7));
             today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
             today_in_week = today_in_week.toISOString().split('T')[0];
             today_in_week = dateISOToNetsuite(today_in_week);
@@ -447,15 +447,15 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             var invoiceRecord = record.load({
                 type: 'invoice',
                 id: invoice_id
-            });              
+            });
             var new_date = invoiceRecord.setValue({
                 fieldId: 'custbody_invoice_snooze_date',
                 value: today_in_week
             });
 
             // Purple for All Customers with the same customer name
-                // Purple for Invoice for 1 Week - DONE
-                // Purple All Invoices under Customer - In Progress
+            // Purple for Invoice for 1 Week - DONE
+            // Purple All Invoices under Customer - In Progress
             // Search of All Customers, Send to Yassine - DONE
 
             log.debug({
@@ -479,68 +479,48 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             return true;
         }
 
-        function multiViewed(invoice_id, period, multi_viewed, date, cust_id){
-
+        function multiViewed(invoice_id, period, multi_viewed, date, cust_id) {
             log.debug({
                 title: 'Multiple Invoices Viewed',
                 details: multi_viewed
             });
 
-            var paidInvoiceSearch = search.load({ id: 'customsearch_debt_coll_inv', type: 'invoice'});
-            paidInvoiceSearch.filters.push(search.createFilter({
-                name: 'internalid',
-                join: 'customer',
-                operator: search.Operator.IS,
-                values: cust_id
-            }))
-            
             var today = new Date();
             var today_year = today.getFullYear();
             var today_month = today.getMonth();
             var today_day = today.getDate() + 1;
             var six_months_ago = new Date(today_year, today_month - 6, today_day);
-                six_months_ago.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
-                six_months_ago = six_months_ago.toISOString().split('T')[0];
-                six_months_ago = dateISOToNetsuite(six_months_ago);
-                // six_months_ago = format.format({ value: six_months_ago, type: format.Type.DATE, timezone: format.Timezone.AUSTRALIA_SYDNEY}); // Date Object
+            six_months_ago.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
+            six_months_ago = six_months_ago.toISOString().split('T')[0];
+            six_months_ago = dateISOToNetsuite(six_months_ago);
+            // six_months_ago = format.format({ value: six_months_ago, type: format.Type.DATE, timezone: format.Timezone.AUSTRALIA_SYDNEY}); // Date Object
             var date_from = six_months_ago;
             var date_to = date;
 
-            paidInvoiceSearch.filters.push(search.createFilter({
-                name: 'trandate',
-                operator: search.Operator.ONORBEFORE,
-                values: date_to
-            }));
-            paidInvoiceSearch.filters.push(search.createFilter({
-                name: 'trandate',
-                operator: search.Operator.ONORAFTER,
-                values: date_from
-            }));
-            paidInvoiceSearch.filters.push(search.createFilter({
-                name: 'memorized',
-                operator: search.Operator.IS,
-                values: false
-            }))
-
-            // Snooze for 1 Week 
-            var today_in_week  = new Date(Date.UTC(today_year, today_month, today_day + 7));
+            var today_in_week = new Date(Date.UTC(today_year, today_month, today_day + 7));
             today_in_week.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' })
             today_in_week = today_in_week.toISOString().split('T')[0];
             today_in_week = dateISOToNetsuite(today_in_week);
             today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
 
-            var invoiceRecord2 = record.load({
-                type: 'invoice',
-                id: invoice_id
-            });              
-            var new_date = invoiceRecord2.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_week
-            });
-            invoiceRecord2.save();
-
-            paidInvoiceSearch.run().each(function(res, index){
-                var invoiceid = res.getValue({ name: 'internalid'});
+            var paidInvoiceSearch = search.load({ type: 'invoice', id: 'customsearch_debt_coll_inv' });
+            var filterExpression = [];
+            filterExpression.push(['customer.internalid', search.Operator.IS, cust_id])
+            filterExpression.push('AND', ['trandate', search.Operator.ONORBEFORE, date_to]);
+            filterExpression.push('AND', ['trandate', search.Operator.ONORAFTER, date_from]);
+            filterExpression.push('AND', ['memorized', search.Operator.IS, false]);
+            paidInvoiceSearch.filterExpression = filterExpression;
+            var paidInvoiceResult = paidInvoiceSearch.run().getRange({ start: 0, end: 10 });
+            log.debug({
+                title: 'TEST',
+                details: paidInvoiceResult
+            })
+            log.debug({
+                title: 'TEST2',
+                details: JSON.stringify(paidInvoiceResult)
+            })
+            paidInvoiceResult.forEach(function(res, index) {
+                var invoiceid = res.getValue({ name: 'internalid' });
                 log.debug({
                     title: 'Search Invoice ID',
                     details: invoiceid
@@ -548,8 +528,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var invoiceRecord = record.load({
                     type: 'invoice',
                     id: invoiceid
-                });   
-                
+                });
+
                 log.audit({
                     title: 'New Snooze Date Set - Multi Invoices',
                     details: today_in_week
@@ -560,8 +540,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 });
 
                 // Purple for All Customers with the same customer name
-                    // Purple All Invoices under Customer - In Progress
-    
+                // Purple All Invoices under Customer - In Progress
+
                 log.debug({
                     title: 'Snooze Invoice ' + invoiceid + ' for 1 Week',
                     details: today_in_week
@@ -570,18 +550,18 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     fieldId: 'custbody_invoice_viewed',
                     value: true
                 });
-                
+
                 var invTableSearch = search.load({
                     id: 'customsearch_debt_coll_table',
                     type: 'customrecord_debt_coll_inv'
                 });
                 invTableSearch.filters.push(search.createFilter({
-                    name: 'custrecord_debt_coll_inv_id',
+                    name: 'custrecord_debt_coll_inv_cust_id',
                     operator: search.Operator.IS,
-                    values: invoiceid
+                    values: parseInt(cust_id)
                 }));
-                invTableSearch.run().each(function(invTableRes){
-                    var tableID = invTableRes.getValue({ name: 'internalid'});
+                invTableSearch.run().each(function(invTableRes) {
+                    var tableID = invTableRes.getValue({ name: 'internalid' });
                     log.audit({
                         title: 'Invoice Table Set to True',
                         details: tableID
@@ -594,16 +574,30 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         fieldId: 'custrecord_debt_coll_viewed',
                         value: true
                     });
-                    tableRec.save(); 
+                    tableRec.save();
                 });
                 var saveRecord = invoiceRecord.save();
-                
+
                 log.audit({
                     title: 'Invoice Saved',
                     details: saveRecord
                 })
                 return true;
             })
+
+            log.debug({
+                title: 'TEST3',
+                details: 'test3'
+            })
+            var invoiceRecord2 = record.load({
+                type: 'invoice',
+                id: invoice_id
+            });
+            var new_date = invoiceRecord2.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_week
+            });
+            invoiceRecord2.save();
         }
 
 
@@ -612,19 +606,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * @param   {String} date_iso       "2020-06-01"
          * @returns {String} date_netsuite  "1/6/2020"
          */
-        // function dateISOToNetsuite(date_iso) {
-        //     var date_netsuite = '';
-        //     if (!isNullorEmpty(date_iso)) {
-        //         var date_utc = new Date(date_iso);
-        //         // var date_netsuite = nlapiDateToString(date_utc);
-        //         var date_netsuite = format.format({
-        //             value: date_utc,
-        //             type: format.Type.DATE
-        //         });
-        //     }
-        //     return date_netsuite;
-        // }
-        function dateISOToNetsuite(date_iso){
+        function dateISOToNetsuite(date_iso) {
             var parts = date_iso.split('-');
 
             if (!isNullorEmpty(date_iso)) {

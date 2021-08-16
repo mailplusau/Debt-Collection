@@ -106,7 +106,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             // });
             resultsSet.forEach(function(invoiceSet, index) {
                 indexInCallback = index;
-                // main_index = index;
                 seconday_index = main_index + index;
 
                 var usageLimit = ctx.getRemainingUsage();
@@ -130,33 +129,15 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     });
                     return false;
                 } else {
-                    // log.audit({
-                    //     title: 'In Search: Results Value',
-                    //     details: JSON.stringify(invoiceSet)
-                    // });
-
                     log.audit({
-                            title: 'In Search: Secondary Index',
-                            details: seconday_index
-                        })
-                        // var cust_name = invoiceSet.getValue({
-                        //     name: 'companyname',
-                        //     summary: search.Summary.GROUP,
-                        //     join: 'customer'
-                        // });
-                        // log.audit({
-                        //     title: 'In Search: Customer Name',
-                        //     details: cust_name
-                        // })
+                        title: 'In Search: Secondary Index',
+                        details: seconday_index
+                    })
                     var cust_id = invoiceSet.getValue({
                         name: 'internalid',
                         summary: search.Summary.GROUP,
                         join: 'customer'
                     });
-                    log.audit({
-                        title: 'In Search: Customer ID',
-                        details: cust_id
-                    })
                     if (invoice_id_set.indexOf(cust_id) == -1) {
                         invoice_id_set.push(cust_id);
                         var custRecord = record.load({
@@ -167,14 +148,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             fieldId: 'custentity_debt_coll_auth_id'
                         });
                         log.audit({
-                                title: 'In Search: Get Cust Value',
-                                details: 'Customer ID: ' + cust_id + ' | Author ID: ' + custAuthField
-                            })
-                            // if (isNullorEmpty(custAuthField)) {
-                        log.audit({
-                            title: 'In Search: Allocate/Author ID',
-                            details: auth_id
-                        })
+                            title: 'In Search: Get Cust Value',
+                            details: 'Customer ID: ' + cust_id + ' | Author ID: ' + custAuthField + ' | Current Authord ID: ' + auth_id
+                        });
                         if (auth_id == 1) {
                             custRecord.setValue({
                                 fieldId: 'custentity_debt_coll_auth_id',
@@ -215,70 +191,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     return true;
                 }
             });
-        }
-
-        /**
-         * Compare Date String and Return true or false if older
-         * @param {String} date1 Today's Date
-         * @param {String} date2 Set Date
-         */
-        function dateCompare(date1, date2) {
-            return date1 > date2;
-        }
-
-        function dateToISOString(date) {
-            var date_split = date.split("/") //when date is entered in DD/MM/YYYY format. We split days months and year
-            if (date_split[0].length == 1) {
-                var days = '0' + date_split[0]; //get DD
-                var month = date_split[1]; //get MM
-                var year = date_split[2]; //get YYYY
-            } else {
-                var days = date_split[0]; //get DD
-                var month = date_split[1]; //get MM
-                var year = date_split[2]; //get YYYY
-            }
-            if (date_split[1].length == 1) {
-                month = '0' + date_split[1]; //get MM
-            } else {
-                month = date_split[1]; //get MM
-            }
-            var date = year + '-' + month + '-' + days;
-
-            return date;
-        }
-
-        /**
-         * Used to pass the values of `date_from` and `date_to` between the scripts and to Netsuite for the records and the search.
-         * @param   {String} date_iso       "2020-06-01"
-         * @returns {String} date_netsuite  "1/6/2020"
-         */
-        function dateISOToNetsuite(date_iso) {
-            var date_netsuite = '';
-            if (!isNullorEmpty(date_iso)) {
-                var date_utc = new Date(date_iso);
-                // var date_netsuite = nlapiDateToString(date_utc);
-                var date_netsuite = format.format({
-                    value: date_utc,
-                    type: format.Type.DATE,
-                    timezone: format.Timezone.AUSTRALIA_SYDNEY
-                });
-            }
-            return date_netsuite;
-        }
-
-        /**
-         * [getDate description] - Get the current date
-         * @return {[String]} [description] - return the string date
-         */
-        function getDate() {
-            var date = new Date();
-            date = format.format({
-                value: date,
-                type: format.Type.DATE,
-                timezone: format.Timezone.AUSTRALIA_SYDNEY
-            });
-
-            return date;
         }
 
         function isNullorEmpty(val) {
