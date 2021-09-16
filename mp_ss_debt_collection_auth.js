@@ -39,7 +39,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function debtCollection() {
-            var auth_id = ctx.getParameter({ name: 'custscript_debt_inv_auth_id' }); // 1 == Turkan, 2 == Jasmeet, 3 == Yassine.
+            var auth_id = ctx.getParameter({ name: 'custscript_debt_inv_auth_id' }); // 1 == Turkan, 2 == Jasmeet, 3 == Yassine, Jori == 4
             if (isNullorEmpty(auth_id)) {
                 auth_id = 1;
             }
@@ -85,6 +85,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'invoice',
                 columns: columns
             });
+            invResultSet
             var resultsSet = invResultSet.run().getRange({
                 start: main_index,
                 end: main_index + 999
@@ -151,24 +152,30 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             title: 'In Search: Get Cust Value',
                             details: 'Customer ID: ' + cust_id + ' | Author ID: ' + custAuthField + ' | Current Authord ID: ' + auth_id
                         });
-                        if (auth_id == 1) {
+                        // if (auth_id == 1) {
+                        //     custRecord.setValue({
+                        //         fieldId: 'custentity_debt_coll_auth_id',
+                        //         value: 691582 // Turkan
+                        //     });
+                        // }
+                        // if (auth_id == 2) {
+                        //     custRecord.setValue({
+                        //         fieldId: 'custentity_debt_coll_auth_id',
+                        //         value: 1403209 // Jasmeet
+                        //     });
+                        // }
+                        // if (auth_id == 3) {
+                        //     custRecord.setValue({
+                        //         fieldId: 'custentity_debt_coll_auth_id',
+                        //         value: 755585 // Yassine
+                        //     });
+                        // }
+                        // if (auth_id == 4) {
                             custRecord.setValue({
                                 fieldId: 'custentity_debt_coll_auth_id',
-                                value: 691582 // Turkan
+                                value:  429450// Jori
                             });
-                        }
-                        if (auth_id == 2) {
-                            custRecord.setValue({
-                                fieldId: 'custentity_debt_coll_auth_id',
-                                value: 1403209 // Jasmeet
-                            });
-                        }
-                        if (auth_id == 3) {
-                            custRecord.setValue({
-                                fieldId: 'custentity_debt_coll_auth_id',
-                                value: 755585 // Yassine
-                            });
-                        }
+                        // }
 
                         var custRecSaveTicket = custRecord.save();
                         // var custRecSaveTicket = 'Saved'
@@ -182,7 +189,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             details: auth_id
                         });
                         if (seconday_index % split_count == 0 && seconday_index != 0) { // 4000 = 4000
-                            if (auth_id <= 3) {
+                            if (auth_id <= 4) {
                                 auth_id++; // ie, whenever it hits the split count amount, increment auth_id by 1, changing allocated finance team member.
                             }
                         }

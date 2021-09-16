@@ -453,6 +453,13 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 value: today_in_week
             });
 
+            var custID = invoiceRecord.getValue({ fieldId: 'entity' });
+            var custRecord = record.load({
+                type: 'customer',
+                id: custID
+            });
+            var custStatusVal = custRecord.getValue({ fieldId: 'entitystatus' });
+
             // Purple for All Customers with the same customer name
             // Purple for Invoice for 1 Week - DONE
             // Purple All Invoices under Customer - In Progress
@@ -476,10 +483,15 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
             invoiceRecord.save();
 
+            custRecord.setValue({ fieldId: 'entitystatus', value: custStatusVal });
+            custRecord.save();
+
             return true;
         }
 
         function multiViewed(invoice_id, period, multi_viewed, date, cust_id) {
+
+
             log.debug({
                 title: 'Multiple Invoices Viewed',
                 details: multi_viewed
@@ -520,11 +532,20 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 details: JSON.stringify(paidInvoiceResult)
             })
             paidInvoiceResult.forEach(function(res, index) {
+                // Store original status and then update status after script runs.
+
                 var invoiceid = res.getValue({ name: 'internalid' });
                 log.debug({
                     title: 'Search Invoice ID',
                     details: invoiceid
                 });
+                var custID = res.getValue({ name: 'internalid', join: 'customer' });
+                var custRecord = record.load({
+                    type: 'customer',
+                    id: custID
+                });
+                var custStatusVal = custRecord.getValue({ fieldId: 'entitystatus' });
+
                 var invoiceRecord = record.load({
                     type: 'invoice',
                     id: invoiceid
@@ -578,6 +599,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 });
                 var saveRecord = invoiceRecord.save();
 
+                custRecord.setValue({ fieldId: 'entitystatus', value: custStatusVal })
+                custRecord.save();
+
                 log.audit({
                     title: 'Invoice Saved',
                     details: saveRecord
@@ -586,18 +610,18 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             })
 
             log.debug({
-                title: 'TEST3',
-                details: 'test3'
-            })
-            var invoiceRecord2 = record.load({
-                type: 'invoice',
-                id: invoice_id
-            });
-            var new_date = invoiceRecord2.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_week
-            });
-            invoiceRecord2.save();
+                    title: 'TEST3',
+                    details: 'test3'
+                })
+                // var invoiceRecord2 = record.load({
+                //     type: 'invoice',
+                //     id: invoice_id
+                // });
+                // var new_date = invoiceRecord2.setValue({
+                //     fieldId: 'custbody_invoice_snooze_date',
+                //     value: today_in_week
+                // });
+                // invoiceRecord2.save();
         }
 
 

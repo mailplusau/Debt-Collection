@@ -44,7 +44,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 });
 
                 // Load jQuery
-                var inlineHtml = '<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>';
+                var inlineHtml = '<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>';
+                inlineHtml += '<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>';
                 // Load Tooltip
                 inlineHtml += '<script src="https://unpkg.com/@popperjs/core@2"></script>';
 
@@ -64,6 +65,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script>';
                 inlineHtml += '<link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
                 inlineHtml += '<style>.mandatory{color:red;}</style>';
+
+                //Date Range Picker
+                inlineHtml += '<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>'
+                inlineHtml += '<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>'
+                inlineHtml += '<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />'
 
                 inlineHtml += '<div class="a" style="width: 100%; background-color: #CFE0CE; padding: 20px; min-height: 100%; height: 100%;">';
                 // inlineHtml += '<h1 style="text-align: center; color: #103D39; display: inline-block; font-size: 22px; font-weight: bold; line-height: 33px; vertical-align: top; margin-bottom: 4px;">Consolidation Invoice</h1>';
@@ -171,6 +177,19 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
             inlineQty += '</div></div>';
 
+            inlineQty += '<div class="form-group container table_filter_section2">';
+            inlineQty += '<div class="row">';
+
+            inlineQty += '<div class="col-xs-6 showCustStartDate">';
+            inlineQty += '<div class="input-group">';
+            inlineQty += '<span class="input-group-addon" id="showCustStartDate">Filter | Customer Start Date Column</span>';
+            inlineQty += '<input type="text" id="cust_Start_date" class="form-control" name="daterange" value="Please Select Filter Range"/>' //
+            // inlineQty += '<button type="button" id="showCustStartDate" class="add-date-filter btn btn-success" style="background-color: #379E8F;"><span class="span_class glyphicon glyphicon-plus"></span></button>'
+            // inlineQty += '<button type="button" id="showCustStartDate" class="remove-date-filter btn btn-danger"><span class="span_class glyphicon glyphicon-minus"></span></button>'
+            inlineQty += '</div></div>';
+
+            inlineQty += '</div></div>';
+
             inlineQty += '</div>';
 
             return inlineQty;
@@ -219,8 +238,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<select id="team_filter" class="form-control">';
             inlineQty += '<option value="" selected>- None -</option>';
             inlineQty += '<option value="691582">Turkan</option>';
-            inlineQty += '<option value="1403209">Jasmeet</option>';
-            inlineQty += '<option value="755585">Yassine</option>';
+            inlineQty += '<option value="755585">Yassine</option>'; 
+            inlineQty += '<option value="1403209">Jasmeet</option>'; // Jori - 429450
+            inlineQty += '<option value="429450">Jori</option>'; // Jori - 429450
             inlineQty += '<option value="924435">Test</option>';
             // inlineQty += '<option value=""></option>';
             inlineQty += '</select>';

@@ -48,14 +48,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
             var searchResult = debtCollSearch.run();
             searchResult.each(function(result) {
-                
+
                 var index = result.getValue({
                     name: 'internalid'
                 });
                 var name = result.getValue({
                     name: 'name'
                 });
-                if (name != 'END'){
+                if (name != 'END') {
                     deleteResultRecord(index);
                 } else {
                     record.delete({
@@ -64,14 +64,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     });
                     return true;
                 }
-                // return true;
+                return true;
             });
         }
 
         function deleteResultRecord(index) {
 
             var usage_loopstart_cust = ctx.getRemainingUsage();
-            if (usage_loopstart_cust < 4 || index == 3999) {
+            if (usage_loopstart_cust < 4) { // || index == 3999
                 // Rescheduling a scheduled script doesn't consumes any governance units.
                 var delReschedule = task.create({
                     taskType: task.TaskType.SCHEDULED_SCRIPT,

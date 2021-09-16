@@ -728,6 +728,97 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).find('.span_class').toggleClass('glyphicon-minus');
             });
 
+            
+            
+            /**
+             *  Date Range Filter
+             */
+             $('input[name="daterange"]').daterangepicker({
+                opens: 'left',
+                locale: {
+                    format: 'DD/MM/YYYY',
+                    cancelLabel: 'Clear'
+                }
+            });
+            // $(document).on('click', '.add-date-filter', function(e) {
+            //     $.fn.dataTable.ext.search.push(
+            //         function( settings, data, dataIndex, rowData ) {
+            //             // var min = minDate.val();
+            //             // var max = maxDate.val();
+            //             var min = '2021-08-01';
+            //             var max = '2021-08-03';
+            //             // var date = new Date( data[20] );
+            //             var date_split = '1/8/2021'.split('/');
+            //             console.log('Date Data being pushed' + data[20])
+            //             var month = date_split[1];
+            //             // if (month.length == 1){
+            //             //     month = '0' + month;
+            //             // }
+            //             var days = date_split[0];
+            //             // if (days.length == 1){
+            //             //     days = '0' + days;
+            //             // }
+            //             var date = date_split[2] + '-' + month + '-' + days
+            //             console.log('Date Pushed' + date, 'Start Pushed' + min, 'End Pushed' + max);
+                    
+            //             if (( min === null && max === null ) || ( min === null && date <= max ) || ( min <= date   && max === null ) || ( min <= date   && date <= max )) {
+            //                 console.log(true);
+            //                 return true;
+            //             } else {
+            //                 // $.fn.dataTable.ext.search.pop('');
+            //                 console.log(false);
+            //                 return false;
+            //             }
+            //         }
+            //     );
+            //     dataTable.draw();
+            // })
+            // $(document).on('click', '.remove-date-filter', function(e) {
+            //     $.fn.dataTable.ext.search.pop('');
+            //     dataTable.draw();
+            // });
+            $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
+                console.log("A new date selection was made: " + picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
+                $.fn.dataTable.ext.search.pop('');
+                $.fn.dataTable.ext.search.push(
+                    function( settings, data, dataIndex ) {
+                        var min = picker.startDate.format('YYYY-MM-DD');
+                        var max = picker.endDate.format('YYYY-MM-DD');
+                        var date_split = data[20].split('/');
+                        console.log('Date Data being pushed' + data[20])
+                        if (!isNullorEmpty(data[20])){
+                            var month = date_split[1];
+                            if (date_split[1].length == 1){
+                                month = '0' + month;
+                            }
+                            var days = date_split[0];
+                            if (date_split[0].length == 1){
+                                days = '0' + days;
+                            }
+                            var date = date_split[2] + '-' + month + '-' + days
+                            console.log('Date Pushed' + date, 'Start Pushed' + min, 'End Pushed' + max);
+                        
+                            if (( min === null && max === null ) || ( min === null && date <= max ) || ( min <= date   && max === null ) || ( min <= date   && date <= max )) {
+                                console.log(true);
+                                return true;
+                            } else {
+                                // $.fn.dataTable.ext.search.pop('');
+                                console.log(false);
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                );
+                dataTable.draw();
+            });
+            $('input[name="daterange"]').on('cancel.daterangepicker', function(start, end, label) {
+                $(this).val('');
+                $.fn.dataTable.ext.search.pop('');
+                dataTable.draw();
+            });
+
             /**
              *  Click for Instructions Section Collapse
              */
@@ -778,13 +869,14 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     { title: 'MP Ticket' }, // 10
                     { title: 'Viewed | Multi-Viewed' }, // 11
                     { title: 'Allocate | Snooze' }, // 12
-                    { title: 'MAAP Payment Status' } // 13
+                    // { title: 'MAAP Payment Status' }, // 13
                     // 14 - Customer ID
                     // 15 - Tick Status / This is for the added notes section. Redundent
                     // 16 - Record ID
                     // 17 - Notes
                     // 18 - Viewed,
                     // 19 - Duplicate?
+                    { title: 'Customer: Start Date' } // 20 - Start Date
                 ],
                 columnDefs: [{
                         targets: [1, 5, 6, 7],
@@ -800,7 +892,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     },
                     {
                         width: '10%',
-                        targets: [4, 11, 12]
+                        targets: [4, 11, 12, 20]
                     },
                     {
                         targets: [10, 13, 14, 15, 16, 17, 18, 19],
@@ -1064,7 +1156,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var teamExpression = [];
                 var auth_id = $('#team_filter').val();
                 console.log('On Load Auth ID in Team Filter: ' + auth_id)
-                if ((parseInt(auth_id) == 691582) || (parseInt(auth_id) == 1403209) || parseInt(auth_id) == 755585 || (parseInt(auth_id) == 924435)) { //  
+                if ((parseInt(auth_id) == 691582) || (parseInt(auth_id) == 1403209) || parseInt(auth_id) == 755585 || (parseInt(auth_id) == 924435)) { //  || (parseInt(auth_id) == 429450
                     if (!isNullorEmpty(auth_id)) {
                         teamExpression.push(['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id]) //  if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id]) }
                     } else {
@@ -1076,8 +1168,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         // Don't Filter. 
                 }
             }
-            filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'Secure Cash']);
             filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'NP - ']);
+            filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'SC - ']);
             invoiceResults.filterExpression = filterExpression;
 
             var invResultRun = invoiceResults.run();
@@ -1146,6 +1238,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var viewed = invoiceSet.getValue({
                             name: 'custrecord_debt_coll_viewed'
                         });
+                        var start_date = invoiceSet.getValue({ name: 'custrecord_debt_coll_commencement' })
 
                         if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
                             debt_set.push({
@@ -1166,7 +1259,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 ts: tick_status,
                                 id: recID,
                                 zzz: snooze,
-                                eye: viewed
+                                eye: viewed,
+                                sd: start_date
                             });
                         }
                         return true;
@@ -1245,10 +1339,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var record_id = debt_row.id;
                     var snooze = debt_row.zzz;
                     var viewed = debt_row.eye;
-
+                    var start_date = debt_row.sd;
 
                     if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) {
-                        debtDataSet.push([date, invoice, maap_bank, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id, snooze, viewed, duplicate]);
+                        debtDataSet.push([date, invoice, maap_bank, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id, snooze, viewed, duplicate, start_date]);
                     }
                 });
             }

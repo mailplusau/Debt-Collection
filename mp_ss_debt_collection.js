@@ -116,7 +116,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             // var invResultSet = invoiceSearch(range_id, date_from, date_to);
             // var resultsSet = invResultSet.getRange({
             //     start: 0,
-            //     end: 10
+            //     end: 1
             // });
 
             resultsSet.forEach(function(invoiceSet, index) {
@@ -324,17 +324,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         maap_status_search.filters.push(date_to_filter);
                         maap_status_search.filters.push(date_from_filter);
                         maap_status_search.filters.push(bankacc_filter);
-                        var maap_results = maap_status_search.run().getRange({
-                            start: 0,
-                            end: 1
-                        });
+                        var maap_results = maap_status_search.run().getRange({ start: 0, end: 1 });
                         maap_results.forEach(function(status) {
                             var client_number = status.getValue({ name: 'custbody_maap_tclientaccount' });
                             if (maap_bank == client_number) {
                                 maap_status = 'Payed';
                                 log.debug({
                                     title: 'PAYEDDD'
-                                })
+                                });
                             }
                         });
                         if (isNullorEmpty(invoiceSet.getValue({ name: 'custbody_invoice_snooze_date' }))) {
@@ -342,6 +339,43 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         } else {
                             var snooze = 'true';
                         }
+
+                        /**
+                         * Commencement Date - Search
+                         * 1. Customer
+                         * 2. Invoice
+                         */
+                        // var commencement_search = search.load({ type: 'customer', id: 'customsearch_debt_coll_comm_reg' });
+                        // commencement_search.filters.push(search.createFilter({
+                        //     name: 'internalid',
+                        //     operator: search.Operator.IS,
+                        //     values: customer_id
+                        // }));
+                        // var commencement_date = '';
+                        // var commencement_result = commencement_search.run().getRange({ start: 0, end: 1 })
+                        // commencement_result.forEach(function(res) {
+                        //     commencement_date = res.getValue({ name: 'custrecord_comm_date', join: 'custrecord_customer' });
+                        //     log.debug({
+                        //         title: 'commencement_date',
+                        //         details: commencement_date
+                        //     })
+                        // });
+                        var commencement_search = search.load({ type: 'invoice', id: 'customsearch_debt_coll_inv_comm' });
+                        commencement_search.filters.push(search.createFilter({
+                            name: 'internalid',
+                            join: 'customer',
+                            operator: search.Operator.IS,
+                            values: customer_id
+                        }));
+                        var commencement_date = '';
+                        var commencement_result = commencement_search.run().getRange({ start: 0, end: 1 })
+                        commencement_result.forEach(function(res) {
+                            commencement_date = res.getValue({ name: 'trandate' });
+                            log.debug({
+                                title: 'commencement_date',
+                                details: commencement_date
+                            })
+                        });
                         // if (invoiceSet.getValue({ name: 'custrecord_debt_coll_viewed'}) == 'true'){
                         //     viewed = true;
                         // } else {
