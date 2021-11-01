@@ -52,6 +52,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // Load Bootstrap
                 inlineHtml += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">';
                 inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
+                
                 // Load DataTables
                 inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">';
                 inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>';
@@ -239,7 +240,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<option value="" selected>- None -</option>';
             inlineQty += '<option value="691582">Turkan</option>';
             inlineQty += '<option value="755585">Yassine</option>'; 
-            inlineQty += '<option value="1403209">Jasmeet</option>'; // Jori - 429450
+            // inlineQty += '<option value="1403209">Jasmeet</option>'; // Jori - 429450
             inlineQty += '<option value="429450">Jori</option>'; // Jori - 429450
             inlineQty += '<option value="924435">Test</option>';
             // inlineQty += '<option value=""></option>';

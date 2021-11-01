@@ -152,30 +152,30 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             title: 'In Search: Get Cust Value',
                             details: 'Customer ID: ' + cust_id + ' | Author ID: ' + custAuthField + ' | Current Authord ID: ' + auth_id
                         });
-                        // if (auth_id == 1) {
-                        //     custRecord.setValue({
-                        //         fieldId: 'custentity_debt_coll_auth_id',
-                        //         value: 691582 // Turkan
-                        //     });
-                        // }
-                        // if (auth_id == 2) {
-                        //     custRecord.setValue({
-                        //         fieldId: 'custentity_debt_coll_auth_id',
-                        //         value: 1403209 // Jasmeet
-                        //     });
-                        // }
-                        // if (auth_id == 3) {
-                        //     custRecord.setValue({
-                        //         fieldId: 'custentity_debt_coll_auth_id',
-                        //         value: 755585 // Yassine
-                        //     });
-                        // }
-                        // if (auth_id == 4) {
+                        if (auth_id == 1) {
+                            custRecord.setValue({
+                                fieldId: 'custentity_debt_coll_auth_id',
+                                value: 691582 // Turkan
+                            });
+                        }
+                        if (auth_id == 2) {
+                            custRecord.setValue({
+                                fieldId: 'custentity_debt_coll_auth_id',
+                                value: 1403209 // Jasmeet
+                            });
+                        }
+                        if (auth_id == 3) {
+                            custRecord.setValue({
+                                fieldId: 'custentity_debt_coll_auth_id',
+                                value: 755585 // Yassine
+                            });
+                        }
+                        if (auth_id == 4) {
                             custRecord.setValue({
                                 fieldId: 'custentity_debt_coll_auth_id',
                                 value:  429450// Jori
                             });
-                        // }
+                        }
 
                         var custRecSaveTicket = custRecord.save();
                         // var custRecSaveTicket = 'Saved'

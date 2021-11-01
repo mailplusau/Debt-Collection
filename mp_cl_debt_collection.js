@@ -609,7 +609,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
                 var bodyTimers = '<div /*class="col col-lg-12"*/ id="team_allocate">';
                 bodyTimers += '<div class="col-md-3"><button type="button" id="691582" class="team_allocate form=control btn-xs ' + +'" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Turkan</span></button></div>';
-                bodyTimers += '<div class="col-md-3"><button type="button" id="1403209" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Jasmeet</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="429450" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Jori</span></button></div>';
                 bodyTimers += '<div class="col-md-3"><button type="button" id="755585" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Yassine</span></button></div>';
                 bodyTimers += '<div class="col-md-3"><button type="button" id="924435" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">- Test -</span></button></div>';
                 bodyTimers += '</div>';
@@ -1156,7 +1156,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var teamExpression = [];
                 var auth_id = $('#team_filter').val();
                 console.log('On Load Auth ID in Team Filter: ' + auth_id)
-                if ((parseInt(auth_id) == 691582) || (parseInt(auth_id) == 1403209) || parseInt(auth_id) == 755585 || (parseInt(auth_id) == 924435)) { //  || (parseInt(auth_id) == 429450
+                if ((parseInt(auth_id) == 691582) || parseInt(auth_id) == 755585 || (parseInt(auth_id) == 924435) || (parseInt(auth_id) == 429450)) { //  | Old - Jassmeet || (parseInt(auth_id) == 1403209) |
                     if (!isNullorEmpty(auth_id)) {
                         teamExpression.push(['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id]) //  if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id]) }
                     } else {
