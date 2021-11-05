@@ -235,6 +235,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             name: 'entity'
                         });
 
+                        var company_name = invoiceSet.getValue({
+                            name: 'altname',
+                            join: 'customer'
+                        })
+
                         var finance_role = invoiceSet.getValue({
                             name: 'custentity_debt_coll_auth_id',
                             join: 'customer'
@@ -463,6 +468,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 fieldId: 'custrecord_debt_coll_auth_id',
                                 value: finance_role
                             });
+
                             /**
                              * Commencement Date of Customer
                              */
@@ -474,6 +480,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             //     fieldId: 'custrecord_debt_coll_viewed',
                             //     value: viewed
                             // });
+
+                            invRecord.setValue({ 
+                                fieldId: 'custrecord_debt_coll_inv_comp_name',
+                                value: company_name 
+                            });
 
                             invRecord.save();
                         }

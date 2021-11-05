@@ -727,8 +727,6 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).find('.span_class').toggleClass('glyphicon-plus');
                 $(this).find('.span_class').toggleClass('glyphicon-minus');
             });
-
-            
             
             /**
              *  Date Range Filter
@@ -827,7 +825,14 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             })
             $('.collapse').on('hide.bs.collapse', function() {
                 $(".range_filter_section_top").css("padding-top", "0px");
-            })
+            });
+
+            // if (zee_id != 0){
+                $(document).ready(function(){
+                    var column = dataTable.column([21]);
+                    column.visible(false)
+                });
+            // }
         }
 
         function submitSearch() {
@@ -876,7 +881,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     // 17 - Notes
                     // 18 - Viewed,
                     // 19 - Duplicate?
-                    { title: 'Customer: Start Date' } // 20 - Start Date
+                    { title: 'Customer: Start Date' }, // 20 - Start Date
+                    { title: 'Customer: Company Name' } // 21 - Company Name
                 ],
                 columnDefs: [{
                         targets: [1, 5, 6, 7],
@@ -1238,7 +1244,11 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         var viewed = invoiceSet.getValue({
                             name: 'custrecord_debt_coll_viewed'
                         });
-                        var start_date = invoiceSet.getValue({ name: 'custrecord_debt_coll_commencement' })
+                        var start_date = invoiceSet.getValue({ name: 'custrecord_debt_coll_commencement' });
+
+                        var company_name = invoiceSet.getValue({ 
+                            name: 'custrecord_debt_coll_comp_name'
+                        })
 
                         if (!isNullorEmpty(zee_name) || !isNullorEmpty(customer_name)) {
                             debt_set.push({
@@ -1247,7 +1257,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 in: invoice_name, // 2
                                 mba: maap_bank,
                                 cid: customer_id,
-                                cm: customer_name,
+                                cn: customer_name,
                                 zee: zee_name,
                                 ta: total_amount,
                                 od: overdue,
@@ -1260,7 +1270,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 id: recID,
                                 zzz: snooze,
                                 eye: viewed,
-                                sd: start_date
+                                sd: start_date,
+                                cmn:company_name
                             });
                         }
                         return true;
@@ -1303,15 +1314,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var invoice = '<a href="' + baseURL + upload_url_inv + invoice_id + '" target="_blank">' + invoice_name + '</a>';
                     var maap_bank = debt_row.mba;
                     var customer_id = debt_row.cid;
-                    var cm_link = debt_row.cm;
-                    var params = {
-                        custid: customer_id,
-                        scriptid: 'customscript_sl_customer_list',
-                        deployid: 'customdeploy_sl_customer_list'
-                    }
-                    params = JSON.stringify(params);
+
+                    var company_name = debt_row.cmn; // Company Name
+
+                    var cm_link = debt_row.cn; // Company Name with Cust ID
                     var upload_url_cust = '/app/common/entity/custjob.nl?id=';
-                    var company_name = '<a href="' + baseURL + upload_url_cust + customer_id + '" target="_blank">' + cm_link + '</a>';
+                    var customer_name = '<a href="' + baseURL + upload_url_cust + customer_id + '" target="_blank">' + cm_link + '</a>';
                     var zee = debt_row.zee;
                     var amount = parseFloat(debt_row.ta);
                     debt_rows.forEach(function(debt) {
@@ -1341,8 +1349,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var viewed = debt_row.eye;
                     var start_date = debt_row.sd;
 
-                    if (!isNullorEmpty(zee) || !isNullorEmpty(company_name)) {
-                        debtDataSet.push([date, invoice, maap_bank, company_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id, snooze, viewed, duplicate, start_date]);
+                    if (!isNullorEmpty(zee) || !isNullorEmpty(customer_name)) {
+                        debtDataSet.push([date, invoice, maap_bank, customer_name, zee, tot_num, tot_am, due_date, overdue, period, mp_ticket, note, checkbox, maap_status, customer_id, tick_status, record_id, snooze, viewed, duplicate, start_date, company_name]);
                     }
                 });
             }
