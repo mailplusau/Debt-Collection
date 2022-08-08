@@ -123,7 +123,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 indexInCallback = index;
 
                 var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 100 || index == 999) {
+                if (usageLimit < 200 || index == 999) {
                     params = {
                         custscript_debt_inv_main_index: main_index + index,
                         custscript_debt_inv_range: range_id,
@@ -145,6 +145,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     log.error({
                         title: 'Attempting: Rescheduling Script',
                         details: reschedule
+                    });
+                    log.error({
+                        title: 'Attempting: Rescheduling With ID',
+                        details: reschedule_id
                     });
                     return false;
                 } else {
@@ -345,26 +349,28 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             var snooze = 'true';
                         }
 
+                        // Invoice Email Notification
+                        var servDebtEmail = search.load({ type: 'customrecord_serv_debt_email', id: 'customsearch_serv_debt_email' });
+                        servDebtEmail.filters.push(search.createFilter({
+                            name: 'name',
+                            operator: search.Operator.IS,
+                            values: customer_id
+                        }));
+                        var inv_email_sent = 'No';
+                        var inv_email_count = 0;
+                        servDebtEmail.run().each(function(res){
+                            if (!isNullorEmpty(res.getValue('internalid'))){
+                                inv_email_sent = 'Yes';
+                            }
+                            inv_email_count++;
+                            return true;
+                        });
+                        
                         /**
                          * Commencement Date - Search
                          * 1. Customer
                          * 2. Invoice
                          */
-                        // var commencement_search = search.load({ type: 'customer', id: 'customsearch_debt_coll_comm_reg' });
-                        // commencement_search.filters.push(search.createFilter({
-                        //     name: 'internalid',
-                        //     operator: search.Operator.IS,
-                        //     values: customer_id
-                        // }));
-                        // var commencement_date = '';
-                        // var commencement_result = commencement_search.run().getRange({ start: 0, end: 1 })
-                        // commencement_result.forEach(function(res) {
-                        //     commencement_date = res.getValue({ name: 'custrecord_comm_date', join: 'custrecord_customer' });
-                        //     log.debug({
-                        //         title: 'commencement_date',
-                        //         details: commencement_date
-                        //     })
-                        // });
                         var commencement_search = search.load({ type: 'invoice', id: 'customsearch_debt_coll_inv_comm' });
                         commencement_search.filters.push(search.createFilter({
                             name: 'internalid',
@@ -469,6 +475,16 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 value: finance_role
                             });
 
+                            // Invoice Email Notification
+                            invRecord.setValue({
+                                fieldId: 'custrecord_debt_coll_inv_email_sent',
+                                value: inv_email_sent
+                            });
+                            invRecord.setValue({ 
+                                fieldId: 'custrecord_debt_coll_inv_email_sent_cnt',
+                                value: parseInt(inv_email_count)
+                            });
+
                             /**
                              * Commencement Date of Customer
                              */
@@ -527,7 +543,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         custscript_debt_inv_date_to: date_to,
                         custscript_debt_inv_invoice_id_set: JSON.stringify([]),
                     };
-                    if (range_id_reschedule < 4 || range_id_reschedule != 4) {
+                    if (JSON.parse(range_id_reschedule) <= 3 && JSON.parse(range_id_reschedule) != 4) {
                         var reschedule2 = task.create({
                             taskType: task.TaskType.SCHEDULED_SCRIPT,
                             scriptId: 'customscript_ss_debt_collection',
@@ -535,6 +551,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             params: params2
                         });
                         var reschedule_id2 = reschedule2.submit();
+                        log.error({
+                            title: 'Attempting: Range With ID',
+                            details: reschedule_id2
+                        });
                         return true;
                     }
                     return true;

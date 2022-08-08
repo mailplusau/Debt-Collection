@@ -15,7 +15,7 @@
  */
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
-    function(runtime, search, record, log, task, currentRecord, format) {
+    function (runtime, search, record, log, task, currentRecord, format) {
         var zee = 0;
         var role = 0;
 
@@ -39,17 +39,31 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var ctx = runtime.getCurrentScript();
 
         function debtCollection() {
-            var auth_id = ctx.getParameter({ name: 'custscript_debt_inv_auth_id' }); // 1 == Turkan, 2 == Jasmeet, 3 == Yassine, Jori == 4
-            if (isNullorEmpty(auth_id)) {
-                auth_id = 1;
-            }
-            var auth_id_set = ['Turkan', 'Yassine', 'Madillon']
-            log.debug({
-                title: 'Allocate/Author ID',
-                details: auth_id
-            })
+            var emp_id = ctx.getParameter({ name: 'custscript_debt_inv_assign_emp_id' }); // Array of Id's for Employees
+            // emp_id = emp_id.split(',');
+            // log.debug({
+            //     title: 'Employee ID',
+            //     details: emp_id
+            // });
+            // log.debug({
+            //     title: 'Employee ID: 1',
+            //     details: emp_id[0]
+            // });
 
-            var main_index = ctx.getParameter({ name: 'custscript_debt_inv_auth_main_index' });
+            var split_bool = ctx.getParameter({ name: 'custscript_debt_inv_assign_emp_split' });
+            if (!isNullorEmpty(split_bool)){
+                split_bool = true;
+                var emp_split_id = ctx.getParameter({ name: 'custscript_debt_inv_assign_emp_split_id' }); 
+            } else {
+                split_bool = false;
+            }
+
+            var assign_id = ctx.getParameter({ name: 'custscript_debt_inv_assign_id' }); 
+            if (isNullorEmpty(assign_id)){
+                assign_id = 0;
+            }
+
+            var main_index = ctx.getParameter({ name: 'custscript_debt_inv_assign_main_index' });
             if (isNullorEmpty(main_index)) {
                 main_index = 0;
             }
@@ -58,64 +72,68 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 details: main_index
             });
 
-            var split_count = ctx.getParameter({ name: 'custscript_debt_inv_auth_count' });
-            if (isNullorEmpty(split_count)) {
-                split_count = 0;
+            var count = ctx.getParameter({ name: 'custscript_debt_inv_assign_count' });
+            if (isNullorEmpty(count)) {
+                count = 0;
             }
+            
 
-            var invoice_id_set = ctx.getParameter({ name: 'custscript_debt_inv_auth_invoice_id_set' });
+            var invoice_id_set = ctx.getParameter({ name: 'custscript_debt_inv_assign_invoice_id' });
             if (isNullorEmpty(invoice_id_set)) {
                 invoice_id_set = JSON.parse(JSON.stringify([]));
             } else {
                 invoice_id_set = JSON.parse(invoice_id_set);
             }
-            var columns = [];
-            // columns[0] = search.createColumn({
-            //     name: "companyname",
-            //     join: "customer",
-            //     summary: search.Summary.GROUP
-            // });
-            // columns[1] = search.createColumn({
-            //     name: "internalid",
-            //     join: "customer",
-            //     sort: search.Sort.ASC,
-            //     summary: search.Summary.GROUP
-            // });
+            
             var invResultSet = search.load({
                 id: 'customsearch_debt_coll_inv_2',
-                type: 'invoice',
-                columns: columns
+                type: 'invoice'
             });
+
+            if (split_bool == true){
+                invResultSet.filters.push(search.createFilter({
+                    name: 'custentity_debt_coll_auth_id',
+                    join: 'customer',
+                    operator: search.Operator.IS,
+                    values: emp_split_id
+                }));
+            }
+            // var resultsSet = invResultSet.run().getRange({
+            //     start: main_index,
+            //     end: main_index + 999
+            // });
             var resultsSet = invResultSet.run().getRange({
-                start: main_index,
-                end: main_index + 999
+                start: 0,
+                end: 9
             });
-            var count = invResultSet.runPaged().count;
+            var result_count = invResultSet.runPaged().count;
             log.debug({
-                title: 'Count',
-                details: count
-            })
-            split_count = parseInt(count / 3); // count = 12000, split_count == 4000. Everytime its 4000, it will increment auth_id, changing team member name and setting that.
+                title: 'Result Count',
+                details: result_count
+            });
+            split_count = parseInt(result_count / count); // count = 12000, split_count == 4000. Everytime its 4000, it will increment auth_id, changing team member name and setting that.
             log.debug({
                 title: 'Divided Count',
                 details: split_count
-            })
-
-            // log.debug({
-            //     title: 'Results: JSON String',
-            //     details: JSON.parse(JSON.stringify(resultsSet))
-            // });
-            resultsSet.forEach(function(invoiceSet, index) {
+            });
+            /**
+             *  Test Conditions:
+             */
+            
+            // emp_id = ['924435', '1115209', '409635']; // 1 - Anesu | 2 - Sruti | 3 - Ankith
+            // split_count = 7
+            
+            resultsSet.forEach(function (invoiceSet, index) {
                 indexInCallback = index;
                 seconday_index = main_index + index;
 
                 var usageLimit = ctx.getRemainingUsage();
                 if (usageLimit < 200 || main_index == 999) {
                     params = {
-                        custscript_debt_inv_auth_main_index: main_index + index - 5,
-                        custscript_debt_inv_auth_id: auth_id,
-                        custscript_debt_inv_auth_count: split_count,
-                        custscript_debt_inv_auth_invoice_id_set: JSON.stringify(invoice_id_set)
+                        custscript_debt_inv_assign_main_index: main_index + index - 5,
+                        custscript_debt_inv_assign_id: assign_id,
+                        custscript_debt_inv_assign_count: split_count,
+                        custscript_debt_inv_assign_invoice_id_set: JSON.stringify(invoice_id_set)
                     };
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
@@ -129,7 +147,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         details: reschedule
                     });
                     return false;
+
                 } else {
+
                     log.audit({
                         title: 'In Search: Secondary Index',
                         details: seconday_index
@@ -150,39 +170,28 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
                         log.audit({
                             title: 'In Search: Get Cust Value',
-                            details: 'Customer ID: ' + cust_id + ' | Current Author ID on Record: ' + custAuthField + ' | Assigning Author ID: ' + auth_id_set[parseInt(auth_id)-1]
+                            details: 'Customer ID: ' + cust_id + ' | Author ID: ' + custAuthField + ' | Current Employee ID: ' + emp_id[assign_id] + ' | Assigned ID ' + assign_id
                         });
-                        if (auth_id == 1) {
-                            custRecord.setValue({
-                                fieldId: 'custentity_debt_coll_auth_id',
-                                value: 691582 // Turkan
-                            });
-                        }
-                        if (auth_id == 2) {
-                            custRecord.setValue({
-                                fieldId: 'custentity_debt_coll_auth_id',
-                                value: 755585 // Yassine
-                            });
-                        }
-                        if (auth_id == 3) {
-                            custRecord.setValue({
-                                fieldId: 'custentity_debt_coll_auth_id',
-                                value:  1672674 // Madillon
-                            });
-                        }
-                        var custRecSaveTicket = custRecord.save();
+
+                        custRecord.setValue({
+                            fieldId: 'custentity_debt_coll_auth_id',
+                            value: parseInt(emp_id[assign_id]) // Turkan
+                        });
+
+                        // var custRecSaveTicket = custRecord.save();
+                        var custRecSaveTicket = 'Saved'
                         log.audit({
                             title: 'Record Finished',
                             details: custRecSaveTicket
                         });
 
                         log.audit({
-                            title: 'Allocation ID',
-                            details: auth_id
+                            title: 'Assigned ID',
+                            details: assign_id
                         });
                         if (seconday_index % split_count == 0 && seconday_index != 0) { // 4000 = 4000
-                            if (auth_id < 4) {
-                                auth_id++; // ie, whenever it hits the split count amount, increment auth_id by 1, changing allocated finance team member.
+                            if (assign_id <= (emp_id.length-1)) {
+                                assign_id ++; // ie, whenever it hits the split count amount, increment auth_id by 1, changing allocated finance team member.
                             }
                         }
                     }

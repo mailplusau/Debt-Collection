@@ -93,6 +93,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '<li><button type="button" class="btn-xs btn-info" disabled><span class="glyphicon glyphicon-time"></span></button> - Click to view Snooze Timers</li><li><button type="button" class="timer-1day form=control btn-xs btn-info" disabled><span class="span_class">1 Day</span></button> - Click to select Snooze duration of invoice from Debt Collections Page.</li>';
                 inlineHtml += '</li></ul></div>';
 
+                // Service Debtors Email
+                // inlineHtml += '<button style="background-color: #FBEA51; color: #103D39;" type="button" id="redirect_serv_debt" onclick="">Service Debtors Email Notifcation</button>';
+                inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Service Debtors Email Notifcation</button>'
+
                 inlineHtml += loadingSection();
                 inlineHtml += rangeSelection();
                 inlineHtml += dateFilterSection();
@@ -239,9 +243,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<select id="team_filter" class="form-control">';
             inlineQty += '<option value="" selected>- None -</option>';
             inlineQty += '<option value="691582">Turkan</option>';
-            inlineQty += '<option value="755585">Yassine</option>'; 
-            // inlineQty += '<option value="1403209">Jasmeet</option>'; // Jori - 429450
-            inlineQty += '<option value="429450">Jori</option>'; // Jori - 429450
+            // inlineQty += '<option value="1403209">Jasmeet</option>';
+            // inlineQty += '<option value="429450">Jori</option>';
+            // inlineQty += '<option value="1626909">Azalea</option>';
+            inlineQty += '<option value="1672674">Madillon</option>';
+            inlineQty += '<option value="755585">Yassine</option>';
             inlineQty += '<option value="924435">Test</option>';
             // inlineQty += '<option value=""></option>';
             inlineQty += '</select>';
