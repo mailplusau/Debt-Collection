@@ -94,8 +94,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 inlineHtml += '</li></ul></div>';
 
                 // Service Debtors Email
-                // inlineHtml += '<button style="background-color: #FBEA51; color: #103D39;" type="button" id="redirect_serv_debt" onclick="">Service Debtors Email Notifcation</button>';
-                inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Service Debtors Email Notifcation</button>'
+                inlineHtml += '<button type="button" id="redirect_serv_debt" class="btn btn-sm btn-info" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Service Debtors Email Notifcation</button>'
 
                 inlineHtml += loadingSection();
                 inlineHtml += rangeSelection();

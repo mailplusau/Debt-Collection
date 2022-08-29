@@ -887,7 +887,13 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 rowCallback: function(row, data) {
                     // $('td:eq(1)', row).html;       
                     $(row).addClass('')
-                    if (data[18] == true) {
+                    if (data[19].includes('Yes')) {
+                        if ($(row).hasClass('odd')) {
+                            $(row).css('background-color', 'rgba(51, 204, 255, 0.65)'); // Lighter Blue / Baby Blue
+                        } else {
+                            $(row).css('background-color', 'rgba(78, 175, 214, 0.75)'); // Darker Blue
+                        }
+                    } else if (data[18] == true) {
                         if ($(row).hasClass('odd')) {
                             $(row).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light-Purple
                             $(row).addClass('showDanger')
@@ -918,13 +924,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             $(row).css('background-color', 'rgba(255, 0, 0, 0.4)'); // Red
                             $(row).addClass('showDanger')
                         }
-                    } else if (data[19] == true) {
-                        if ($(row).hasClass('odd')) {
-                            $(row).css('background-color', 'rgba(51, 204, 255, 0.65)'); // Lighter Blue / Baby Blue
-                        } else {
-                            $(row).css('background-color', 'rgba(78, 175, 214, 0.75)'); // Darker Blue
-                        }
-                    }
+                    } 
                 }
             });
 
