@@ -124,7 +124,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         // });
 
         /* Parameters | Filters */
-        range_selection = [range_selection.split("\u0005")];
+        range_selection = range_selection.split("\u0005");
         $('#date_from').val(date_from);
         $('#date_to').val(date_to);
         
@@ -193,12 +193,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         // Viewed All
         $(document).on('click', '.viewed_all', function(){
             var cust_id = $(this).attr('cust-id');
-
-            var tr = $(this).closest('tr');
-            var row = dataTable.row(tr);
-            var index = row.data();
-            var invoiceIdSet = index[12];
-            console.log(invoiceIdSet);
+            var invoiceIdSet = ($(this).attr('invoice-set')).split(',');
             
             invoiceIdSet.forEach(function(inv_id){
                 // Set All Invoice as Viewed.
@@ -210,32 +205,59 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 // invRecord.save();
             })
 
+            var tr = $(this).closest('tr');
+            var row = dataTable.row(tr);
+            row.child.show();
             $('.viewed_'+cust_id+'').each(function(){
                 if ($(this).parent().parent().parent().hasClass('odd')) {
                     $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                    // $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple
+                    // $(this).parent().parent().parent().addClass('active')
                 } else {
                     $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                    // $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                    // $(this).parent().parent().parent().addClass('active')
                 }
             });
+            destroyChild(row);
         });
-        //viewed_single
+        // Viewed Single
         $(document).on('click', '.viewed_single', function(){
-            var cust_id = $(this).attr('id');
+            var inv_id = $(this).attr('id');
+            var cust_id = $(this).attr('cust-id');
 
             // Set invoice as Viewed.
-            var invRecord = record.load({ type: 'invoice', id: cust_id });
+            var invRecord = record.load({ type: 'invoice', id: inv_id });
             invRecord.setValue({
                 fieldId: 'custbody_invoice_viewed',
                 value: true
             });
             // invRecord.save();
 
+            $(this).addClass('active');
             if ($(this).parent().parent().parent().hasClass('odd')) {
                 $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
             } else {
                 $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
             }
+            
+            // Update Main If All Viewed
+            var viewed_count = 0;
+            var viewed_count_total = $('.viewed_'+cust_id+'').size();
+            $('.viewed_'+cust_id+'').each(function(){
+                if ($(this).hasClass('active')) {
+                    viewed_count++;  
+                }
+            });
+            if (viewed_count == viewed_count_total-1) {
+                if ($('.viewed_'+cust_id+'').parent().parent().parent().hasClass('odd')) {
+                    $('.viewed_'+cust_id+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                } else {
+                    $('.viewed_'+cust_id+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                }
+            }
         });
+
         /* Child Table */
         // Load with All Child Cells Open
         dataTable.rows().every(function() {
@@ -422,13 +444,8 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         /* Modals */
         $(document).on('click', '.timer', function() {
             try {
-                var tr = $(this).closest('tr');
-                var row = dataTable.row(tr);
-                var index = row.data();
-                console.log('Row Data: ' + index)
-                var invoiceNumber = (index[1].split('id=')[1]).split('"')[0];
-                console.log("Invoice Number: " + invoiceNumber);
-                var recordID = index[16];
+                var invoiceNumber = $(this).attr('invoice-id');
+                var custId = $(this).attr('cust-id');
 
                 var header = '<div><h3 style="text-align: center;"><label class="control-label">Snooze Timers</label></h3></div>';
 
@@ -437,11 +454,11 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 body += '<br>'
 
                 var bodyTimers = '<div /*class="col col-lg-12"*/ id="oldnote">';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-1day form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">1 Day</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-2day form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">2 Days</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-1week form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">1 Week</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-2week form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">2 Weeks</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" id="' + invoiceNumber + '" class="timer-permanent form=control btn-xs btn-info" record="' + recordID + '"><span class="span_class">Permanent</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-1day form-control btn-xs btn-info" cust-id="'+custId+'"><span>1 Day</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-2day form-control btn-xs btn-info" cust-id="'+custId+'"><span>2 Days</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-1week form-control btn-xs btn-info" cust-id="'+custId+'"><span>1 Week</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-2week form-control btn-xs btn-info" cust-id="'+custId+'"><span>2 Weeks</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-permanent form-control btn-xs btn-info" cust-id="'+custId+'"><span>Permanent</span></button></div>';
 
                 bodyTimers += '</div>';
                 bodyTimers += '<br><br>';
@@ -509,73 +526,223 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
 
         // Timer: 1 Day
         $(document).on('click', '.timer-1day', function() {
-            var invoiceNumber = $(this).attr('id');
-            var recordID = $(this).attr('record');
-            console.log("Invoice Number: " + invoiceNumber);
+            var invoiceNumber = $(this).attr('invoice-id');
+            var custId = $(this).attr('cust-id');
+
+            var snoozeRecord = record.load({
+                type: 'invoice',
+                id: invoiceNumber
+            });
+            var date = snoozeRecord.getValue({
+                fieldId: 'custbody_invoice_snooze_date'
+            });
+            snoozeRecord.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_day
+            });
+            // snoozeRecord.save();
 
             $(this).addClass('btn-success');
             $(this).removeClass('btn-info');
-            $('.timer_' + invoiceNumber).addClass('btn-success');
-
-            window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_day + '&period=1day' + '&recordid=' + recordID,
-                '_blank'
-            );
+            $('#timer_'+invoiceNumber+'').addClass('btn-success');
+            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            } else {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            }
+            // Update Main If All Viewed
+            var timer_count = 0;
+            var timer_count_total = $('.timer_'+custId+'').size();
+            $('.timer_'+custId+'').each(function(){
+                if ($(this).hasClass('active')) {
+                    timer_count++;
+                }
+            });
+            if (timer_count == timer_count_total-1) {
+                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                } else {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                }
+            }
         });
         // Timer: 2 Day
         $(document).on('click', '.timer-2day', function() {
-            var invoiceNumber = $(this).attr('id');
-            console.log("Invoice Number: " + invoiceNumber);
-            var recordID = $(this).attr('record');
+            var invoiceNumber = $(this).attr('invoice-id');
+            var custId = $(this).attr('cust-id');
+
+            var snoozeRecord = record.load({
+                type: 'invoice',
+                id: invoiceNumber
+            });
+            var date = snoozeRecord.getValue({
+                fieldId: 'custbody_invoice_snooze_date'
+            });
+            snoozeRecord.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_2day
+            });
+            // snoozeRecord.save();
 
             $(this).addClass('btn-success');
             $(this).removeClass('btn-info');
-            $('.timer_' + invoiceNumber).addClass('btn-success');
-
-            window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2day + '&period=2day' + '&recordid=' + recordID,
-                '_blank'
-            );
+            $('#timer_'+invoiceNumber+'').addClass('btn-success');
+            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            } else {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            }
+            // Update Main If All Viewed
+            var timer_count = 0;
+            var timer_count_total = $('.timer_'+custId+'').size();
+            $('.timer_'+custId+'').each(function(){
+                if ($(this).hasClass('active')) {
+                    timer_count++;
+                }
+            });
+            if (timer_count == timer_count_total-1) {
+                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                } else {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                }
+            }
         });
         // Timer: 1 Week
         $(document).on('click', '.timer-1week', function() {
-            var invoiceNumber = $(this).attr('id');
-            console.log("Invoice Number: " + invoiceNumber);
-            var recordID = $(this).attr('record');
+            var invoiceNumber = $(this).attr('invoice-id');
+            var custId = $(this).attr('cust-id');
+
+            var snoozeRecord = record.load({
+                type: 'invoice',
+                id: invoiceNumber
+            });
+            var date = snoozeRecord.getValue({
+                fieldId: 'custbody_invoice_snooze_date'
+            });
+            snoozeRecord.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_week
+            });
+            // snoozeRecord.save();
 
             $(this).addClass('btn-success');
             $(this).removeClass('btn-info');
-            $('.timer_' + invoiceNumber).addClass('btn-success');
-
-            window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_week + '&period=2day' + '&recordid=' + recordID,
-                '_blank'
-            );
+            $('#timer_'+invoiceNumber+'').addClass('btn-success');
+            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            } else {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            }
+            // Update Main If All Viewed
+            var timer_count = 0;
+            var timer_count_total = $('.timer_'+custId+'').size();
+            $('.timer_'+custId+'').each(function(){
+                if ($(this).hasClass('active')) {
+                    timer_count++;
+                }
+            });
+            if (timer_count == timer_count_total-1) {
+                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                } else {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                }
+            }
         });
         // Timer: 2 Week
         $(document).on('click', '.timer-2week', function() {
-            var invoiceNumber = $(this).attr('id');
-            console.log("Invoice Number: " + invoiceNumber);
-            var recordID = $(this).attr('record');
+            var invoiceNumber = $(this).attr('invoice-id');
+            var custId = $(this).attr('cust-id');
+
+            var snoozeRecord = record.load({
+                type: 'invoice',
+                id: invoiceNumber
+            });
+            var date = snoozeRecord.getValue({
+                fieldId: 'custbody_invoice_snooze_date'
+            });
+            snoozeRecord.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_2week
+            });
+            // snoozeRecord.save();
 
             $(this).addClass('btn-success');
             $(this).removeClass('btn-info');
-            $('.timer_' + invoiceNumber).addClass('btn-success');
-
-            window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=' + today_in_2week + '&period=2week' + '&recordid=' + recordID,
-                '_blank'
-            );
+            $('#timer_'+invoiceNumber+'').addClass('btn-success');
+            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            } else {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            }
+            // Update Main If All Viewed
+            var timer_count = 0;
+            var timer_count_total = $('.timer_'+custId+'').size();
+            $('.timer_'+custId+'').each(function(){
+                if ($(this).hasClass('active')) {
+                    timer_count++;
+                }
+            });
+            if (timer_count == timer_count_total-1) {
+                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                } else {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                }
+            }
         });
         // Timer: Permanent
         $(document).on('click', '.timer-permanent', function() {
-            var invoiceNumber = $(this).attr('id');
-            console.log("Invoice Number: " + invoiceNumber);
-            var recordID = $(this).attr('record');
+            var invoiceNumber = $(this).attr('invoice-id');
+            var custId = $(this).attr('cust-id');
+
+            var snoozeRecord = record.load({
+                type: 'invoice',
+                id: invoiceNumber
+            });
+            var date = snoozeRecord.getValue({
+                fieldId: 'custbody_invoice_snooze_date'
+            });
+            snoozeRecord.setValue({
+                fieldId: 'custbody_invoice_snooze_date',
+                value: today_in_2week
+            });
+            // snoozeRecord.save();
 
             $(this).addClass('btn-success');
             $(this).removeClass('btn-info');
-            $('.timer_' + invoiceNumber).addClass('btn-success');
-
-            window.open(baseURL + "/app/site/hosting/scriptlet.nl?script=1171&deploy=1" + '&invid=' + invoiceNumber + '&date=permanent&period=permanent' + '&recordid=' + recordID,
-                '_blank'
-            );
+            $('#timer_'+invoiceNumber+'').addClass('btn-success');
+            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            } else {
+                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                $('#timer_'+invoiceNumber+'').addClass('active');
+            }
+            // Update Main If All Viewed
+            var timer_count = 0;
+            var timer_count_total = $('.timer_'+custId+'').size();
+            $('.timer_'+custId+'').each(function(){
+                if ($(this).hasClass('active')) {
+                    timer_count++;
+                }
+            });
+            if (timer_count == timer_count_total-1) {
+                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                } else {
+                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                }
+            }
         });
 
         /* Period Selector */ 
@@ -608,7 +775,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
     }
 
     function loadDatatable(range, team_selection_id, date_from, date_to, userId){
-        console.log('Load DataTable: ' + range_selection, team_selection, date_from, date_to, userId)
+        console.log('Load DataTable: ' + range, team_selection, date_from, date_to, userId)
         // Reformat Date
         date_from = dateISOToNetsuite(date_from);
         date_to = dateISOToNetsuite(date_to);
@@ -632,68 +799,64 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         // filterExpression.push('AND', ['customer.companyname', search.Operator.DOESNOTCONTAIN, 'NP - ']); //
         // filterExpression.push('AND', ['customer.companyname', search.Operator.DOESNOTCONTAIN, 'SC - ']); // 
         // Range Selection
-        // if (range.length > 0) {
-        //     var rangeExpression = [];
-        //     if (range.indexOf('1') != -1) {
-        //         console.log('MPEX Products Selected');
-        //         rangeExpression.push(['custbody_inv_type', search.Operator.ANYOF, '8']);
-        //     }
-        //     if (range.indexOf('2') != -1) {
-        //         console.log('0 - 59 Days Selected');
-        //         if (range.indexOf('1') != -1) {
-        //             rangeExpression.push(['daysoverdue', search.Operator.LESSTHAN, '60']);
-        //         } else {
-        //             rangeExpression.push('OR', ['daysoverdue', search.Operator.LESSTHAN, '60']);
-        //             // var myFilter2_2 = search.createFilter({
-        //             //     name: 'custbody_inv_type',
-        //             //     operator: search.Operator.NONEOF,
-        //             //     values: '8'
-        //             // });
-        //         }
-        //     }
-        //     if (range.indexOf('3') != -1) {
-        //         console.log('60+ Day Selected');
-        //         if (range.length <= 1) {
-        //             rangeExpression.push(['daysoverdue', search.Operator.GREATERTHANOREQUALTO, '60']);
-        //         } else {
-        //             rangeExpression.push('OR', ['daysoverdue', search.Operator.GREATERTHANOREQUALTO, '60']);
-        //         }
-        //     }
-        //     filterExpression.push('AND', rangeExpression); //
-        // } else {
-        //     console.log('No Range Filter Has Been Added')
-        // }
+        if (range.length > 0) {
+            var rangeExpression = [];
+            if (range.indexOf('1') != -1) {
+                console.log('MPEX Products Selected');
+                rangeExpression.push(['custbody_inv_type', search.Operator.ANYOF, '8']);
+            }
+            if (range.indexOf('2') != -1) {
+                console.log('0 - 59 Days Selected');
+                if (range.indexOf('1') == -1) {
+                    rangeExpression.push(['daysoverdue', search.Operator.LESSTHAN, '60']);
+                } else {
+                    rangeExpression.push('OR', ['daysoverdue', search.Operator.LESSTHAN, '60']);
+                    // var myFilter2_2 = search.createFilter({
+                    //     name: 'custbody_inv_type',
+                    //     operator: search.Operator.NONEOF,
+                    //     values: '8'
+                    // });
+                }
+            }
+            if (range.indexOf('3') != -1) {
+                console.log('60+ Day Selected');
+                if (range.indexOf('1') == -1 || range.indexOf('2') == -1) {
+                    rangeExpression.push(['daysoverdue', search.Operator.GREATERTHANOREQUALTO, '60']);
+                } else {
+                    rangeExpression.push('OR', ['daysoverdue', search.Operator.GREATERTHANOREQUALTO, '60']);
+                }
+            }
+            filterExpression.push('AND', rangeExpression); //
+        } else {
+            console.log('No Range Filter Has Been Added')
+        }
         // Allocate ID
-        // var teamExpression = [];
-        // if ((parseInt(team_selection_id) == 691582) || parseInt(team_selection_id) == 755585 || (parseInt(team_selection_id) == 924435) || parseInt(team_selection_id) == 1672674) { // Old Ones: Jassmeet 1403209 || Jori - 429450 || Azalea - 1626909 || 
-        //     teamExpression.push(['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, team_selection_id]) //  if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, auth_id]) }
-        // } else {
-        //     teamExpression.push(['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, userId]) // if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, userId]) }
-        //     console.log('No Team Member Select Filter has been Added') // Don't Filter. 
-        // }
-        // filterExpression.push('AND', teamExpression);
+        var teamExpression = [];
+        if ((parseInt(team_selection_id) == 691582) || parseInt(team_selection_id) == 755585 || (parseInt(team_selection_id) == 924435) || parseInt(team_selection_id) == 1672674) { // Old Ones: Jassmeet 1403209 || Jori - 429450 || Azalea - 1626909 || 
+            teamExpression.push(['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, team_selection_id]) //  if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, auth_id]) }
+        } else {
+            teamExpression.push(['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, userId]) // if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['customer.custentity_debt_coll_auth_id', search.Operator.EQUALTO, userId]) }
+            console.log('No Team Member Select Filter has been Added') // Don't Filter. 
+        }
+        filterExpression.push('AND', teamExpression);
         
         invoiceResults.filterExpression = filterExpression;
         var invSearchResLength = invoiceResults.runPaged().count;
         var invResultRun = invoiceResults.run();
-
         var invResultSet = [];
+        for (var inv_main_index = 0; inv_main_index < 10000; inv_main_index += 1000) {
+            invResultSet.push(invResultRun.getRange({ start: inv_main_index, end: inv_main_index + 999 }));
+        }
+
         var main_index = 0;
-        // for (var main_index = 0; main_index < 10000; main_index += 1000) {
-            invResultSet.push(invResultRun.getRange({ start: main_index, end: main_index + 999 }));
-        // }
-        for (var i = 0; i < invResultSet.length; i++) {
-            var index = 0;
-            
-            var prev_cust_id = [];
-            var prev_comp_name = [];
-            var inv_id_set = [];
+        var prev_cust_id = [];
+        var prev_comp_name = [];
+        var inv_id_set = [];
+        var childObject = [];
+        var customerObject = [];
 
-            var childObject = [];
-            var customerObject = [];
-
+        for (var i = 0; i < invResultSet.length-1; i++) {
             invResultSet[i].forEach(function(invoiceSet, index){
-                console.log('Load Invoice Results: ' + index)
                 //Customer
                 var customerId = invoiceSet.getValue({
                     name: "internalid",
@@ -702,7 +865,6 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 });
                 if (index == 0) {
                     prev_cust_id.push(customerId) // Push First Iteration of Customer ID.
-                    // prev_comp_name.push(companyname);
                 }
                 var entityid = invoiceSet.getValue({
                     name: "entityid",
@@ -714,7 +876,8 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                     join: "customer",
                     label: "Company Name"
                 });
-                console.log(companyname);
+                // console.log(companyname + ' : ' + main_index + ' : ' + inv_id_set);
+
                 var partner = invoiceSet.getText({name: "partner", label: "Franchisee"})
                 var contact_name = invoiceSet.getText({
                     name: "contact",
@@ -828,7 +991,10 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
 
                     var tempCustObj = customerObject[customerObject.length-2];
 
-                    console.log(tempCustObj.invoice_id_set);
+                    var tempInvSet = inv_id_set;
+                    if (tempInvSet.length > 0){
+                        tempInvSet.pop();
+                    }
 
                     // if (childObject.length > 0){
                         debtDataSet.push(['',
@@ -841,37 +1007,37 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                             tempCustObj.phone_number, // Num
                             tempCustObj.start_date, // Customer Start Date
                             tempCustObj.maap_status, // MAAP Matching Status
-                            '<div class="col-xs-auto"><button type="button" id="' + tempCustObj.invoice_id + '" cust-id="'+tempCustObj.internalid+'" class="viewed_all viewed_'+tempCustObj.internalid+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>', // tempCustObj.last_emailed,
+                            '<div class="col-xs-auto"><button type="button" id="' + tempCustObj.invoice_id + '" cust-id="'+tempCustObj.internalid+'" invoice-set="'+tempInvSet+'" class="viewed_all viewed_'+tempCustObj.internalid+' timer_'+tempCustObj.internalid+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>', // tempCustObj.last_emailed,
                             childObject,
-                            '',
+                            tempInvSet, //12
                         ]);
                         childObject = [tempChildObj];
                     // }
 
                     prev_cust_id.push(customerId);
                     inv_id_set = [inv_id];
+                    
                     // prev_comp_name.push(companyname);
                 }
                 if (index == (invSearchResLength - 1)){
-                    console.log(inv_id_set);
-
                     var tempCustObj = customerObject[customerObject.length-1];
                     debtDataSet.push(['',
                         '<a href="' + baseURL + "/app/common/entity/custjob.nl?id=" + customerId + '" target="_blank"><p class="entityid">' + entityid + '</p></a>',//Customer ID //0 
                         maap_bank,// MAAP Bank Account Number
                         companyname,
-                        email,
                         partner,// franchisee,
+                        email, // Address
                         contact_name,
                         phone_number,
                         cust_start_date, // Start Date
                         maap_status, // MAAP Status
-                        '<div class="col-xs-auto"><button type="button" id="' + inv_id + '" cust-id="'+customerId+'" class="viewed_all viewed_'+customerId+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>',
+                        '<div class="col-xs-auto"><button type="button" id="" cust-id="'+customerId+'" class="viewed_all viewed_'+customerId+' timer_'+customerId+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>',
                         childObject,
                         inv_id_set
                     ]);
                     console.log('Last Customer');
                 } 
+                main_index++;
 
                 return true;
             })
@@ -898,8 +1064,8 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                     el.duedate,
                     '<p class="toggle-mp-ticket">' + el.mp_ticket + '</p>',
                     el.emailed,
-                    '<div class="col-xs-auto"><button type="button" id="' + el.ii + '" class="viewed_single viewed_'+el.custid+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>',//el.viewed,
-                    '<div class="col-xs-auto"><button type="button" id="' + el.ii + '" class="timer form=control btn-xs btn-info"><span class="span_class glyphicon glyphicon-time"></span></button></div>', //el.snooze,
+                    '<div class="col-xs-auto"><button type="button" id="" class="viewed_single viewed_'+el.custid+' form-control btn-xs btn-secondary" cust-id="'+el.custid+'"><span class="glyphicon glyphicon-eye-open"></span></button></div>',//el.viewed,
+                    '<div class="col-xs-auto"><button type="button" id="timer_' + el.ii + '" class="timer timer_'+el.custid+' form-control btn-xs btn-info" cust-id="'+el.custid+'" invoice-id="'+el.ii+'"><span class="glyphicon glyphicon-time"></span></button></div>', //el.snooze,
                     false// '<p class="viewed_value"></p>'
                 ]);
             }
@@ -994,8 +1160,6 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         //     });
         //     return true;
         // });
-
-
     }
 
     /**
