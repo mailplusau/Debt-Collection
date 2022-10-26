@@ -3,12 +3,12 @@
  * @NScriptType ClientScript
  *
  *  * NSVersion    Date                        Author         
- *  * 2.00         2022-07-05 09:33:08         Anesu
+ *  * 2.00         2022-09-01 09:33:08         Anesu
  * 
  * Description: Debt Collection Page
  *
  * @Last Modified by: Anesu Chakaingesu
- * @Last Modified time: 2022-07-05 09:33:08 
+ * @Last Modified time: 2022-10-12 09:33:08 
  * 
  */
 
@@ -34,7 +34,40 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
 
     // Data
     var debtDataSet = JSON.parse(JSON.stringify([]));
+    
+    //Service Debtors Email Notification
     var servDebtEmailList = [];
+    var seaServDebtEmail = search.load({ type: 'customrecord_serv_debt_email', id: 'customsearch_serv_debt_email' });
+    seaServDebtEmail.run().each(function(res){
+        var cust_id = res.getValue({ name: 'custrecord_serv_debt_email_cust_id'});
+        // var auth_id = res.getValue({ name: 'custrecord_serv_debt_email_auth_id'});
+        // var date = res.getValue({ name: 'custrecord_serv_debt_email_date'});
+        // var note = res.getValue({ name: 'custrecord_serv_debt_email_note'});
+
+        servDebtEmailList.push({
+            custid: cust_id,
+            // authid: auth_id,
+            // date: date,
+            // note: note
+        });
+        return true;
+    });
+    console.log(servDebtEmailList);
+
+    // Today's Date and Defining Date
+    var today = new Date();
+    var today_year = today.getFullYear();
+    var today_month = today.getMonth();
+    var today_day = today.getDate();
+    var today_date = new Date(today_year, today_month, today_day);
+    today_date = today_date.toISOString().split('T')[0];
+    today_date = dateISOToNetsuite(today_date);
+    console.log('today_date: ' + today_date);
+
+    // Snooze Timer Values
+    var snooze_value = currRec.getValue({ fieldId: 'custpage_debt_coll_snooze_value' });
+    var snooze_invoice_id = currRec.getValue({ fieldId: 'custpage_debt_coll_snooze_invoice_id' });
+    var snooze_duration = currRec.getValue({ fieldId: 'custpage_debt_coll_snooze_duration' });
 
     /**
      * On page initialisation
@@ -54,87 +87,18 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         $('#submitter').hide();
         $('#tbl_submitter').hide();
         
-
-        /** JQuery: First Load */
-        // Automaticaly Load Page Based on Preference List
-        // $(document).ready(function() {
-        //     console.log('ID: ' + userName);
-
-        //     var prefSearch = search.load({
-        //         type: 'customrecord_debt_coll_pref',
-        //         id: 'customsearch_debt_coll_pref'
-        //     });
-        //     prefSearch.filters.push(search.createFilter({
-        //         name: 'name',
-        //         operator: search.Operator.IS,
-        //         values: userId
-        //     }));
-        //     var prefCount = prefSearch.runPaged().count;
-        //     if (prefCount == 0) {
-        //         var prefRec = record.create({
-        //             type: 'customrecord_debt_coll_pref'
-        //         });
-        //         prefRec.setValue({
-        //             fieldId: 'name',
-        //             value: userId
-        //         });
-        //         prefRec.setValue({
-        //             fieldId: 'custrecord_pref_author',
-        //             value: userName
-        //         });
-        //         prefRec.setValue({
-        //             fieldId: 'custrecord_pref_range_id',
-        //             value: '0'
-        //         });
-        //         prefRec.setValue({
-        //             fieldId: 'custrecord_pref_date_from',
-        //             value: '2022-01-01'
-        //         });
-        //         prefRec.setValue({
-        //             fieldId: 'custrecord_pref_date_to',
-        //             value: '2022-12-01'
-        //         });
-        //         var prefRecId = prefRec.save();
-        //         console.log('New Record Created For New User :' + prefRec);
-        //     }
-        //     prefSearch.run().each(function(pref) {
-        //         var internalID = pref.getValue({
-        //             name: 'internalid'
-        //         });
-        //         var prefRecord = record.load({
-        //             type: 'customrecord_debt_coll_pref',
-        //             id: internalID
-        //         });
-        //         var range_id = prefRecord.getValue({
-        //             fieldId: 'custrecord_pref_range_id',
-        //         });
-        //         // range_id = range_id.split(',');
-        //         console.log('Saved Range ID: ' + range_id)
-        //         var date_from = prefRecord.getValue({
-        //             fieldId: 'custrecord_pref_date_from'
-        //         });
-        //         var date_to = prefRecord.getValue({
-        //             fieldId: 'custrecord_pref_date_to'
-        //         });
-        //         range_selection = $('#range_filter').val(range_id);
-        //         team_selection = $('#team_filter').val(userId);
-        //         date_from = $('#date_from').val(date_from);
-        //         date_to = $('#date_to').val(date_to);
-        //     });
-        // });
-
         /* Parameters | Filters */
         range_selection = range_selection.split("\u0005");
         $('#date_from').val(date_from);
         $('#date_to').val(date_to);
         
-        preLoadJSON();
-        loadDatatable(range_selection, team_selection, date_from, date_to, userId);
         // Datatable
+        loadDatatable(range_selection, team_selection, date_from, date_to, userId);
         var dataTable = $('#debt_preview').DataTable({
             destroy: true,
             data: debtDataSet,
             pageLength: 100,
+            lengthMenu: [10, 50, 100, 200, 500, 1000],
             order: [
                 // ['3', 'asc'], // Sort By Company Name
             ],
@@ -162,7 +126,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             ],
             columnDefs: [
                 {
-                    targets: [9, 11],
+                    targets: [2, 9, 11],
                     visible: false,
                 },
                 {
@@ -172,7 +136,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 },
             ],
             autoWidth: false,
-            rowCallback: function(row, data) {
+            "createdRow": function(row, data) {
                 if (data[10] == 'Paid') {
                     $(row).addClass('maap');
                     if ($(row).hasClass('odd')) {
@@ -202,7 +166,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                     fieldId: 'custbody_invoice_viewed',
                     value: true
                 });
-                // invRecord.save();
+                invRecord.save();
             })
 
             var tr = $(this).closest('tr');
@@ -210,12 +174,10 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             row.child.show();
             $('.viewed_'+cust_id+'').each(function(){
                 if ($(this).parent().parent().parent().hasClass('odd')) {
-                    $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                    // $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple
+                    $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple
                     // $(this).parent().parent().parent().addClass('active')
                 } else {
                     $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                    // $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
                     // $(this).parent().parent().parent().addClass('active')
                 }
             });
@@ -223,7 +185,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         });
         // Viewed Single
         $(document).on('click', '.viewed_single', function(){
-            var inv_id = $(this).attr('id');
+            var inv_id = $(this).attr('invoice-id');
             var cust_id = $(this).attr('cust-id');
 
             // Set invoice as Viewed.
@@ -232,7 +194,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 fieldId: 'custbody_invoice_viewed',
                 value: true
             });
-            // invRecord.save();
+            invRecord.save();
 
             $(this).addClass('active');
             if ($(this).parent().parent().parent().hasClass('odd')) {
@@ -261,7 +223,6 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         /* Child Table */
         // Load with All Child Cells Open
         dataTable.rows().every(function() {
-            // this.child(format(this.data())).show();
             this.child(createChild(this)) // Add Child Tables
             // this.child.hide(); // Hide Child Tables on Open
         });
@@ -324,30 +285,35 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             params = JSON.stringify(params);
             console.log(params);
             window.location.href = baseURL + url.resolveScript({ // TEST
-                deploymentId: "customdeploy_sl_debt_coll",
-                scriptId: "customscript_sl_debt_coll",
+                deploymentId: "customdeploy_sl_debt_coll_new",
+                scriptId: "customscript_sl_debt_coll_new",
             }) + "&custparam_params=" + params;
         });
 
         /* Table Filters Section */
         // MP Ticket Column
         $(document).on('click', '.toggle-mp-ticket', function(e) {
-            e.preventDefault();
-            // Get the column API object
-            var column = dataTable.column(10);
-            // Toggle the visibility
-            column.visible(!column.visible());
-            if (column.visible() == true) {
-                $(this).addClass('btn-danger');
-                $(this).removeClass('btn-success');
-                $(this).find('.span_class').addClass('glyphicon-minus');
-                $(this).find('.span_class').removeClass('glyphicon-plus');
-            } else {
-                $(this).removeClass('btn-danger');
-                $(this).addClass('btn-success');
-                $(this).find('.span_class').removeClass('glyphicon-minus');
-                $(this).find('.span_class').addClass('glyphicon-plus');
-            }
+            $('.entityid').each(function(){
+                var table = ($(this).closest('table')).DataTable();
+                // ((((table.data())[0])[7]).split('<')[1]).split('>')[1] // MP Ticket of Child Table Has Value
+
+                e.preventDefault();
+                // Get the column API object
+                var column = table.column(7);
+                // Toggle the visibility
+                column.visible(!column.visible());
+                if (column.visible() == true) {
+                    $('#showMPTicket_box').addClass('btn-danger');
+                    $('#showMPTicket_box').removeClass('btn-success');
+                    $('#showMPTicket_box').find('.span_class').addClass('glyphicon-minus');
+                    $('#showMPTicket_box').find('.span_class').removeClass('glyphicon-plus');
+                } else {
+                    $('#showMPTicket_box').removeClass('btn-danger');
+                    $('#showMPTicket_box').addClass('btn-success');
+                    $('#showMPTicket_box').find('.span_class').removeClass('glyphicon-minus');
+                    $('#showMPTicket_box').find('.span_class').addClass('glyphicon-plus');
+                }
+            });
         });
         // Matching MAAP Allocation Column
         $(document).on('click', '.toggle-maap', function(e) {
@@ -406,9 +372,9 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 function( settings, data, dataIndex ) {
                     var min = picker.startDate.format('YYYY-MM-DD');
                     var max = picker.endDate.format('YYYY-MM-DD');
-                    var date_split = data[20].split('/');
-                    console.log('Date Data being pushed' + data[20])
-                    if (!isNullorEmpty(data[20])){
+                    var date_split = data[8].split('/');
+                    console.log('Date Data being pushed' + data[8])
+                    if (!isNullorEmpty(data[8])){
                         var month = date_split[1];
                         if (date_split[1].length == 1){
                             month = '0' + month;
@@ -441,7 +407,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             dataTable.draw();
         });
 
-        /* Modals */
+        /* Modals: Snooze Popup */
         $(document).on('click', '.timer', function() {
             try {
                 var invoiceNumber = $(this).attr('invoice-id');
@@ -454,11 +420,11 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 body += '<br>'
 
                 var bodyTimers = '<div /*class="col col-lg-12"*/ id="oldnote">';
-                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-1day form-control btn-xs btn-info" cust-id="'+custId+'"><span>1 Day</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-2day form-control btn-xs btn-info" cust-id="'+custId+'"><span>2 Days</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-1week form-control btn-xs btn-info" cust-id="'+custId+'"><span>1 Week</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-2week form-control btn-xs btn-info" cust-id="'+custId+'"><span>2 Weeks</span></button></div>';
-                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="timer-permanent form-control btn-xs btn-info" cust-id="'+custId+'"><span>Permanent</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="snooze-timer timer-1day form-control btn-xs btn-info" cust-id="'+custId+'"><span>1 Day</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="snooze-timer timer-2day form-control btn-xs btn-info" cust-id="'+custId+'"><span>2 Days</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="snooze-timer timer-1week form-control btn-xs btn-info" cust-id="'+custId+'"><span>1 Week</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="snooze-timer timer-2week form-control btn-xs btn-info" cust-id="'+custId+'"><span>2 Weeks</span></button></div>';
+                bodyTimers += '<div class="col-md-2"><button type="button" invoice-id="' + invoiceNumber + '" class="snooze-timer timer-permanent form-control btn-xs btn-info" cust-id="'+custId+'"><span>Permanent</span></button></div>';
 
                 bodyTimers += '</div>';
                 bodyTimers += '<br><br>';
@@ -497,252 +463,53 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 alert('Netsuite Error Message (Contact IT if Issue Persists): ' + e)
             }
         });
-        // Snooze Timers
-        var today = new Date();
-        var today_year = today.getFullYear();
-        var today_month = today.getMonth();
-        var today_day = today.getDate();
-
-        var today_in_day = new Date(Date.UTC(today_year, today_month, today_day + 1));
-        today_in_day = today_in_day.toISOString().split('T')[0]; // Split Date String to get the date.
-        today_in_day = dateISOToNetsuite(today_in_day); // Convert from 2021-01-28 to 28/1/2021
-        today_in_day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
-        // console.log('Today Format Netsuite ' + today_in_day)
-
-        var today_in_2day = new Date(Date.UTC(today_year, today_month, today_day + 2));
-        today_in_2day = today_in_2day.toISOString().split('T')[0];
-        today_in_2day = dateISOToNetsuite(today_in_2day);
-        today_in_2day = format.parse({ value: today_in_2day, type: format.Type.DATE }); // Date Object
-
-        var today_in_week = new Date(Date.UTC(today_year, today_month, today_day + 7));
-        today_in_week = today_in_week.toISOString().split('T')[0];
-        today_in_week = dateISOToNetsuite(today_in_week);
-        today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
-
-        var today_in_2week = new Date(Date.UTC(today_year, today_month, today_day + 14));
-        today_in_2week = today_in_2week.toISOString().split('T')[0];
-        today_in_2week = dateISOToNetsuite(today_in_2week);
-        today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object
-
-        // Timer: 1 Day
-        $(document).on('click', '.timer-1day', function() {
-            var invoiceNumber = $(this).attr('invoice-id');
+        // Timer: Snooze Switch Case Button
+        $(document).on('click', '.snooze-timer', function () {
+            var invoiceId = $(this).attr('invoice-id');
             var custId = $(this).attr('cust-id');
+            var timer = $(this).text();
 
-            var snoozeRecord = record.load({
-                type: 'invoice',
-                id: invoiceNumber
-            });
-            var date = snoozeRecord.getValue({
-                fieldId: 'custbody_invoice_snooze_date'
-            });
-            snoozeRecord.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_day
-            });
-            // snoozeRecord.save();
+            switch (timer) {
+                case '1 Day':
+                    var snooze_date = new Date(Date.UTC(today_year, today_month, today_day + 1));
+                    snooze_date = snooze_date.toISOString().split('T')[0]; // Split Date String to get the date.
+                    snooze_date = dateISOToNetsuite(snooze_date); // Convert from 2021-01-28 to 28/1/2021
+                    // today_in_day = format.parse({ value: today_in_day, type: format.Type.DATE }); // Date Object
+                    break;
+                case '2 Days':
+                    var snooze_date = new Date(Date.UTC(today_year, today_month, today_day + 2));
+                    snooze_date = snooze_date.toISOString().split('T')[0];
+                    snooze_date = dateISOToNetsuite(snooze_date);
+                    // today_in_2day = format.parse({ value: today_in_2day, type: format.Type.DATE }); // Date Object
+                    break;
+                case '1 Week':
+                    var snooze_date = new Date(Date.UTC(today_year, today_month, today_day + 7));
+                    snooze_date = snooze_date.toISOString().split('T')[0];
+                    snooze_date = dateISOToNetsuite(snooze_date);
+                    // today_in_week = format.parse({ value: today_in_week, type: format.Type.DATE }); // Date Object
+                    break;
+                case '2 Weeks':
+                    var snooze_date = new Date(Date.UTC(today_year, today_month, today_day + 14));
+                    snooze_date = snooze_date.toISOString().split('T')[0];
+                    snooze_date = dateISOToNetsuite(snooze_date);
+                    // today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object
+                    break;
+                case 'Permanent':
+                    var snooze_date = new Date(Date.UTC(today_year + 1, today_month, today_day));
+                    snooze_date = snooze_date.toISOString().split('T')[0];
+                    snooze_date = dateISOToNetsuite(snooze_date);
+                    // today_in_year = format.parse({ value: today_in_year, type: format.Type.DATE }); // Date Object
+                    break;
+            }
+            console.log(invoiceId + " " + snooze_date + " " + custId);
 
-            $(this).addClass('btn-success');
-            $(this).removeClass('btn-info');
-            $('#timer_'+invoiceNumber+'').addClass('btn-success');
-            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            } else {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            }
-            // Update Main If All Viewed
-            var timer_count = 0;
-            var timer_count_total = $('.timer_'+custId+'').size();
-            $('.timer_'+custId+'').each(function(){
-                if ($(this).hasClass('active')) {
-                    timer_count++;
-                }
-            });
-            if (timer_count == timer_count_total-1) {
-                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                } else {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                }
-            }
-        });
-        // Timer: 2 Day
-        $(document).on('click', '.timer-2day', function() {
-            var invoiceNumber = $(this).attr('invoice-id');
-            var custId = $(this).attr('cust-id');
+            $('#myModal2').modal("hide");
 
-            var snoozeRecord = record.load({
-                type: 'invoice',
-                id: invoiceNumber
-            });
-            var date = snoozeRecord.getValue({
-                fieldId: 'custbody_invoice_snooze_date'
-            });
-            snoozeRecord.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_2day
-            });
-            // snoozeRecord.save();
-
-            $(this).addClass('btn-success');
-            $(this).removeClass('btn-info');
-            $('#timer_'+invoiceNumber+'').addClass('btn-success');
-            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            } else {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            }
-            // Update Main If All Viewed
-            var timer_count = 0;
-            var timer_count_total = $('.timer_'+custId+'').size();
-            $('.timer_'+custId+'').each(function(){
-                if ($(this).hasClass('active')) {
-                    timer_count++;
-                }
-            });
-            if (timer_count == timer_count_total-1) {
-                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                } else {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                }
-            }
-        });
-        // Timer: 1 Week
-        $(document).on('click', '.timer-1week', function() {
-            var invoiceNumber = $(this).attr('invoice-id');
-            var custId = $(this).attr('cust-id');
-
-            var snoozeRecord = record.load({
-                type: 'invoice',
-                id: invoiceNumber
-            });
-            var date = snoozeRecord.getValue({
-                fieldId: 'custbody_invoice_snooze_date'
-            });
-            snoozeRecord.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_week
-            });
-            // snoozeRecord.save();
-
-            $(this).addClass('btn-success');
-            $(this).removeClass('btn-info');
-            $('#timer_'+invoiceNumber+'').addClass('btn-success');
-            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            } else {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            }
-            // Update Main If All Viewed
-            var timer_count = 0;
-            var timer_count_total = $('.timer_'+custId+'').size();
-            $('.timer_'+custId+'').each(function(){
-                if ($(this).hasClass('active')) {
-                    timer_count++;
-                }
-            });
-            if (timer_count == timer_count_total-1) {
-                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                } else {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                }
-            }
-        });
-        // Timer: 2 Week
-        $(document).on('click', '.timer-2week', function() {
-            var invoiceNumber = $(this).attr('invoice-id');
-            var custId = $(this).attr('cust-id');
-
-            var snoozeRecord = record.load({
-                type: 'invoice',
-                id: invoiceNumber
-            });
-            var date = snoozeRecord.getValue({
-                fieldId: 'custbody_invoice_snooze_date'
-            });
-            snoozeRecord.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_2week
-            });
-            // snoozeRecord.save();
-
-            $(this).addClass('btn-success');
-            $(this).removeClass('btn-info');
-            $('#timer_'+invoiceNumber+'').addClass('btn-success');
-            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            } else {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            }
-            // Update Main If All Viewed
-            var timer_count = 0;
-            var timer_count_total = $('.timer_'+custId+'').size();
-            $('.timer_'+custId+'').each(function(){
-                if ($(this).hasClass('active')) {
-                    timer_count++;
-                }
-            });
-            if (timer_count == timer_count_total-1) {
-                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                } else {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                }
-            }
-        });
-        // Timer: Permanent
-        $(document).on('click', '.timer-permanent', function() {
-            var invoiceNumber = $(this).attr('invoice-id');
-            var custId = $(this).attr('cust-id');
-
-            var snoozeRecord = record.load({
-                type: 'invoice',
-                id: invoiceNumber
-            });
-            var date = snoozeRecord.getValue({
-                fieldId: 'custbody_invoice_snooze_date'
-            });
-            snoozeRecord.setValue({
-                fieldId: 'custbody_invoice_snooze_date',
-                value: today_in_2week
-            });
-            // snoozeRecord.save();
-
-            $(this).addClass('btn-success');
-            $(this).removeClass('btn-info');
-            $('#timer_'+invoiceNumber+'').addClass('btn-success');
-            if ($('#timer_'+invoiceNumber+'').parent().parent().parent().hasClass('odd')) {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            } else {
-                $('#timer_'+invoiceNumber+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                $('#timer_'+invoiceNumber+'').addClass('active');
-            }
-            // Update Main If All Viewed
-            var timer_count = 0;
-            var timer_count_total = $('.timer_'+custId+'').size();
-            $('.timer_'+custId+'').each(function(){
-                if ($(this).hasClass('active')) {
-                    timer_count++;
-                }
-            });
-            if (timer_count == timer_count_total-1) {
-                if ($('.timer_'+custId+'').parent().parent().parent().hasClass('odd')) {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-                } else {
-                    $('.timer_'+custId+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-                }
-            }
+            // Submitter 
+            snooze_duration = snooze_date;
+            snooze_invoice_id = invoiceId;
+            snooze_value = true;
+            $('#submitter').trigger('click');
         });
 
         /* Period Selector */ 
@@ -758,7 +525,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             $(".range_filter_section_top").css("padding-top", "0px");
         });
 
-        /* Redirect */
+        /* Redirect Buttons */
         //Redirect: Service Debtors
         $(document).on('click', '#redirect_serv_debt', function(){
             var upload_url = baseURL + url.resolveScript({
@@ -779,12 +546,10 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         // Reformat Date
         date_from = dateISOToNetsuite(date_from);
         date_to = dateISOToNetsuite(date_to);
-        // date_from = format.parse({ value: date_from, type: format.Type.DATE });
-        // date_to = format.parse({ value: date_to, type: format.Type.DATE });
 
         var invoiceResults = search.load({
             type: 'invoice',
-            id: 'customsearch_debt_coll_inv'
+            id: 'customsearch_debt_coll_inv_3' //'customsearch_debt_coll_inv'
         });
         var filterExpression = []; //
         filterExpression.push(['trandate', search.Operator.WITHIN, date_from, date_to]), // Date From & Date To
@@ -795,9 +560,9 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         "AND", 
         ["memorized",search.Operator.IS,"F"]); // Default Search Filters
         filterExpression.push("AND", ["customer.custentity_special_customer_type",search.Operator.NONEOF,"1","3","2"]) // Not Aus Post Hub, SC or NP
-        filterExpression.push("AND", ["customer.custentity_invoice_method", search.Operator.NONEOF,"4"]); // Not MYOB Consolidation
-        // filterExpression.push('AND', ['customer.companyname', search.Operator.DOESNOTCONTAIN, 'NP - ']); //
-        // filterExpression.push('AND', ['customer.companyname', search.Operator.DOESNOTCONTAIN, 'SC - ']); // 
+        // filterExpression.push("AND", ["customer.custentity_invoice_method", search.Operator.NONEOF,"4"]); // Not MYOB Consolidation
+        // Snooze Filter
+        filterExpression.push("AND", ["custbody_invoice_snooze_date", search.Operator.NOTAFTER, today_date]); // Not Snoozed
         // Range Selection
         if (range.length > 0) {
             var rangeExpression = [];
@@ -811,16 +576,11 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                     rangeExpression.push(['daysoverdue', search.Operator.LESSTHAN, '60']);
                 } else {
                     rangeExpression.push('OR', ['daysoverdue', search.Operator.LESSTHAN, '60']);
-                    // var myFilter2_2 = search.createFilter({
-                    //     name: 'custbody_inv_type',
-                    //     operator: search.Operator.NONEOF,
-                    //     values: '8'
-                    // });
                 }
             }
             if (range.indexOf('3') != -1) {
                 console.log('60+ Day Selected');
-                if (range.indexOf('1') == -1 || range.indexOf('2') == -1) {
+                if (range.indexOf('1') == -1 && range.indexOf('2') == -1) {
                     rangeExpression.push(['daysoverdue', search.Operator.GREATERTHANOREQUALTO, '60']);
                 } else {
                     rangeExpression.push('OR', ['daysoverdue', search.Operator.GREATERTHANOREQUALTO, '60']);
@@ -894,11 +654,11 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                     join: "customer",
                     label: "Phone"
                 });
-                var custentity_debt_coll_auth_id = invoiceSet.getValue({
-                    name: "custentity_debt_coll_auth_id",
-                    join: "customer",
-                    label: "Debt Collection - Allocated Finance Team ID"
-                });
+                // var custentity_debt_coll_auth_id = invoiceSet.getValue({
+                //     name: "custentity_debt_coll_auth_id",
+                //     join: "customer",
+                //     label: "Debt Collection - Allocated Finance Team ID"
+                // });
                 // Customer Start Date
                 var cust_start_date = invoiceSet.getValue({
                     name: "startdate",
@@ -907,7 +667,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 });
                 // Email Sent?
                 var inv_email_notification = '<p>No : 0</p>';
-                var servDebtEmail = servDebtEmailList.filter(function(el){ if (servDebtEmail.custid == customerId){ return el;}})
+                var servDebtEmail = servDebtEmailList.filter(function(el){ if (el.custid == customerId){ return el }});
                 if (servDebtEmail.length > 0){
                     var inv_email_count = 0;
                     servDebtEmail.forEach(function(){
@@ -991,14 +751,14 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
 
                     var tempCustObj = customerObject[customerObject.length-2];
 
-                    var tempInvSet = inv_id_set;
+                    var tempInvSet = inv_id_set;                    
                     if (tempInvSet.length > 0){
                         tempInvSet.pop();
                     }
 
                     // if (childObject.length > 0){
                         debtDataSet.push(['',
-                            '<a href="' + baseURL + "/app/common/entity/custjob.nl?id=" + tempCustObj.internalid + '" target="_blank"><p class="entityid">' + tempCustObj.entityid + '</p></a>',//Customer ID //0 
+                            '<a href="' + baseURL + "/app/common/entity/custjob.nl?id=" + tempCustObj.internalid + '" target="_blank"><p class="">' + tempCustObj.entityid + '</p></a>',//Customer ID //0 
                             tempCustObj.maap_bank, // MAAP Bank Account
                             tempCustObj.companyname, // Company Name
                             tempCustObj.franchisee, // Zee
@@ -1007,7 +767,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                             tempCustObj.phone_number, // Num
                             tempCustObj.start_date, // Customer Start Date
                             tempCustObj.maap_status, // MAAP Matching Status
-                            '<div class="col-xs-auto"><button type="button" id="' + tempCustObj.invoice_id + '" cust-id="'+tempCustObj.internalid+'" invoice-set="'+tempInvSet+'" class="viewed_all viewed_'+tempCustObj.internalid+' timer_'+tempCustObj.internalid+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>', // tempCustObj.last_emailed,
+                            '<div class="col-xs-auto"><button type="button" id="' + tempCustObj.invoice_id + '" cust-id="'+tempCustObj.internalid+'" invoice-set="'+tempInvSet+'" class="viewed_all viewed_'+tempCustObj.internalid+' timer_'+tempCustObj.internalid+' form-control btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>', // tempCustObj.last_emailed,
                             childObject,
                             tempInvSet, //12
                         ]);
@@ -1022,7 +782,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                 if (index == (invSearchResLength - 1)){
                     var tempCustObj = customerObject[customerObject.length-1];
                     debtDataSet.push(['',
-                        '<a href="' + baseURL + "/app/common/entity/custjob.nl?id=" + customerId + '" target="_blank"><p class="entityid">' + entityid + '</p></a>',//Customer ID //0 
+                        '<a href="' + baseURL + "/app/common/entity/custjob.nl?id=" + customerId + '" target="_blank"><p class="">' + entityid + '</p></a>',//Customer ID //0 
                         maap_bank,// MAAP Bank Account Number
                         companyname,
                         partner,// franchisee,
@@ -1031,7 +791,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                         phone_number,
                         cust_start_date, // Start Date
                         maap_status, // MAAP Status
-                        '<div class="col-xs-auto"><button type="button" id="" cust-id="'+customerId+'" class="viewed_all viewed_'+customerId+' timer_'+customerId+' form-control btn-xs btn-secondary"><span class="glyphicon glyphicon-eye-open"></span></button></div>',
+                        '<div class="col-xs-auto"><button type="button" id="" cust-id="'+customerId+'" invoice-set="'+inv_id_set+'" class="viewed_all viewed_'+customerId+' timer_'+customerId+' form-control btn-secondary" ><span class="glyphicon glyphicon-eye-open"></span></button></div>',
                         childObject,
                         inv_id_set
                     ]);
@@ -1045,28 +805,32 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
     }
 
     function saveRecord(context) {
+        currRec.setValue({ fieldId: 'custpage_debt_coll_snooze_value', value: snooze_value });
+        currRec.setValue({ fieldId: 'custpage_debt_coll_snooze_invoice_id', value: snooze_invoice_id });
+        currRec.setValue({ fieldId: 'custpage_debt_coll_snooze_duration', value: snooze_duration });
+
         return true;
     }
 
     function createChild(row) {
         // This is the table we'll convert into a DataTable
-        var table = $('<table class="display" width="50%"/>');
+        var table = $('<table id="debt_child_preview" class="display table-striped" width="50%" style="" />'); //font-weight: normal
         var childSet = [];
         row.data()[11].forEach(function(el) {
             if (!isNullorEmpty(el)){
                 childSet.push([
-                    '<a href="' + baseURL + "/app/accounting/transactions/custinvc.nl?id=" + el.ii + '" target="_blank"><p class="entityid">' + el.dt + '</p></a>',
+                    '<a href="' + baseURL + "/app/accounting/transactions/custinvc.nl?id=" + el.ii + '" target="_blank"><p>' + el.dt + '</p></a>',
                     '<a href="' + baseURL + "/app/accounting/transactions/custinvc.nl?id=" + el.ii + '" target="_blank"><p class="entityid">' + el.dn + '</p></a>',
                     el.it,
                     '$' + el.ta,
                     el.d_open,
                     el.do, //days_overdue
                     el.duedate,
-                    '<p class="toggle-mp-ticket">' + el.mp_ticket + '</p>',
+                    '<p class="mp-ticket">' + el.mp_ticket + '</p>', //
                     el.emailed,
-                    '<div class="col-xs-auto"><button type="button" id="" class="viewed_single viewed_'+el.custid+' form-control btn-xs btn-secondary" cust-id="'+el.custid+'"><span class="glyphicon glyphicon-eye-open"></span></button></div>',//el.viewed,
-                    '<div class="col-xs-auto"><button type="button" id="timer_' + el.ii + '" class="timer timer_'+el.custid+' form-control btn-xs btn-info" cust-id="'+el.custid+'" invoice-id="'+el.ii+'"><span class="glyphicon glyphicon-time"></span></button></div>', //el.snooze,
-                    false// '<p class="viewed_value"></p>'
+                    '<div class="col-xs-auto"><button type="button" id="viewed_' + el.ii + '" class="viewed_single viewed_'+el.custid+' form-control btn-secondary" cust-id="'+el.custid+'" invoice-id="'+el.ii+'"><span class="glyphicon glyphicon-eye-open"></span></button></div>',//el.viewed,
+                    '<div class="col-xs-auto"><button type="button" id="timer_' + el.ii + '" class="timer timer_'+el.custid+' form-control btn-info" cust-id="'+el.custid+'" invoice-id="'+el.ii+'"><span class="glyphicon glyphicon-time"></span></button></div>', //el.snooze,
+                    el.viewed, //false // '<p class="viewed_value"></p>'
                 ]);
             }
         });
@@ -1081,7 +845,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             "bInfo": false,
             "bAutoWidth": false,
             data: childSet,
-            // order: [5, 'desc'], // Most to Least Overdue 
+            order: [5, 'desc'], // Most to Least Overdue 
             columns: [
                 { title: 'Invoice Date' }, //0
                 { title: 'Document Number' }, // 1
@@ -1098,18 +862,16 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             ],
             columnDefs: [
                 {
-                    targets: [7, 11],
+                    targets: [11], //7,
                     visible: false
-                }
+                },
+                // {
+                //     targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                //     className: 'dt-body-center'
+                // }
             ],
-            rowCallback: function(row, data) {
-                if (data[8].includes('Yes')) {
-                    if ($(row).hasClass('odd')) {
-                        $(row).css('background-color', 'rgba(51, 204, 255, 0.65)'); // Lighter Blue / Baby Blue
-                    } else {
-                        $(row).css('background-color', 'rgba(78, 175, 214, 0.75)'); // Darker Blue
-                    }
-                } else if (data[11] == true) {
+            "createdRow": function(row, data) {
+                if (data[11] == true) {
                     if ($(row).hasClass('odd')) {
                         $(row).css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light-Purple
                         $(row).addClass('showDanger')
@@ -1117,6 +879,13 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                         $(row).css('background-color', 'rgba(153, 68, 238, 0.5)'); // Darker-Purple
                         $(row).addClass('showDanger')
                     }
+                } else if (data[8].includes('Yes')) {
+                    if ($(row).hasClass('odd')) {
+                        $(row).css('background-color', 'rgba(51, 204, 255, 0.65)'); // Lighter Blue / Baby Blue
+                    } else {
+                        $(row).css('background-color', 'rgba(78, 175, 214, 0.75)'); // Darker Blue
+                    }
+                
                 } else if (parseInt(data[5]) < 60 && parseInt(data[5]) > 30) {
                     if ($(row).hasClass('odd')) {
                         $(row).css('background-color', 'rgba(250, 250, 210, 1)'); // LightGoldenRodYellow
@@ -1141,25 +910,6 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
     function destroyChild(row) {
         // And then hide the row
         row.child.hide();
-    }
-
-    function preLoadJSON(){
-        //Service Debtors Email Notification
-        // var seaServDebtEmail = search.load({ type: 'customrecord_serv_debt_email', id: 'customsearch_serv_debt_email' });
-        // seaServDebtEmail.run().each(function(res){
-        //     var cust_id = res.getValue({ name: 'custrecord_serv_debt_email_cust_id'});
-        //     var auth_id = res.getValue({ name: 'custrecord_serv_debt_email_auth_id'});
-        //     var date = res.getValue({ name: 'custrecord_serv_debt_email_date'});
-        //     var note = res.getValue({ name: 'custrecord_serv_debt_email_note'});
-
-        //     servDebtEmailList.push({
-        //         custid: cust_id,
-        //         authid: auth_id,
-        //         date: date,
-        //         note: note
-        //     });
-        //     return true;
-        // });
     }
 
     /**

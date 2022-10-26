@@ -39,6 +39,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var is_params = 'T';
                 type = context.request.parameters.type;
 
+                log.debug({
+                    title: 'User',
+                    details: runtime.getCurrentUser().id
+                })
+
                 var form = ui.createForm({
                     title: 'Debt Collection'
                 });

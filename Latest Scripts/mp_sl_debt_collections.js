@@ -5,12 +5,12 @@
  * Module Description
  * 
  * NSVersion    Date                        Author         
- * 2.00         2022-07-05 09:33:08         Anesu
+ * 2.00         2022-09-01 09:33:08         Anesu
  *
  * Description: Automation of Debt Collection Process   
  * 
  * @Last Modified by:   Anesu
- * @Last Modified time: 2022-07-05 09:33:08 
+ * @Last Modified time: 2022-10-12 09:33:08 
  * 
  */
 
@@ -46,10 +46,10 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
             } else if (!isNullorEmpty(params_params.zeeid)){
                 var params = context.request.parameters;
             }
-            var range_selection = [];
-            var team_selection = 0;
-            var date_from = '';
-            var date_to = '';
+            var range_selection = ["1","2","3"];
+            var team_selection = 924435;
+            var date_from = '2022-01-01';
+            var date_to = '2022-12-31';
 
             if (!isNullorEmpty(params)) {
                 log.debug({
@@ -65,11 +65,6 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
                 team_selection = params.team
                 date_from = params.date_from
                 date_to = params.date_to
-            } else {
-                log.debug({
-                    title: 'Missing Parameters',
-                    details: params
-                })
             }
 
             var form = ui.createForm({ title: ' ' }); // title: 'Debt Collection'
@@ -85,7 +80,8 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
             
             // Load DataTables
             inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.12.0/css/jquery.dataTables.min.css">';
-            inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>';
+            inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>';
+            inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.12.1/js/dataTables.bootstrap.min.js"></script>';
 
             inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/rowgroup/1.1.3/js/dataTables.rowGroup.min.js"></script> '
             inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/2.0.0/js/dataTables.buttons.min.js"></script> '
@@ -137,7 +133,7 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
             inlineHtml += '<h1 style="font-size: 25px; font-weight: 700; color: #103D39; text-align: center">Debt Collections</h1>';
 
             //Buttons
-            inlineHtml += '<button type="button" id="submit" class="btn btn-sm submit" style="background-color: #FBEA51; color: #103D39;">Submit</button>' // margin-left: 20px;
+            inlineHtml += '<button type="button" id="submit" class="btn btn-sm btn-info submit" style="background-color: #FBEA51; color: #103D39;">Submit</button>' // margin-left: 20px;
 
             // Click for Instructions
             // inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b>';
@@ -150,7 +146,7 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
             // inlineHtml += '</li></ul></div>';
 
             // Service Debtors Email
-            inlineHtml += '<button type="button" id="redirect_serv_debt" class="btn btn-sm btn-info" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Service Debtors Email Notifcation</button>'
+            inlineHtml += '<button type="button" id="redirect_serv_debt" class="btn btn-sm" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Service Debtors Email Notifcation</button>'
 
             /** Start of HTML */
             inlineHtml += '<br>';
@@ -212,11 +208,35 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = date_to;
 
+            // Snooze Timer
+            form.addField({
+                id: 'custpage_debt_coll_snooze_value',
+                label: 'Snooze Value',
+                type: ui.FieldType.TEXT
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            }).defaultValue = false;
+            form.addField({
+                id: 'custpage_debt_coll_snooze_invoice_id',
+                label: 'Snooze Invoice ID',
+                type: ui.FieldType.TEXT
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            }).defaultValue = '';
+            form.addField({
+                id: 'custpage_debt_coll_snooze_duration',
+                label: 'Snooze Duration',
+                type: ui.FieldType.TEXT
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            }).defaultValue = '';
+            
+
             form.addSubmitButton({
                 label: ' '
             });
 
-            form.clientScriptFileId = 5616960; //SANDBOX: 5616960 | PROD: 
+            form.clientScriptFileId = 5989029; //SANDBOX: 5616960 | PROD: 5989029
 
             context.response.writePage(form);
         } else {
@@ -225,7 +245,31 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
             log.debug({
                 title: 'Post: Params',
                 details: params
-            })
+            });
+
+            var range_selection = params.custpage_debt_coll_range_selection;
+            var team_selection = params.custpage_debt_coll_team_selection;
+            var date_from = params.custpage_debt_coll_date_from;
+            var date_to = params.custpage_debt_coll_date_to;
+
+            // Snooze Timer
+            var snooze_time = params.custpage_debt_coll_snooze_value;
+            if (snooze_time == "true") { 
+                var invoice_id = params.custpage_debt_coll_snooze_invoice_id;
+                var snooze_duration = params.custpage_debt_coll_snooze_duration;
+                snoozeInvRecord(invoice_id, snooze_duration);
+            }
+
+            redirect.toSuitelet({
+                scriptId: 'customscript_sl_debt_coll_new',
+                deploymentId: 'customdeploy_sl_debt_coll_new',
+                parameters: {
+                    custpage_debt_coll_range_selection: range_selection,
+                    custpage_debt_coll_team_selection: team_selection,
+                    custpage_debt_coll_date_from: date_from,
+                    custpage_debt_coll_date_to: date_to
+                }
+            });
         }
     }
 
@@ -234,15 +278,15 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
      * @return  {String}    inlineQty
      */
     function dataTable() {
-        var inlineQty = '<style>table#debt_preview {font-size: 12px;text-align: center;border: none; background-color: white;}.dataTables_wrapper {font-size: 14px;}table#debt_preview th{text-align: center;} .bolded{font-weight: bold;}</style>';
+        var inlineQty = '<style>table#debt_preview {font-size: 12px;text-align: center;border: none; background-color: white;}.dataTables_wrapper {font-size: 14px;}table#debt_preview th{text-align: center;} .bolded{font-weight: bold;} table#debt_child_preview thead th{font-weight: 100 !important;} table#debt_child_preview {font-weight: 100 !important;}</style>'; // thead th
 
-        inlineQty += '<table id="debt_preview" class="table table-responsive table-striped customer tablesorter " style="width: 100%;">'; //hide
+        inlineQty += '<table id="debt_preview" class="table table-responsive table-striped customer tablesorter " style="width: 100%;">'; //hide bolded
         inlineQty += '<thead style="color: white; background-color: #379E8F;">';
         inlineQty += '<tr class="text-center">';
         inlineQty += '</tr>';
         inlineQty += '</thead>';
 
-        inlineQty += '<tbody id="result_debt" class="result-debt"></tbody>';
+        inlineQty += '<tbody id="result_debt" class="result-debt" style="font-weight: bold;"></tbody>';
 
         inlineQty += '</table>';
         return inlineQty;
@@ -360,9 +404,9 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
         inlineQty += '<button type="button" id="btn-hide-all-children" class="btn btn-sm btn-info" style="background-color: #FBEA51; color: #103D39; margin-left: 20px;">Collapse All</button>'
 
         // Toggle Table Filters
-        inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap-danger btn btn-sm btn-danger" style="margin-left: 20px;">Toggle MAAP Allocation<span class="span_class glyphicon glyphicon-minus"></span></button>'
-        inlineQty += '<button type="button" id="showMAAP_bank" class="toggle-maap-bank btn btn-sm btn-danger" style="margin-left: 20px;">Toggle MAAP Bank Account<span class="span_class glyphicon glyphicon-minus"></span></button>'
-        inlineQty += '<button type="button" id="showMPTicket_box" class="toggle-mp-ticket btn btn-sm btn-success" style="background-color: #379E8F; margin-left: 20px;">Toggle MP Ticket Column<span class="span_class glyphicon glyphicon-plus"></span></button>';
+        inlineQty += '<button type="button" id="showMAAP_box" class="toggle-maap-danger btn btn-sm btn-danger" style="margin-left: 20px;" disabled>Toggle MAAP Allocation<span class="span_class glyphicon glyphicon-minus"></span></button>'
+        inlineQty += '<button type="button" id="showMAAP_bank" class="toggle-maap-bank btn btn-sm btn-success" style="margin-left: 15px;">Toggle MAAP Bank Account<span class="span_class glyphicon glyphicon-plus"></span></button>'
+        inlineQty += '<button type="button" id="showMPTicket_box" class="toggle-mp-ticket btn btn-sm btn-success" style="margin-left: 15px;">Toggle MP Ticket Column<span class="span_class glyphicon glyphicon-plus"></span></button>';
         // Customer Start Date Range
         inlineQty += '<div class="col-xs-4 showCustStartDate">';
         inlineQty += '<div class="input-group">';
@@ -420,6 +464,35 @@ function(ui, email, runtime, search, record, http, log, redirect, task, format) 
         inlineQty += '</div></div></div></div>';
 
         return inlineQty;
+    }
+
+    /**
+     * Snooze Invoice Record.
+     *  
+     * @param   {String}    invoice_id
+     * @param   {String}    snooze_date
+     * 
+     */
+    function snoozeInvRecord(invoice_id, snooze_duration) {
+        log.debug({
+            title: 'SET: Snooze Timer',
+            details: invoice_id + ' | ' + snooze_duration
+        });
+        var snooze_duration_format = format.parse({ value: snooze_duration, type: format.Type.DATE }); // Date Object
+        var snoozeRecord = record.load({
+            type: 'invoice' ,
+            id: invoice_id
+        });
+        // var date = snoozeRecord.getValue({
+        //     fieldId: 'custbody_invoice_snooze_date'
+        // });
+        snoozeRecord.setValue({
+            fieldId: 'custbody_invoice_snooze_date',
+            value: snooze_duration_format
+        });
+        snoozeRecord.save();
+
+        return true;
     }
 
     /**
