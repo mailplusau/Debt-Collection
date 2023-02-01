@@ -167,7 +167,7 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
                     value: true
                 });
                 invRecord.save();
-            })
+            });
 
             var tr = $(this).closest('tr');
             var row = dataTable.row(tr);
@@ -188,35 +188,39 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
             var inv_id = $(this).attr('invoice-id');
             var cust_id = $(this).attr('cust-id');
 
-            // Set invoice as Viewed.
-            var invRecord = record.load({ type: 'invoice', id: inv_id });
-            invRecord.setValue({
-                fieldId: 'custbody_invoice_viewed',
-                value: true
-            });
-            invRecord.save();
+            try {
+                // Set invoice as Viewed.
+                var invRecord = record.load({ type: 'invoice', id: inv_id });
+                invRecord.setValue({
+                    fieldId: 'custbody_invoice_viewed',
+                    value: true
+                });
+                invRecord.save();
 
-            $(this).addClass('active');
-            if ($(this).parent().parent().parent().hasClass('odd')) {
-                $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
-            } else {
-                $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
-            }
-            
-            // Update Main If All Viewed
-            var viewed_count = 0;
-            var viewed_count_total = $('.viewed_'+cust_id+'').size();
-            $('.viewed_'+cust_id+'').each(function(){
-                if ($(this).hasClass('active')) {
-                    viewed_count++;  
-                }
-            });
-            if (viewed_count == viewed_count_total-1) {
-                if ($('.viewed_'+cust_id+'').parent().parent().parent().hasClass('odd')) {
-                    $('.viewed_'+cust_id+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                $(this).addClass('active');
+                if ($(this).parent().parent().parent().hasClass('odd')) {
+                    $(this).parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
                 } else {
-                    $('.viewed_'+cust_id+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                    $(this).parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
                 }
+                
+                // Update Main If All Viewed
+                var viewed_count = 0;
+                var viewed_count_total = $('.viewed_'+cust_id+'').size();
+                $('.viewed_'+cust_id+'').each(function(){
+                    if ($(this).hasClass('active')) {
+                        viewed_count++;  
+                    }
+                });
+                if (viewed_count == viewed_count_total-1) {
+                    if ($('.viewed_'+cust_id+'').parent().parent().parent().hasClass('odd')) {
+                        $('.viewed_'+cust_id+'').parent().parent().parent().css('background-color', 'rgba(179, 115, 242, 0.75)'); // Light Purple\
+                    } else {
+                        $('.viewed_'+cust_id+'').parent().parent().parent().css('background-color', 'rgba(153, 68, 238, 0.5)'); // Dark Purple
+                    }
+                }
+            } catch (e) {
+                alert('Error Occurred. Please contact IT if issue persists\n\n' + e);
             }
         });
 
@@ -560,9 +564,10 @@ function(email, runtime, search, record, http, log, error, url, format, currentR
         "AND", 
         ["memorized",search.Operator.IS,"F"]); // Default Search Filters
         filterExpression.push("AND", ["customer.custentity_special_customer_type",search.Operator.NONEOF,"1","3","2"]) // Not Aus Post Hub, SC or NP
-        // filterExpression.push("AND", ["customer.custentity_invoice_method", search.Operator.NONEOF,"4"]); // Not MYOB Consolidation
+        filterExpression.push("AND", ["custbody_invoice_snooze_date",search.Operator.NOTAFTER, "today"]) // Not Snoozed Past Today
+        // filterExpression.push("AND", ["customer.custentity_invoice_method", search.Operator.NONEOF,"4"]); // Not MYOB Consolidation | DO NOT ADD!!
         // Snooze Filter
-        filterExpression.push("AND", ["custbody_invoice_snooze_date", search.Operator.NOTAFTER, today_date]); // Not Snoozed
+        // filterExpression.push("AND", ["custbody_invoice_snooze_date", search.Operator.NOTAFTER, today_date]); // Not Snoozed
         // Range Selection
         if (range.length > 0) {
             var rangeExpression = [];
