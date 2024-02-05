@@ -16,7 +16,7 @@
  */
 
 define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/error', 'N/url', 'N/format', 'N/currentRecord'],
-    function(email, runtime, search, record, http, log, error, url, format, currentRecord) {
+    function (email, runtime, search, record, http, log, error, url, format, currentRecord) {
         var zee = 0;
         var role = 0;
 
@@ -73,7 +73,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $('#debt_preview').show();
             }
 
-            $('#result_debt').on('change', function() {
+            $('#result_debt').on('change', function () {
                 $('#debt_preview').removeClass('hide');
                 $('#debt_preview').show();
             });
@@ -94,14 +94,14 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             if (!isNullorEmpty($('#period_dropdown option:selected').val())) {
                 selectDate();
             }
-            $('#period_dropdown').change(function() {
+            $('#period_dropdown').change(function () {
                 selectDate();
             });
 
             /**
              *  Save Preferences for Users
              */
-            $(document).ready(function() {
+            $(document).ready(function () {
                 console.log('ID: ' + userName);
 
                 var prefSearch = search.load({
@@ -141,7 +141,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var prefRecId = prefRec.save();
                     console.log('New Record Created For New User :' + prefRec);
                 }
-                prefSearch.run().each(function(pref) {
+                prefSearch.run().each(function (pref) {
                     var internalID = pref.getValue({
                         name: 'internalid'
                     });
@@ -181,12 +181,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /** 
              *  Submit Button Function
              */
-            $('#submit').click(function() {
+            $('#submit').click(function () {
                 // Ajax request
                 var fewSeconds = 10;
                 var btn = $(this);
                 btn.addClass('disabled');
-                setTimeout(function() {
+                setTimeout(function () {
                     btn.removeClass('disabled');
                 }, fewSeconds * 1000);
 
@@ -200,7 +200,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Viewed Invoices by Finance Team 
              */
-            $(document).on('click', '.eye', function() {
+            $(document).on('click', '.eye', function () {
                 try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
@@ -235,7 +235,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     alert('Netsuite Error Message (Contact IT if Issue Persists): ' + e)
                 }
             });
-            $(document).on('click', '.eyeplus', function() {
+            $(document).on('click', '.eyeplus', function () {
                 try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
@@ -273,7 +273,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         type: 'customrecord_debt_coll_inv',
                         filters: filter
                     });
-                    searchViewed.run().each(function(res) {
+                    searchViewed.run().each(function (res) {
                         var internalRecordID = res.getValue({
                             name: 'internalid'
                         });
@@ -296,7 +296,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Notes Section
              */
-            $(document).on('click', '.note', function() {
+            $(document).on('click', '.note', function () {
                 try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
@@ -334,7 +334,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                         operator: search.Operator.CONTAINS,
                         values: invoiceNumber
                     }));
-                    noteSearch.run().each(function(res) {
+                    noteSearch.run().each(function (res) {
                         noteVal += res.getValue({ name: 'custrecord_debt_coll_note' });
                         date = res.getValue({ name: 'custrecord_debt_coll_note_date' })
                         author = res.getValue({ name: 'custrecord_debt_coll_note_author' });
@@ -374,7 +374,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             })
 
             // Notes Input and Submit
-            $(document).on('click', '.tickbox', function() {
+            $(document).on('click', '.tickbox', function () {
                 try {
                     var invoiceNumber = ($(this).attr('id')).split('_')[1];
                     var noteVal = $('#note_' + invoiceNumber).val();
@@ -420,7 +420,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Snooze Button
              */
-            $(document).on('click', '.timer', function() {
+            $(document).on('click', '.timer', function () {
                 try {
                     var tr = $(this).closest('tr');
                     var row = dataTable.row(tr);
@@ -510,7 +510,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             today_in_2week = dateISOToNetsuite(today_in_2week);
             today_in_2week = format.parse({ value: today_in_2week, type: format.Type.DATE }); // Date Object
 
-            $(document).on('click', '.timer-1day', function() {
+            $(document).on('click', '.timer-1day', function () {
                 var invoiceNumber = $(this).attr('id');
                 var recordID = $(this).attr('record');
                 console.log("Invoice Number: " + invoiceNumber);
@@ -523,7 +523,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     '_blank'
                 );
             });
-            $(document).on('click', '.timer-2day', function() {
+            $(document).on('click', '.timer-2day', function () {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -537,7 +537,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 );
 
             });
-            $(document).on('click', '.timer-1week', function() {
+            $(document).on('click', '.timer-1week', function () {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -550,7 +550,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     '_blank'
                 );
             });
-            $(document).on('click', '.timer-2week', function() {
+            $(document).on('click', '.timer-2week', function () {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -563,7 +563,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     '_blank'
                 );
             });
-            $(document).on('click', '.timer-permanent', function() {
+            $(document).on('click', '.timer-permanent', function () {
                 var invoiceNumber = $(this).attr('id');
                 console.log("Invoice Number: " + invoiceNumber);
                 var recordID = $(this).attr('record');
@@ -580,7 +580,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Team Member Button
              */
-            $(document).on('click', '.team', function() {
+            $(document).on('click', '.team', function () {
                 var tr = $(this).closest('tr');
                 var row = dataTable.row(tr);
                 var index = row.data();
@@ -628,7 +628,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $('#myModal3').modal("show");
             });
 
-            $(document).on('click', '.team_allocate', function() {
+            $(document).on('click', '.team_allocate', function () {
                 try {
                     var auth_id = $(this).attr('id');
                     var record_id = $(this).attr('record');
@@ -666,7 +666,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
              * Table Filters Section
              */
             // MP Ticket Column
-            $(document).on('click', '.toggle-mp-ticket', function(e) {
+            $(document).on('click', '.toggle-mp-ticket', function (e) {
                 e.preventDefault();
                 // Get the column API object
                 var column = dataTable.column(10);
@@ -686,20 +686,20 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             });
 
             // Matching MAAP Allocation Column
-            $(document).on('click', '.toggle-maap', function(e) {
+            $(document).on('click', '.toggle-maap', function (e) {
                 e.preventDefault();
 
                 // Ajax request
                 var fewSeconds = 5;
                 var btn = $(this);
                 btn.addClass('disabled');
-                setTimeout(function() {
+                setTimeout(function () {
                     btn.removeClass('disabled');
                 }, fewSeconds * 1000);
 
                 if ($(this).find('btn-danger')) {
                     $.fn.dataTable.ext.search.push(
-                        function(settings, searchData, index, rowData, counter) {
+                        function (settings, searchData, index, rowData, counter) {
                             if (rowData[13] == 'Not Payed') {
                                 return true;
                             }
@@ -709,14 +709,14 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     dataTable.draw();
                 }
             });
-            $(document).on('click', '.toggle-maap-danger', function(e) {
+            $(document).on('click', '.toggle-maap-danger', function (e) {
                 e.preventDefault();
                 $.fn.dataTable.ext.search.pop('');
                 dataTable.draw();
             });
 
             // MAAP Bank Account Column
-            $(document).on('click', '.toggle-maap-bank', function(e) {
+            $(document).on('click', '.toggle-maap-bank', function (e) {
                 e.preventDefault();
                 // Get the column API object
                 var column = dataTable.column(2);
@@ -727,39 +727,39 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 $(this).find('.span_class').toggleClass('glyphicon-plus');
                 $(this).find('.span_class').toggleClass('glyphicon-minus');
             });
-            
+
             /**
              *  Date Range Filter
              */
-             $('input[name="daterange"]').daterangepicker({
+            $('input[name="daterange"]').daterangepicker({
                 opens: 'left',
                 locale: {
                     format: 'DD/MM/YYYY',
                     cancelLabel: 'Clear'
                 }
             });
-            $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
+            $('input[name="daterange"]').on('apply.daterangepicker', function (ev, picker) {
                 console.log("A new date selection was made: " + picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
                 $.fn.dataTable.ext.search.pop('');
                 $.fn.dataTable.ext.search.push(
-                    function( settings, data, dataIndex ) {
+                    function (settings, data, dataIndex) {
                         var min = picker.startDate.format('YYYY-MM-DD');
                         var max = picker.endDate.format('YYYY-MM-DD');
                         var date_split = data[20].split('/');
                         console.log('Date Data being pushed' + data[20])
-                        if (!isNullorEmpty(data[20])){
+                        if (!isNullorEmpty(data[20])) {
                             var month = date_split[1];
-                            if (date_split[1].length == 1){
+                            if (date_split[1].length == 1) {
                                 month = '0' + month;
                             }
                             var days = date_split[0];
-                            if (date_split[0].length == 1){
+                            if (date_split[0].length == 1) {
                                 days = '0' + days;
                             }
                             var date = date_split[2] + '-' + month + '-' + days
                             console.log('Date Pushed' + date, 'Start Pushed' + min, 'End Pushed' + max);
-                        
-                            if (( min === null && max === null ) || ( min === null && date <= max ) || ( min <= date   && max === null ) || ( min <= date   && date <= max )) {
+
+                            if ((min === null && max === null) || (min === null && date <= max) || (min <= date && max === null) || (min <= date && date <= max)) {
                                 console.log(true);
                                 return true;
                             } else {
@@ -774,7 +774,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 );
                 dataTable.draw();
             });
-            $('input[name="daterange"]').on('cancel.daterangepicker', function(start, end, label) {
+            $('input[name="daterange"]').on('cancel.daterangepicker', function (start, end, label) {
                 $(this).val('');
                 $.fn.dataTable.ext.search.pop('');
                 dataTable.draw();
@@ -783,15 +783,15 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             /**
              *  Click for Instructions Section Collapse
              */
-            $('.collapse').on('shown.bs.collapse', function() {
+            $('.collapse').on('shown.bs.collapse', function () {
                 $(".range_filter_section_top").css("padding-top", "500px");
             })
-            $('.collapse').on('hide.bs.collapse', function() {
+            $('.collapse').on('hide.bs.collapse', function () {
                 $(".range_filter_section_top").css("padding-top", "0px");
             });
 
             // Redirect Service Debtors
-            $(document).on('click', '#redirect_serv_debt', function(){
+            $(document).on('click', '#redirect_serv_debt', function () {
                 var upload_url = baseURL + url.resolveScript({
                     deploymentId: "customdeploy_sl_service_debt",
                     scriptId: "customscript_sl_service_debt",
@@ -799,8 +799,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 window.open(upload_url, '_blank');
             })
 
-            if (!isNullorEmpty(dataTable)){
-                $(document).ready(function(){
+            if (!isNullorEmpty(dataTable)) {
+                $(document).ready(function () {
                     var column = dataTable.column([21]); // Company Name Column
                     column.visible(false)
                 });
@@ -858,33 +858,33 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     { title: 'Customer: Company Name' } // 21 - Company Name
                 ],
                 columnDefs: [{
-                        targets: [1, 5, 6, 7],
-                        className: 'bolded'
-                    },
-                    {
-                        width: '4%',
-                        targets: [5, 6, 7, 8, 9]
-                    },
-                    {
-                        width: '25%',
-                        targets: [3]
-                    },
-                    {
-                        width: '10%',
-                        targets: [4, 11, 12,  20, 21] //19,
-                    },
-                    {
-                        targets: [10, 13, 14, 15, 16, 17, 18],
-                        visible: false
-                    },
-                    {
-                        targets: -1,
-                        visible: false,
-                        searchable: false
-                    },
+                    targets: [1, 5, 6, 7],
+                    className: 'bolded'
+                },
+                {
+                    width: '4%',
+                    targets: [5, 6, 7, 8, 9]
+                },
+                {
+                    width: '25%',
+                    targets: [3]
+                },
+                {
+                    width: '10%',
+                    targets: [4, 11, 12, 20, 21] //19,
+                },
+                {
+                    targets: [10, 13, 14, 15, 16, 17, 18],
+                    visible: false
+                },
+                {
+                    targets: -1,
+                    visible: false,
+                    searchable: false
+                },
                 ],
                 autoWidth: false,
-                rowCallback: function(row, data) {
+                rowCallback: function (row, data) {
                     // $('td:eq(1)', row).html;       
                     $(row).addClass('')
                     if (data[19].includes('Yes')) {
@@ -924,7 +924,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             $(row).css('background-color', 'rgba(255, 0, 0, 0.4)'); // Red
                             $(row).addClass('showDanger')
                         }
-                    } 
+                    }
                 }
             });
 
@@ -986,7 +986,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var prefRecId = prefRec.save();
                 console.log('New Record Created For New User :' + prefRec);
             } else {
-                prefResult.each(function(pref) {
+                prefResult.each(function (pref) {
                     var internalid = pref.getValue({
                         name: 'internalid'
                     });
@@ -1018,7 +1018,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 })
             }
             afterSubmit();
-        }     
+        }
 
         function loadDebtRecord(range, userId, date_from, date_to, datatable) {
             var invoiceResults = search.load({
@@ -1067,7 +1067,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     filterExpression.push('AND', teamExpression);
                 } else {
                     console.log('No Team Member Select Filter has been Added')
-                        // Don't Filter. 
+                    // Don't Filter. 
                 }
             }
             filterExpression.push('AND', ['custrecord_debt_coll_inv_cust_name', search.Operator.DOESNOTCONTAIN, 'NP - ']);
@@ -1084,7 +1084,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
 
             if (!isNullorEmpty(invResultSet)) {
                 for (var i = 0; i < invResultSet.length; i++) {
-                    invResultSet[i].forEach(function(invoiceSet, index) {
+                    invResultSet[i].forEach(function (invoiceSet, index) {
 
                         var recID = invoiceSet.getValue({
                             name: 'internalid'
@@ -1141,12 +1141,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                             name: 'custrecord_debt_coll_viewed'
                         });
                         //Invoice Email Notification
-                        var inv_email_sent = invoiceSet.getValue({ name : 'custrecord_debt_coll_inv_email_sent' });
-                        var inv_email_sent_count = invoiceSet.getValue({ name : 'custrecord_debt_coll_inv_email_sent_cnt' });
+                        var inv_email_sent = invoiceSet.getValue({ name: 'custrecord_debt_coll_inv_email_sent' });
+                        var inv_email_sent_count = invoiceSet.getValue({ name: 'custrecord_debt_coll_inv_email_sent_cnt' });
 
                         var start_date = invoiceSet.getValue({ name: 'custrecord_debt_coll_commencement' });
 
-                        var company_name = invoiceSet.getValue({ 
+                        var company_name = invoiceSet.getValue({
                             name: 'custrecord_debt_coll_inv_comp_name'
                         })
 
@@ -1170,10 +1170,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                 id: recID,
                                 zzz: snooze,
                                 eye: viewed,
-                                inv_email_sent:inv_email_sent,
+                                inv_email_sent: inv_email_sent,
                                 inv_email_sent_count: inv_email_sent_count,
                                 sd: start_date,
-                                cmn:company_name
+                                cmn: company_name
                             });
                         }
                         return true;
@@ -1193,7 +1193,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var duplicate_set = [];
             var duplicate = false;
             if (!isNullorEmpty(debt_rows)) {
-                debt_rows.forEach(function(debt_row, index) {
+                debt_rows.forEach(function (debt_row, index) {
                     var invoice_id = debt_row.inid;
                     if (duplicate_set.indexOf(invoice_id) != -1) {
                         duplicate = true;
@@ -1224,7 +1224,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var customer_name = '<a href="' + baseURL + upload_url_cust + customer_id + '" target="_blank">' + cm_link + '</a>';
                     var zee = debt_row.zee;
                     var amount = parseFloat(debt_row.ta);
-                    debt_rows.forEach(function(debt) {
+                    debt_rows.forEach(function (debt) {
                         var cust_name = debt.cm;
                         if (cust_name == cm_link) {
                             count++;
@@ -1250,10 +1250,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                     var snooze = debt_row.zzz;
                     var viewed = debt_row.eye;
                     //Email Notification
-                    if (!isNullorEmpty(debt_row.inv_email_sent)){
-                        var inv_email_notification = '<p>'+ debt_row.inv_email_sent + ' : ' + debt_row.inv_email_sent_count+'</p>'
+                    if (!isNullorEmpty(debt_row.inv_email_sent)) {
+                        var inv_email_notification = '<p>' + debt_row.inv_email_sent + ' : ' + debt_row.inv_email_sent_count + '</p>'
                     } else {
-                        var inv_email_notification = '<p>'+ debt_row.inv_email_sent + ' : 0</p>'
+                        var inv_email_notification = '<p>' + debt_row.inv_email_sent + ' : 0</p>'
                     }
                     var start_date = debt_row.sd;
 
@@ -1270,7 +1270,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             return true;
         }
 
-        function saveRecord() {}
+        function saveRecord() { }
 
         /**
          * Sets the values of `date_from` and `date_to` based on the selected option in the '#period_dropdown'.
@@ -1360,12 +1360,12 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
          */
         function selectRangeOptions() {
             // var rangeArray = rangeSelection();
-            var range_filter = $('#range_filter option:selected').map(function() { return $(this).val() });
+            var range_filter = $('#range_filter option:selected').map(function () { return $(this).val() });
             range_filter = $.makeArray(range_filter);
             $('#range_filter').selectpicker('val', range_filter);
         }
         function selectTeamOptions() {
-            var team_filter = $('#team_filter option:selected').map(function() { return $(this).val() });
+            var team_filter = $('#team_filter option:selected').map(function () { return $(this).val() });
             team_filter = $.makeArray(team_filter);
             $('#team_filter').selectpicker('val', team_filter);
         }
@@ -1385,7 +1385,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
             var noteResults = noteSearch.run().getRange({ start: 0, end: 1 });
 
             if (!isNullorEmpty(noteResults)) {
-                noteResults.forEach(function(noteResult) {
+                noteResults.forEach(function (noteResult) {
 
                     // Load User Note and Save onto User Note record  
                     var noteID = noteResult.getValue({
@@ -1418,7 +1418,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 });
             } else {
                 console.log('USer Note not found. Creating New One')
-                    //Create new User Note and Save on record.
+                //Create new User Note and Save on record.
                 var userNoteRecord = record.create({
                     type: 'customrecord_debt_coll_user_note'
                 });
@@ -1451,10 +1451,10 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
          * @param {Array} billsDataSet The `billsDataSet` created in `loadDatatable()`.
          */
         function saveCSV(debtDataSet) {
-            var headers = $('#debt_preview').DataTable().columns().header().toArray().map(function(x) { return x.innerText });
+            var headers = $('#debt_preview').DataTable().columns().header().toArray().map(function (x) { return x.innerText });
             headers = headers.slice(0, headers.length - 1).join(', ');
             var csv = headers + "\n";
-            debtDataSet.forEach(function(row) {
+            debtDataSet.forEach(function (row) {
                 csv += row.join(',');
                 csv += "\n";
             });
@@ -1479,7 +1479,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
          * @returns {String} The same number, formatted in Australian dollars.
          */
         function financial(x) {
-            if (typeof(x) == 'string') {
+            if (typeof (x) == 'string') {
                 x = parseFloat(x);
             }
             if (isNullorEmpty(x) || isNaN(x)) {

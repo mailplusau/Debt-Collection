@@ -48,8 +48,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             $('#submitter').hide();
             $('#tbl_submitter').hide();
 
-            $('#resetter').hide();
-
             selectMemberOptions();
             selectTeamOptions();
 
@@ -92,9 +90,9 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             });
 
             $('#submit_arrange').click(function () {
-                var selection =  []
+                var selection = []
                 selection = $('#team_filter').val();
-                
+
                 var emp_id = selection;
                 currRec.setValue({ fieldId: 'custpage_debt_inv_assign_emp_id', value: [emp_id] }); // Array of Id's for Employees
                 var split_bool = false;
@@ -108,7 +106,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
              *  Split
              */
             $('#submit_split').click(function () {
-                var selection =  []
+                var selection = []
                 selection = $('#split_team_filter');
                 var employee_id = $('#split_member_filter'); // Id of Employee's list that will be split
 
@@ -123,7 +121,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
 
                 $('#submitter').trigger('click');
             });
-            $('#home_btn').click(function(){
+            $('#home_btn').click(function () {
 
             })
         }
