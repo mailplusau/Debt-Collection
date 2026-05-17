@@ -247,8 +247,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlineQty += '<select id="team_filter" class="form-control">';
             inlineQty += '<option value="" selected>- None -</option>';
             inlineQty += '<option value="691582">Turkan</option>';
-            inlineQty += '<option value="1807440">Sarah</option>';
-            // inlineQty += '<option value="429450">Jori</option>';
+            // inlineQty += '<option value="1807440">Sarah</option>';
+            inlineQty += '<option value="1953532">Rachael</option>';
             // inlineQty += '<option value="1626909">Azalea</option>';
             inlineQty += '<option value="1672674">Madillon</option>';
             inlineQty += '<option value="755585">Yassine</option>';

@@ -612,6 +612,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 bodyTimers += '<div class="col-md-3"><button type="button" id="1672674" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Madillon</span></button></div>';
                 bodyTimers += '<div class="col-md-3"><button type="button" id="755585" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Yassine</span></button></div>';
                 bodyTimers += '<div class="col-md-3"><button type="button" id="1807440" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Sarah</span></button></div>';
+                bodyTimers += '<div class="col-md-3"><button type="button" id="1953532" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">Rachael</span></button></div>';
                 bodyTimers += '<div class="col-md-3"><button type="button" id="924435" class="team_allocate form=control btn-xs" custid="' + custID + '" record="' + recordID + '"><span class="span_class">- Test -</span></button></div>';
                 bodyTimers += '</div>';
                 bodyTimers += '<br><br>';
@@ -1059,7 +1060,7 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                 var teamExpression = [];
                 var auth_id = $('#team_filter').val();
                 console.log('On Load Auth ID in Team Filter: ' + auth_id)
-                if ((parseInt(auth_id) == 691582) || parseInt(auth_id) == 755585 || (parseInt(auth_id) == 924435) || parseInt(auth_id) == 1672674) { // Old Ones: Jassmeet 1403209 || Jori - 429450 || Azalea - 1626909 || 
+                if ((parseInt(auth_id) == 691582) || parseInt(auth_id) == 755585 || (parseInt(auth_id) == 924435) || parseInt(auth_id) == 1672674 || parseInt(auth_id) == 1953532) { // Old Ones: Jassmeet 1403209 || Jori - 429450 || Azalea - 1626909 || 
                     if (!isNullorEmpty(auth_id)) {
                         teamExpression.push(['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id]) //  if (parseInt(range) == 0) { } else { teamExpression.push('AND', ['custrecord_debt_coll_auth_id', search.Operator.IS, auth_id]) }
                     } else {
