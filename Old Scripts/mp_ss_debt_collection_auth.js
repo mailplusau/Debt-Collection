@@ -15,7 +15,7 @@
  */
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
-    function(runtime, search, record, log, task, currentRecord, format) {
+    function (runtime, search, record, log, task, currentRecord, format) {
         var zee = 0;
         var role = 0;
 
@@ -43,7 +43,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             if (isNullorEmpty(auth_id)) {
                 auth_id = 1;
             }
-            var auth_id_set = ['Turkan', 'Yassine', 'Madillon']
+            var auth_id_set = ['Turkan', 'Rachael', 'Madillon']
             log.debug({
                 title: 'Allocate/Author ID',
                 details: auth_id
@@ -105,7 +105,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             //     title: 'Results: JSON String',
             //     details: JSON.parse(JSON.stringify(resultsSet))
             // });
-            resultsSet.forEach(function(invoiceSet, index) {
+            resultsSet.forEach(function (invoiceSet, index) {
                 indexInCallback = index;
                 seconday_index = main_index + index;
 
@@ -150,7 +150,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
                         log.audit({
                             title: 'In Search: Get Cust Value',
-                            details: 'Customer ID: ' + cust_id + ' | Current Author ID on Record: ' + custAuthField + ' | Assigning Author ID: ' + auth_id_set[parseInt(auth_id)-1]
+                            details: 'Customer ID: ' + cust_id + ' | Current Author ID on Record: ' + custAuthField + ' | Assigning Author ID: ' + auth_id_set[parseInt(auth_id) - 1]
                         });
                         if (auth_id == 1) {
                             custRecord.setValue({
@@ -159,15 +159,16 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             });
                         }
                         if (auth_id == 2) {
+                            // Mon, Jan 12, 2026 @ 2:30:36 PM - Changed from Yassine to Rachael
                             custRecord.setValue({
                                 fieldId: 'custentity_debt_coll_auth_id',
-                                value: 755585 // Yassine
+                                value: 1953532 // Rachael
                             });
                         }
                         if (auth_id == 3) {
                             custRecord.setValue({
                                 fieldId: 'custentity_debt_coll_auth_id',
-                                value:  1672674 // Madillon
+                                value: 1672674 // Madillon
                             });
                         }
                         var custRecSaveTicket = custRecord.save();

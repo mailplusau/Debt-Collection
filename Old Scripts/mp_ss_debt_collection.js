@@ -15,7 +15,7 @@
  */
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
-    function(runtime, search, record, log, task, currentRecord, format) {
+    function (runtime, search, record, log, task, currentRecord, format) {
         var zee = 0;
         var role = 0;
 
@@ -119,7 +119,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             //     end: 1
             // });
 
-            resultsSet.forEach(function(invoiceSet, index) {
+            resultsSet.forEach(function (invoiceSet, index) {
                 indexInCallback = index;
 
                 var usageLimit = ctx.getRemainingUsage();
@@ -278,7 +278,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         }));
                         var noteResults = noteSearch.run();
                         if (!isNullorEmpty(noteResults)) {
-                            noteResults.each(function(noteSet, index) {
+                            noteResults.each(function (noteSet, index) {
                                 var note_name = noteSet.getValue({
                                     name: 'name'
                                 });
@@ -334,7 +334,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         maap_status_search.filters.push(date_from_filter);
                         maap_status_search.filters.push(bankacc_filter);
                         var maap_results = maap_status_search.run().getRange({ start: 0, end: 1 });
-                        maap_results.forEach(function(status) {
+                        maap_results.forEach(function (status) {
                             var client_number = status.getValue({ name: 'custbody_maap_tclientaccount' });
                             if (maap_bank == client_number) {
                                 maap_status = 'Payed';
@@ -358,14 +358,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         }));
                         var inv_email_sent = 'No';
                         var inv_email_count = 0;
-                        servDebtEmail.run().each(function(res){
-                            if (!isNullorEmpty(res.getValue('internalid'))){
+                        servDebtEmail.run().each(function (res) {
+                            if (!isNullorEmpty(res.getValue('internalid'))) {
                                 inv_email_sent = 'Yes';
                             }
                             inv_email_count++;
                             return true;
                         });
-                        
+
                         /**
                          * Commencement Date - Search
                          * 1. Customer
@@ -380,7 +380,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         }));
                         var commencement_date = '';
                         var commencement_result = commencement_search.run().getRange({ start: 0, end: 1 })
-                        commencement_result.forEach(function(res) {
+                        commencement_result.forEach(function (res) {
                             commencement_date = res.getValue({ name: 'trandate' });
                             log.debug({
                                 title: 'commencement_date',
@@ -480,7 +480,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 fieldId: 'custrecord_debt_coll_inv_email_sent',
                                 value: inv_email_sent
                             });
-                            invRecord.setValue({ 
+                            invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_email_sent_cnt',
                                 value: parseInt(inv_email_count)
                             });
@@ -497,9 +497,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             //     value: viewed
                             // });
 
-                            invRecord.setValue({ 
+                            invRecord.setValue({
                                 fieldId: 'custrecord_debt_coll_inv_comp_name',
-                                value: company_name 
+                                value: company_name
                             });
 
                             invRecord.save();
@@ -666,7 +666,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
          * @returns {String} The same number, formatted in Australian dollars.
          */
         function financial(x) {
-            if (typeof(x) == 'string') {
+            if (typeof (x) == 'string') {
                 x = parseFloat(x);
             }
             if (isNullorEmpty(x) || isNaN(x)) {
